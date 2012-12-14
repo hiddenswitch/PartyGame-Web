@@ -9,7 +9,7 @@ Installation
 
 To run:
 
-    $ git clone
+    $ git clone https://github.com/doctorpangloss/redacted.git
     $ curl https://install.meteor.com | sh
     $ cd redacted
     $ meteor
