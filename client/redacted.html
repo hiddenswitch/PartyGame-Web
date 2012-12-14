@@ -1,0 +1,433 @@
+<head>
+	<title>Redacted</title>
+
+	<link rel="stylesheet" href="/themes/redacted-dark.min.css" />
+	<link rel="stylesheet" href="/themes/jquery.mobile.structure-1.2.0.min.css" />
+
+	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+	<script type="text/javascript">
+	$(document).bind("mobileinit",function(event,data){
+		$.mobile.autoInitializePage=true;
+		$.mobile.defaultPageTransition='slide';
+	});
+	</script>
+	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+	<script type="text/javascript">
+	var _gaq = _gaq || [];_gaq.push(['_setAccount', 'UA-34256916-3']);_gaq.push(['_trackPageview']);(function() {var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);})();
+	</script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+</head>
+
+<body>
+	<div data-role="page" id="home" data-theme="a">
+		<div data-role="header">
+			<h1>Redacted Online</h1>
+		</div>
+		<div data-role="content">
+			<ul data-role="listview" data-inset="true" class="rounded">
+				{{#isolate}}
+					{{> menu}}
+				{{/isolate}}
+			</ul>
+			{{#isolate}}
+				{{> connection}}
+				{{> error}}
+			{{/isolate}}
+		</div>
+	</div>
+
+	<div data-role="page" id="game" data-theme="a">
+		<div data-role="header">
+				<a href="#home" data-icon="arrow-l">Back</a>
+				<h1>
+				{{#isolate}}
+					{{#if gameGame}}
+						Round {{gameRound}} in {{gameTitle}}
+					{{else}}
+						Loading game...
+					{{/if}}
+				{{/isolate}}
+				</h1>
+				<a href="#home" data-icon="delete" onclick="quitThisGame()">Quit</a>
+		</div>
+		<div data-role="content">
+            {{#isolate}}
+                {{> connection}}
+                {{> error}}
+            {{/isolate}}
+
+            <ul data-role="listview" data-inset="true" data-divider-theme="a">
+				{{#isolate}}
+					{{#if gameLastVote}}
+						{{#with gameLastVote}}
+                            <li data-role="list-divider">{{userIdToName judgeId}} Picked {{userIdToName userId}}'s Card</li>
+							<li>{{{questionAndAnswerText questionId answerId}}}</li>
+						{{/with}}
+					{{/if}}
+				{{/isolate}}
+			</ul>
+
+            <ul data-role="listview" data-inset="true" data-divider-theme="a">
+                <li data-role="list-divider">Judge</li>
+                {{#isolate}}
+                {{> judge}}
+                {{/isolate}}
+            </ul>
+
+			<ul data-role="listview" data-inset="true" data-theme="b" data-divider-theme="b">
+                <li data-role="list-divider">Question</li>
+				{{#isolate}}
+					{{> question}}
+				{{/isolate}}
+			</ul>
+
+            <div data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="true" data-collapsed="false">
+                <h3>Submitted Cards</h3>
+                <ul data-role="listview" data-inset="true" data-theme="c">
+                    {{#isolate}}
+                        {{> submissions}}
+                    {{/isolate}}
+                </ul>
+            </div>
+
+
+            <div data-role="collapsible" data-theme="d" data-content-theme="d" data-inset="true" data-collapsed="false">
+                <h3>Your Hand</h3>
+                <ul data-role="listview" data-inset="true" data-theme="d">
+                    {{#isolate}}
+                        {{> hand}}
+                    {{/isolate}}
+                </ul>
+            </div>
+
+            <div data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="true">
+                <h3>Scores</h3>
+                <ul data-role="listview" data-inset="true" data-split-icon="delete">
+                    {{#isolate}}
+                        {{> scores}}
+                    {{/isolate}}
+                </ul>
+            </div>
+
+			{{#isolate}}
+				{{#if gameIsOwner}}
+					<a href="#home" data-role="button" data-icon="delete" onclick="closeThisGame()">Close This Game</a>
+				{{/if}}
+			{{/isolate}}
+		</div>
+	</div>
+	
+	<div data-role="page" id="browse" data-add-back-btn="true" data-theme="a">
+		<div  data-role="header">
+			<h1>Browse Games</h1>
+		</div>
+		<div data-role="content">
+
+		<ul data-role="listview" data-inset="true" class="rounded">
+            <li data-role="list-divider">Open Games</li>
+			{{#isolate}}
+				{{> browse}}
+			{{/isolate}}
+		</ul>
+		{{#isolate}}
+			{{> connection}}
+			{{> error}}
+		{{/isolate}}
+		</div>
+	</div>
+	
+	<div data-role="page" id="myGames" data-add-back-btn="true" data-theme="a">
+		<div  data-role="header">
+			<h1>My Games</h1>
+		</div>
+		<div data-role="content">
+		<ul data-role="listview" data-inset="true" class="rounded">
+            <li data-role="list-divider">Games I'm Playing</li>
+			{{#isolate}}
+				{{> myGames}}
+			{{/isolate}}
+		</ul>
+		{{#isolate}}
+			{{> connection}}
+			{{> error}}
+		{{/isolate}}
+		</div>
+	</div>
+	
+	<div data-role="page" id="createGame" data-add-back-btn="true" data-theme="a">
+		<div data-role="header">
+			<h1>Create New Game</h1>
+		</div>
+		<div data-role="content">
+			<form>
+				<label for="gameTitle" class="ui-hidden-accessible">Title</label>
+				<input type="text" name="gameTitle" id="gameTitle" value="" placeholder="Title"/>
+				<label for="gamePassword" class="ui-hidden-accessible">Password</label>
+				<input type="text" name="gamePassword" id="gamePassword" value="" placeholder="Password (Unsupported)"/>
+			</form>
+			<a href="#" data-role="button" data-icon="plus" onclick="createAndJoinGame()">Create and Join</a>
+			{{#isolate}}
+				{{> connection}}
+				{{> error}}
+			{{/isolate}}
+		</div>
+	</div>
+	
+	<div data-role="page" id="signUp" data-add-back-btn="true" data-theme="a">
+		<div data-role="header">
+			<h1>Sign Up</h1>
+		</div>
+		<div data-role="content">
+			<form>
+				<label for="signUpUsername" class="ui-hidden-accessible">Username</label>
+				<input type="text" name="signUpUsername" id="signUpUsername" value="" placeholder="Username"/>
+				<label for="signUpEmail" class="ui-hidden-accessible">E-mail Address</label>
+				<input type="email" name="signUpEmail" id="signUpEmail" value="" placeholder="E-mail Address"/>
+				<label for="signUpUsername" class="ui-hidden-accessible">Password</label>
+				<input type="password" name="signUpPassword" id="signUpPassword" value="" placeholder="Password"/>
+			</form>
+			<a href="#" data-role="button" data-icon="plus" onclick="signUp()">Sign Up</a>
+			{{#isolate}}
+				{{> connection}}
+				{{> error}}
+			{{/isolate}}
+		</div>
+	</div>
+	
+	<div data-role="page" id="login" data-add-back-btn="true" data-theme="a">
+		<div data-role="header">
+			<h1>Login</h1>
+		</div>
+		<div data-role="content">
+			<a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
+			<a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
+			<form>
+				<label for="loginUsernameOrEmail" class="ui-hidden-accessible">Username or E-mail</label>
+				<input type="text" name="loginUsernameOrEmail" id="loginUsernameOrEmail" value="" placeholder="Username or E-mail"/>
+				<label for="loginPassword" class="ui-hidden-accessible">Password</label>
+				<input type="password" name="loginPassword" id="loginPassword" value="" placeholder="Password"/>
+			</form>
+			<a href="#" data-role="button" data-icon="plus" onclick="login()">Login</a>
+			{{#isolate}}
+				{{> connection}}
+				{{> error}}
+			{{/isolate}}
+		</div>
+	</div>
+	
+	<div data-role="page" id="preview" data-add-back-btn="true" data-theme="a">
+		<div data-role="header">
+			<h1>Preview</h1>
+		</div>
+		<div data-role="content">
+			<ul data-role="listview" data-inset="true" data-theme="e">
+				{{#isolate}}
+					{{> preview}}
+				{{/isolate}}
+			</ul>
+			<div class="ui-grid-a">
+				<div class="ui-block-a"><a href="#game" onclick="previewNo()" data-icon="minus" data-role="button">Nah</a></div>
+				<div class="ui-block-b"><a href="#game" data-theme="d" onclick="previewYes()" data-icon="check" data-role="button">Yep</a></div>
+			</div>
+		</div>
+	</div>
+
+    <div data-role="page" id="news" data-add-back-btn="true" data-theme="a">
+        <div data-role="header">
+            <h1>News</h1>
+        </div>
+        <div data-role="content">
+            <div data-role="collapsible">
+                <h3>Welcome to Redacted Online! The Features</h3>
+                <p>Thanks for visiting. This is the first ready-to-play version of Redacted Online, a Cards Against
+                    Humanity online clone.</p>
+                <p>Please visit <a href="www.cardsagainsthumanity.com">Cards Against Humanity</a> for an overview of the
+                    game.</p>
+                <p>In the first release, Redacted Online features <span style="font-style: italic">almost</span>
+                    everything you need to get started.</p>
+                <div data-role="collapsible" data-theme="b" data-content-theme="a" data-collapsed="false">
+                    <h3>Local Matchmaking</h3>
+                    <p>Login, and tap Quick Match. You'll join into the game nearest to you! Great for parties and angry
+                        mobs.</p>
+                </div>
+                <div data-role="collapsible" data-theme="b" data-content-theme="a" data-collapsed="false">
+                    <h3>The Full Cards Against Humanity Deck</h3>
+                    <p>Licensed Creative Commons BY-NC-SA 2.0. Buy their game.</p>
+                </div>
+                <div data-role="collapsible" data-theme="b" data-content-theme="a" data-collapsed="false">
+                    <h3>Cross-Platform</h3>
+                    <p>Visit redacted.meteor.com and play on your iPhone, iPad, Android phone, Mac or PC—even Internet
+                        Explorer, and even the five of you that own Windows phones.</p>
+                </div>
+                <div data-role="collapsible" data-theme="b" data-content-theme="a" data-collapsed="false">
+                    <h3>Game Maintenance</h3>
+                    <p>Old games get removed. Games with no connected players get removed. Disconnected players don't
+                        get to judge. Game owners can kick players and close down the game. These features help keep the
+                    system working so you don't have to.</p>
+                </div>
+            </div>
+            <div data-role="collapsible">
+                <h3>The Roadmap: Upcoming Features</h3>
+                <p>More animations, graphics and sex. Everything you want.</p>
+                <div data-role="collapsible" data-theme="b" data-content-theme="a" data-collapsed="false">
+                    <h3>Virtual Table With An iPad</h3>
+                    <p>See the cards played on the "table" with an iPad. Great for parties.</p>
+                </div>
+                <div data-role="collapsible" data-theme="b" data-content-theme="a" data-collapsed="false">
+                    <h3>Hot Seat Play</h3>
+                    <p>Play with one iPad, iPhone, Android Phone, Mac or PC. Just like Redacted for iPad.</p>
+                </div>
+                <div data-role="collapsible" data-theme="b" data-content-theme="a" data-collapsed="false">
+                    <h3>Passwords</h3>
+                    <p>Passwords on games. Pretty handy for private stuff.</p>
+                </div>
+                <div data-role="collapsible" data-theme="b" data-content-theme="a" data-collapsed="false">
+                    <h3>Native Apps</h3>
+                    <p>100% native clients for iPhone, iPad and Android. But this interface is still pretty
+                    great, don't you think?</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+	<div data-role="page" id="areYouSure" data-theme="a">
+		<div data-role="header">
+			<h1>Preview</h1>
+		</div>
+		<div data-role="content">
+			<div class="ui-grid-a">
+				<div class="ui-block-a"><a href="#game" onclick="previewNo()" data-icon="minus" data-role="button">Nah</a></div>
+				<div class="ui-block-b"><a href="#game" data-theme="d" onclick="previewYes()" data-icon="check" data-role="button">Yep</a></div>
+			</div>
+		</div>
+	</div>
+</body>
+
+<template name="game">
+	
+</template>
+
+<template name="players">
+	
+</template>
+
+<template name="browse">
+	{{#if games}}
+		{{#each games}}
+		<li><a class="openGameLink" href="#game" id="{{_id}}">{{title}}
+            <span class="ui-li-count">{{users.length}}</span></a></li>
+		{{/each}}
+    {{else}}
+        <li>No open games.</li>
+	{{/if}}
+</template>
+
+<template name="myGames">
+	{{#if games}}
+		{{#each games}}
+		<li><a class="openGameLink" href="#game" id="{{_id}}">{{title}}
+            <span class="ui-li-count">{{users.length}}</span></a></li>
+		{{/each}}
+    {{else}}
+        <li>Not in any games.</li>
+	{{/if}}
+</template>
+
+<template name="judge">
+	{{#if judgeEmailAddress}}
+		{{#if isJudge}}
+			<li data-icon="star">You are the judge!</li>
+		{{else}}
+			<li>{{judgeEmailAddress}}</li>
+		{{/if}}
+	{{/if}}
+</template>
+
+<template name="question">
+	{{#if question}}
+		<li>{{question}}</li>
+	{{/if}}
+</template>
+
+<template name="menu">
+	A Card Against Humanity clone. Which is itself an Apples to Apples clone. Except more disgusting, angry, humiliating, possessive, and mom-like. This is a beta.
+	<p>&nbsp;</p>Read the question. Pick the funniest answer from your hand. When you judge, pick the funniest submission.<p>&nbsp;</p>
+	{{#if currentUser}}
+		<li class="ui-btn-up-b"><a id="matchButton" href="#game" onclick="matchMake()">Quick Match</a></li>
+        <li class="ui-btn-up-c"><a href="#myGames">My Games</a></li>
+        <li class="ui-btn-up-d"><a href="#news">News</a></li>
+        <li><a href="#browse">Browse Open Games</a></li>
+		<li><a href="#createGame">Create New Game</a></li>
+		<li><a href="#" onclick="Meteor.logout()">Logout</a></li>
+	{{else}}
+		Login with Facebook or Google, or create a new account below. It only takes a few seconds.<p>&nbsp;</p>
+        <li class="ui-btn-up-b"><a href="#news">News</a></li>
+        <li><a href="#login">Login</a></li>
+		<li><a href="#signUp">Sign Up</a></li>
+	{{/if}}
+</template>
+
+<template name="submissions">
+	{{#if submissions}}
+		{{#each submissions}}
+			{{#if judgeIsJudge}}
+				<li><a class="submission" id="{{_id}}" href="#preview">{{{text}}}</a></li>
+			{{else}}
+				<li>{{{text}}}</li>
+			{{/if}}
+		{{/each}}
+	{{else}}
+		<li>No submissions yet.</li>
+	{{/if}}
+</template>
+
+<template name="scores">
+	{{#if scores}}
+		{{#each scores}}
+			{{#if gameIsOwner}}
+				<li>
+					<a href="#">{{userIdToName userId}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></a>
+					<a onclick="kickThisPlayer('{{userId}}')" class="userKick" href="#" id="{{userId}}">Kick</a>
+				</li>
+			{{else}}
+				<li>{{userIdToName userId}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></li>
+			{{/if}}
+		{{/each}}
+	{{/if}}
+</template>
+
+<template name="hand">
+	{{#if gameIsOpen}}
+		{{#if hand}}
+			{{#each cardsInHand}}
+				<li><a class="card" id="{{_id}}" href="#preview">{{{text}}}</a></li>
+			{{/each}}
+		{{/if}}
+	{{else}}
+		<li>Game closed.</li>
+	{{/if}}
+</template>
+
+<template name="error">
+	{{#if error}}
+		<p>{{error}}</p>
+	{{/if}}
+</template>
+
+<template name="preview">
+	{{#if text}}
+		<li style="margin-left:auto; margin-right:auto; height:226px; width:178px;">{{{text}}}</li>
+	{{/if}}
+</template>
+
+<template name="connection">
+	{{#if connectionStatus}}
+		{{connectionStatus}}
+		<p>&nbsp;</p>
+	{{/if}}
+	{{#if loggingIn}}
+		Logging in...
+	{{/if}}
+</template>
