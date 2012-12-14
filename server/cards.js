@@ -1,5 +1,10 @@
 /**
  * @author Benjamin Berman
+ * Derived from Cards Against Humanity
+ * Creative Commons NC-BY-SA 2.0
+ *
+ * This derived work, cards.js, is also licensed
+ * Creative Commons NC-BY-SA 2.0
  */
 
 var CAH_QUESTION_CARDS = ["A romantic, candlelit dinner would be incomplete without __.",
