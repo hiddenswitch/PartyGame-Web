@@ -1,0 +1,18 @@
+{
+    "packages": {
+        "moment": "1.7.0",
+        "fork-me": {
+            "version": "0.0.1"
+        },
+        "cool-tool": {
+            "git": "https://github.com/possibilities/cool-tool.git",
+            "tag": "v0.0.2"
+        },
+        "another-tool": {
+            "git": "https://github.com/possibilities/another-tool.git"
+        },
+        "test-package": {
+            "path": "/path/to/local/package"
+        }
+    }
+}
