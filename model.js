@@ -268,13 +268,12 @@ var cardIdToText = function(cardId) {
  * Game flow:
  * 
  * 1. Match
- * 2. Players >= 3, start game
- * 3. Draw cards
- * 4. Submit answer cards
- * 5. Pick winner
- * 6. Commit votes
- * 7. Increment round counter
- * 8. Go back to #3
+ * 2. Draw cards
+ * 3. Submit answer cards
+ * 4. Pick winner
+ * 5. Commit votes
+ * 6. Increment round counter
+ * 7. Go back to #2
  * 
  */
 
