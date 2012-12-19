@@ -147,39 +147,55 @@ var submissionIdToCardId = function(id) {
 var questionAndAnswerText = function(questionCardId,answerCardId) {
 	var q = cardIdToText(questionCardId);
 	var c = cardIdToText(answerCardId);
-	var match = /(.{0,2})(__)(.+)/;
-	var beforeAndAfter = match.exec(q);
-	
-	var isName = /[A-Z]\w+\s+[A-Z]/;
-	
-	if (c && beforeAndAfter && beforeAndAfter[2]) {
-		var before = beforeAndAfter[1];
-		var startsWithPeriod = /[\.\?!]\s/;
-		
-		// check if the card text should be lowercase
-		if (!startsWithPeriod.exec(before) && !isName.exec(c)) {
-			c = c.charAt(0).toLowerCase() + c.slice(1);
-		}
-		
-		// check if the triple underscore ends with a punctuation
-		
-		var after = beforeAndAfter[3];
-		
-		// since there is stuff after, remove punctuation.
-		if (after) {
-			var punctuation = /[^\w\s]/;
-			
-			// if the card text ends in punctuation, remove any existing punctuation
-			if (punctuation.exec(after))
-				c = c.slice(0,c.length-1);
-		}
-		
-		return q.replace("__","<span style='font-style:italic;'>"+c+"</span>");
-	} else if (c) {
-		return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
-	} else {
-		return "Loading card...";
-	}
+
+    if (!c || !q) {
+        return "Loading card...";
+    }
+
+    var matches = [];
+    var match = /(.{0,2})(__)(.+)/g;
+    var isName = /^[A-Z]\w+\s+[A-Z]/;
+
+    // Handle multiple underscores
+    while ((beforeAndAfter = match.exec(q)) !== null) {
+        // clone array into matches
+        matches.push(beforeAndAfter.slice(0));
+    }
+
+    var replacements = _.map(matches, function (anUnderscore) {
+        if (c && anUnderscore && anUnderscore[2]) {
+            var before = anUnderscore[1];
+            var startsWithPeriod = /[\.\?!]\s/;
+
+            // check if the card text should be lowercase
+            if (before != "" && !startsWithPeriod.exec(before) && !isName.exec(c)) {
+                c = c.charAt(0).toLowerCase() + c.slice(1);
+            }
+
+            // check if the triple underscore ends with a punctuation
+
+            var after = anUnderscore[3];
+
+            // since there is stuff after, remove punctuation.
+            if (after) {
+                var punctuation = /[^\w\s]/;
+
+                // if the card text ends in punctuation, remove any existing punctuation
+                if (punctuation.exec(after))
+                    c = c.slice(0,c.length-1);
+            }
+
+            return "<span style='font-style:italic;'>"+c+"</span>";
+        }
+    });
+
+    if (replacements && replacements.length > 0) {
+        return _.reduce(replacements,function(memo,text) {
+            memo = memo.replace(/__/,text);
+        },q);
+    } else {
+        return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
+    }
 	
 	return "Loading card...";
 }
