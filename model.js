@@ -7,8 +7,9 @@
 var THEME_URL = "http://jquerymobile.com/themeroller/?ver=1.2.0&style_id=20121211-131";
 
 var K_DEFAULT_HAND_SIZE = 8; // default hand size
-var K_HEARTBEAT = 8*1000; // default heartbeat length
-var K_LOCAL_DISTANCE = 0.0001; // distance in lat-lon units, approximately 50 ft
+var K_HEARTBEAT = 8 * 1000; // default heartbeat length
+var K_LOCAL_DISTANCE = 0.0003; // distance in lat-lon units, approximately 150 ft (?)
+var K_PREFERRED_GAME_SIZE = 7; // the size of a game matchmaking prefers to make
 
 var E_NO_MORE_CARDS = "No more cards.";
 var E_GAME_OVER = "The game is over.";
@@ -549,7 +550,8 @@ Meteor.methods({
 	},
 
 	findGameWithFewPlayers: function() {
-		var game = Games.findOne({open:true, $where: "this.users.length < 5"});
+        // find the latest game with fewer than five players
+		var game = Games.find({open:true, $where: "this.users.length < " + K_PREFERRED_GAME_SIZE.toString()}).sort({modified:-1}).fetch()[0];
 		
 		if (!game)
 			return false;
@@ -558,9 +560,6 @@ Meteor.methods({
 	},
 
     findLocalGame: function(location) {
-        if (this.isSimulation)
-            return false;
-
         location = location || null;
 
         if (!location)

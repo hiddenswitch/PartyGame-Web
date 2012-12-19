@@ -35,7 +35,8 @@ Meteor.publish("cards",function() {
 });
 
 Meteor.publish("usersInGame",function(gameId) {
-	return Meteor.users.find({},{fields:{_id:1,username:1,emails:1,profile:1}});
+    // privacy concerns. but does not update correctly when gameId changes.
+	return Meteor.users.find({},{fields:{_id:1,username:1,emails:1,profile:1,location:1}});
 });
 
 Meteor.startup(function () {
