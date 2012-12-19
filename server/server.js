@@ -40,26 +40,43 @@ Meteor.publish("usersInGame",function(gameId) {
 
 Meteor.startup(function () {
     // enable the geospatial index on games and users
-    Games._ensureIndex({ location : "2d" });
-    Meteor.users._ensureIndex({location:"2d"});
+    try {
+        Games._ensureIndex({modified:-1,location:"2d"});
+        Meteor.users._ensureIndex({location:"2d"});
+    } catch (e) {
+        console.log("Indexing failure.");
+    }
 
+    try {
+        if (Cards.find({}).count() < 1) {
+            _.forEach(CAH_QUESTION_CARDS,function(c){
+                Cards.insert({text:c,type:CARD_TYPE_QUESTION});
+            });
 
-	
-	if (Cards.find({}).count() < 1) {
-		_.forEach(CAH_QUESTION_CARDS,function(c){
-			Cards.insert({text:c,type:CARD_TYPE_QUESTION});
-		});
-		
-		_.forEach(CAH_ANSWER_CARDS,function(c){
-			Cards.insert({text:c,type:CARD_TYPE_ANSWER});
-		});
-	}
+            _.forEach(CAH_ANSWER_CARDS,function(c){
+                Cards.insert({text:c,type:CARD_TYPE_ANSWER});
+            });
+        }
+    } catch (e) {
+        console.log("Card creation failure.");
+    }
+
 
     // make sure users have full schema
-    Meteor.users.update({heartbeat:{$exists:false},location:{$exists:false}},{$set:{heartbeat:new Date(),location:null}},{multi:true});
+    try {
+        Meteor.users.update({heartbeat:{$exists:false},location:{$exists:false}},{$set:{heartbeat:new Date(),location:null}},{multi:true});
+    } catch (e) {
+        console.log("User schema extension failure.");
+    }
+
 
     // make sure games have full schema
-    Games.update({connected:{$exists:false},modified:{$exists:false}},{$set:{connected:[],modified:new Date()}},{multi:true});
+    try {
+        Games.update({connected:{$exists:false},modified:{$exists:false}},{$set:{connected:[],modified:new Date()}},{multi:true});
+    } catch (e) {
+        console.log("Game schema extension failure.");
+    }
+
 
     // maintenance
     Meteor.autorun(function() {
