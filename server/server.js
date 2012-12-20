@@ -80,7 +80,7 @@ Meteor.startup(function () {
 
 
     // maintenance
-    Meteor.autorun(function() {
+    Meteor.setInterval(function() {
         // close old games or games with no connected users
         Games.find({open:true,$or:
             [{$where:"new Date() - this.modified > 20*" + K_HEARTBEAT}, // close the game after 20 heartbeats
@@ -89,5 +89,13 @@ Meteor.startup(function () {
                     {$set:{open:false}});
                 console.log("Closed game "+game._id);
         });
+    },10*K_HEARTBEAT);
+
+    // clean up submissions and such when the user data change
+    Meteor.autorun(function() {
+        Games.find({open:true,$where:"this.users.length != this.connected.length"}).forEach(function (game){
+            // remove submissions from the new judge when the connected users change (and hence the judge changes
+            Submissions.remove({userId:getJudgeId(game),gameId:game._id});
+        })
     });
 });
