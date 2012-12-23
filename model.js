@@ -146,8 +146,8 @@ var submissionIdToCardId = function(id) {
 }
 
 var questionAndAnswerText = function(questionCardId,answerCardId) {
-	var q = cardIdToText(questionCardId);
-	var c = cardIdToText(answerCardId);
+    var q = cardIdToText(questionCardId);
+    var c = cardIdToText(answerCardId);
 
     if (!c || !q) {
         return "Loading card...";
@@ -157,10 +157,13 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     var match = /(.{0,2})(__)(.+)/g;
     var isName = /^[A-Z]\w+\s+[A-Z]/;
 
+    var beforeAndAfter = match.exec(q);
+
     // Handle multiple underscores
-    while ((beforeAndAfter = match.exec(q)) !== null) {
+    while (!beforeAndAfter) {
         // clone array into matches
         matches.push(beforeAndAfter.slice(0));
+        beforeAndAfter = match.exec(q);
     }
 
     var replacements = _.map(matches, function (anUnderscore) {
@@ -197,8 +200,8 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     } else {
         return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
     }
-	
-	return "Loading card...";
+
+    return "Loading card...";
 }
 
 // Match into an existing game, or create a new one to join into
