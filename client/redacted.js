@@ -202,10 +202,13 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     var match = /(.{0,2})(__)(.+)/g;
     var isName = /^[A-Z]\w+\s+[A-Z]/;
 
+    var beforeAndAfter = match.exec(q);
+
     // Handle multiple underscores
-    while ((beforeAndAfter = match.exec(q)) !== null) {
+    while (!beforeAndAfter) {
         // clone array into matches
         matches.push(beforeAndAfter.slice(0));
+        beforeAndAfter = match.exec(q);
     }
 
     var replacements = _.map(matches, function (anUnderscore) {

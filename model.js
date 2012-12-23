@@ -550,7 +550,7 @@ Meteor.methods({
 
 	findGameWithFewPlayers: function() {
         // find the latest game with fewer than five players
-		var game = Games.find({open:true, $where: "this.users.length < " + K_PREFERRED_GAME_SIZE.toString()}).sort({modified:-1}).fetch()[0];
+		var game = Games.find({open:true, $where: "this.users.length < " + K_PREFERRED_GAME_SIZE.toString()}).fetch()[0];
 		
 		if (!game)
 			return false;
