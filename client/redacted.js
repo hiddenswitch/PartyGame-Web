@@ -205,7 +205,7 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     var beforeAndAfter = match.exec(q);
 
     // Handle multiple underscores
-    while (!beforeAndAfter) {
+    while (beforeAndAfter) {
         // clone array into matches
         matches.push(beforeAndAfter.slice(0));
         beforeAndAfter = match.exec(q);
