@@ -195,7 +195,7 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
 
     if (replacements && replacements.length > 0) {
         return _.reduce(replacements,function(memo,text) {
-            memo = memo.replace("__",text);
+            return memo.replace("__",text);
         },q);
     } else {
         return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
