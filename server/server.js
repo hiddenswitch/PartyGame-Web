@@ -49,6 +49,14 @@ Meteor.startup(function () {
     }
 
     try {
+        // Add a blank answer card.
+        var blankAnswerCard = Cards.findOne(CARD_BLANK_ANSWER_CARD);
+
+        if (blankAnswerCard)
+            K_BLANK_ANSWER_CARD = blankAnswerCard._id;
+        else
+            K_BLANK_ANSWER_CARD = Cards.insert(CARD_BLANK_ANSWER_CARD)
+
         if (Cards.find({}).count() < 1) {
             _.forEach(CAH_QUESTION_CARDS,function(c){
                 Cards.insert({text:c,type:CARD_TYPE_QUESTION});
@@ -89,12 +97,4 @@ Meteor.startup(function () {
                 console.log("Closed game "+game._id);
         });
     });
-
-//    // clean up submissions and such when the user data change
-//    Meteor.autorun(function() {
-//        Games.find({open:true,$where:"this.users.length != this.connected.length"}).forEach(function (game){
-//            // remove submissions from the new judge when the connected users change (and hence the judge changes
-//            Submissions.remove({userId:getJudgeId(game),gameId:game._id});
-//        })
-//    });
 });

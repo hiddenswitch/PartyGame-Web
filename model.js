@@ -10,6 +10,7 @@ var K_DEFAULT_HAND_SIZE = 8; // default hand size
 var K_HEARTBEAT = 8 * 1000; // default heartbeat length
 var K_LOCAL_DISTANCE = 0.0003; // distance in lat-lon units, approximately 150 ft (?)
 var K_PREFERRED_GAME_SIZE = 7; // the size of a game matchmaking prefers to make
+var K_BLANK_ANSWER_CARD = ""; // the id of the blank answer card.
 
 var E_NO_MORE_CARDS = "No more cards.";
 var E_GAME_OVER = "The game is over.";
@@ -45,6 +46,7 @@ var GAMES_SCHEMA = function() {
 
 var CARD_TYPE_QUESTION = 1; // card of type question
 var CARD_TYPE_ANSWER = 2; // card of type answer
+var CARD_BLANK_ANSWER_CARD = {type:CARD_TYPE_ANSWER,text:'(Waiting for submissions...)'};
 
 var CARD_SCHEMA = function() {
 	return {
