@@ -413,7 +413,6 @@ Meteor.subscribe("openGames");
 Meteor.subscribe("myHands");
 Meteor.subscribe("myGames");
 Meteor.subscribe("myOwnedGames");
-Meteor.subscribe("mySubmissions");
 Meteor.subscribe("cards");	
 
 Meteor.startup(function() {

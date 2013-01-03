@@ -22,10 +22,6 @@ Meteor.publish("submissions", function(gameId) {
 	return Submissions.find({gameId:gameId},{fields:{_id:1,gameId:1,answerId:1,round:1}});
 });
 
-Meteor.publish("mySubmissions", function() {
-	return Submissions.find({userId:this.userId});
-});
-
 Meteor.publish("votesInGame",function(gameId){
 	return Votes.find({gameId:gameId});
 });
