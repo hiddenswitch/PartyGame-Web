@@ -131,7 +131,7 @@ var userIdToName = function(id) {
 	var u = Meteor.users.findOne({_id:id});
 	
 	if (!u)
-		return "Loading user...";
+		return "REDACTED.";
 	
 	if (u.profile && u.profile.name)
 		return u.profile.name;
@@ -144,7 +144,11 @@ var userIdToName = function(id) {
 }
 
 var submissionIdToCardId = function(id) {
-	return Submissions.findOne({_id:id}).answerId;
+	var submission = Submissions.findOne({_id:id});
+    if (submission.answerId)
+        return submission.answerId;
+    else
+        return "";
 }
 
 var questionAndAnswerText = function(questionCardId,answerCardId) {
@@ -152,7 +156,7 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     var c = cardIdToText(answerCardId);
 
     if (!c || !q) {
-        return "Loading card...";
+        return "REDACTED.";
     }
 
     var matches = [];
@@ -203,7 +207,7 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
         return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
     }
 
-    return "Loading card...";
+    return "REDACTED.";
 }
 
 // Match into an existing game, or create a new one to join into
@@ -267,7 +271,7 @@ var cardIdToText = function(cardId) {
 	if (c)
 		return c.text;
 	else
-		return "Loading card text...";
+		return "REDACTED.";
 }
 /*
  * Game flow:
@@ -386,6 +390,9 @@ Meteor.methods({
 	submitAnswerCard: function(gameId,answerId) {
 		var game = Games.findOne({_id:gameId, users:this.userId});
 
+        if (!answerId || answerId == "")
+            throw new Meteor.Error(500,"You can't vote for a redacted answer!");
+
 		if (!game)
 			throw new Meteor.Error(404,"No game found to submit answer card to.");
 		
@@ -447,8 +454,11 @@ Meteor.methods({
 			throw new Meteor.Error(404,"Submission not found.");
 		
 		if (submission.userId == judgeId)
-			throw new Meteor.Error("You cannot pick your own card as the winning card.");
-		
+			throw new Meteor.Error(500,"You cannot pick your own card as the winning card.");
+
+        if (!submission.answerId || submission.answerId == "")
+            throw new Meteor.Error(500,"You can't pick a redacted answer! Wait until everyone has put in a card.")
+
 		var winner = Votes.findOne({gameId:gameId,round:game.round});
 		
 		if (winner) {
@@ -479,6 +489,9 @@ Meteor.methods({
 				
 		// remove the cards from the player's hands
 		Submissions.find({gameId:gameId,round:game.round}).forEach(function(submission) {
+            if (!submission.answerId || submission.answerId == "")
+                throw new Meteor.Error(500,"Somebody submitted a redacted answer. Try again!");
+
 			Hands.update({gameId:gameId,round:game.round,userId:submission.userId},{$pull:{hand:submission.answerId}});
 		});
 		
@@ -564,6 +577,9 @@ Meteor.methods({
 	},
 
     findLocalGame: function(location) {
+        if (this.isSimulation)
+            return;
+
         location = location || null;
 
         if (!location)

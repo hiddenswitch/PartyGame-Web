@@ -16,8 +16,63 @@ var previewNo = function () {};
 
 var mutationObserver = {};
 
-var refreshAllListviews = function() {
-	$('[data-role="listview"]').listview("refresh");
+var questionAndAnswerText = function(questionCardId,answerCardId) {
+    var q = cardIdToText(questionCardId);
+    var c = cardIdToText(answerCardId);
+
+    if (!c || !q) {
+        return "REDACTED.";
+    }
+
+    var matches = [];
+    var match = /(.{0,2})(__)(.+)/g;
+    var isName = /^[A-Z]\w+\s+[A-Z]/;
+
+    var beforeAndAfter = match.exec(q);
+
+    // Handle multiple underscores
+    while (beforeAndAfter) {
+        // clone array into matches
+        matches.push(beforeAndAfter.slice(0));
+        beforeAndAfter = match.exec(q);
+    }
+
+    var replacements = _.map(matches, function (anUnderscore) {
+        if (c && anUnderscore && anUnderscore[2]) {
+            var before = anUnderscore[1];
+            var startsWithPeriod = /[\.\?!]\s/;
+
+            // check if the card text should be lowercase
+            if (before != "" && !startsWithPeriod.exec(before) && !isName.exec(c)) {
+                c = c.charAt(0).toLowerCase() + c.slice(1);
+            }
+
+            // check if the triple underscore ends with a punctuation
+
+            var after = anUnderscore[3];
+
+            // since there is stuff after, remove punctuation.
+            if (after) {
+                var punctuation = /[^\w\s]/;
+
+                // if the card text ends in punctuation, remove any existing punctuation
+                if (punctuation.exec(after))
+                    c = c.slice(0,c.length-1);
+            }
+
+            return "<span style='font-style:italic;'>"+c+"</span>";
+        }
+    });
+
+    if (replacements && replacements.length > 0) {
+        return _.reduce(replacements,function(memo,text) {
+            return memo.replace("__",text);
+        },q);
+    } else {
+        return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
+    }
+
+    return "REDACTED.";
 }
 
 var refreshListviews = function() {
@@ -115,7 +170,7 @@ var signUp = function() {
 	var username = $('#signUpUsername').attr('value');
 	var email = $('#signUpEmail').attr('value');
 	var password = $('#signUpPassword').attr('value');
-	
+
 	createNewUserAndLogin(username,email,password,function(err){
 		if (err) {
 			Session.set(SESSION_CURRENT_ERROR,err.reason);
@@ -168,7 +223,7 @@ var userIdToName = function(id) {
 	var u = Meteor.users.findOne({_id:id});
 	
 	if (!u)
-		return "Loading username...";
+		return "REDACTED.";
 	
 	if (u.profile && u.profile.name)
 		return u.profile.name;
@@ -211,7 +266,7 @@ var registerTemplates = function() {
 	
 	Template.game.game = function () {
 		return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
-	};
+	}
 	
 	Template.game.title = function() {
 		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -289,7 +344,7 @@ var registerTemplates = function() {
 		if (gameDoc) {
 			return cardIdToText(gameDoc.questionId);
 		} else {
-			return "Loading question...";
+			return "REDACTED.";
 		}
 	}
 	
@@ -338,7 +393,9 @@ var registerTemplates = function() {
 	
 	Template.submissions.submissions = function () {
 		var submissions = Submissions.find({gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)}).fetch();
-		return _.map(submissions, function(o) {return _.extend(Cards.findOne({_id:o.answerId},{fields:{_id:0}}),o)});
+		return _.map(submissions, function(o) {
+            return _.extend({text:cardIdToText(o.answerId)},o)
+        });
 	}
 	
 	Template.submissions.events = {
@@ -402,7 +459,7 @@ var registerTemplates = function() {
 		if (gameDoc)
 			return questionAndAnswerText(gameDoc.questionId,Session.get(SESSION_CURRENT_PREVIEW_CARD));
 		else
-			return "Loading card...";
+			return "REDACTED.";
 	}
 	
 	Template.preview.rendered = refreshListviews;
@@ -420,8 +477,9 @@ Meteor.startup(function() {
 	
 	Meteor.autosubscribe(function() {
 		var currentGameId = Session.get(SESSION_CURRENT_GAME);
+        var currentRound = Session.get(SESSION_CURRENT_ROUND);
 		if (currentGameId) {
-			Meteor.subscribe("submissions",currentGameId);
+			Meteor.subscribe("submissions",currentGameId,currentRound);
 			Meteor.subscribe("votesInGame",currentGameId);
 			Meteor.subscribe("usersInGame",currentGameId);
 		}
@@ -488,3 +546,4 @@ Meteor.startup(function() {
 });
 
 registerTemplates();
+

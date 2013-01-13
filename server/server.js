@@ -18,8 +18,51 @@ Meteor.publish("myOwnedGames",function() {
 	return Games.find({ownerId:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
 });
 
-Meteor.publish("submissions", function(gameId) {
-	return Submissions.find({gameId:gameId},{fields:{_id:1,gameId:1,answerId:1,round:1}});
+Meteor.publish("submissions", function(gameId,round) {
+    var recordset = this;
+    var game = Games.findOne({_id:gameId});
+    var submissions = [];
+
+    var updateSubmissions = function () {
+        // get all the submissions for a particular game and round
+        submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
+
+        // if we have sufficient submissions, reveal them
+        if (submissions.length >= game.connected.length-1) {
+            _.each(submissions,function(submission){
+                recordset.set("submissions",submission._id, _.omit(submission,'_id'));
+            });
+
+        // otherwise, keep them hidden
+        } else {
+            _.each(submissions,function(submission){
+                recordset.set("submissions",submission._id, _.omit(submission,['_id','answerId']));
+            });
+        }
+        recordset.flush();
+    }
+
+    var submissionHandle = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).observe({
+        added: updateSubmissions,
+        removed: updateSubmissions,
+        changed: updateSubmissions
+    });
+
+    var gameHandle = Games.find({_id:gameId}).observe({
+        changed: function(document,index,oldDocument) {
+            game = document;
+            updateSubmissions();
+            console.log("Game changed.");
+        }
+    });
+
+    recordset.complete();
+    recordset.flush();
+
+    recordset.onStop(function () {
+        submissionHandle.stop();
+        gameHandle.stop();
+    });
 });
 
 Meteor.publish("votesInGame",function(gameId){
