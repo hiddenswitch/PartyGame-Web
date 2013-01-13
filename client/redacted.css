@@ -1,1 +1,45 @@
 /* CSS declarations go here */
+.judge {
+    animation-name: megacolor;
+    animation-duration:0.25s;
+    animation-iteration-count:infinite;
+    animation-direction:alternate;
+    animation-play-state:running;
+    -webkit-animation-name: megacolor;
+    -webkit-animation-duration:1s;
+    -webkit-animation-iteration-count:infinite;
+    -webkit-animation-direction:alternate;
+    -webkit-animation-play-state:running;
+    -moz-animation-name: megacolor;
+    -moz-animation-duration:1s;
+    -moz-animation-iteration-count:infinite;
+    -moz-animation-direction:alternate;
+    -moz-animation-play-state:running;
+}
+
+@keyframes megacolor {
+    0% {background: red;}
+    20% {background: #adff2f;}
+    40% {background: orange;}
+    60% {background: #1e90ff;}
+    80% {background:yellow;}
+    100% {background:#8a2be2;}
+}
+
+@-webkit-keyframes megacolor {
+    0% {background: red;}
+    20% {background: #adff2f;}
+    40% {background: orange;}
+    60% {background: #1e90ff;}
+    80% {background:yellow;}
+    100% {background:#8a2be2;}
+}
+
+@-moz-keyframes megacolor {
+    0% {background: red;}
+    20% {background: #adff2f;}
+    40% {background: orange;}
+    60% {background: #1e90ff;}
+    80% {background:yellow;}
+    100% {background:#8a2be2;}
+}

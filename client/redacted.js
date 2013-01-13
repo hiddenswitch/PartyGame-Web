@@ -334,7 +334,13 @@ var registerTemplates = function() {
 		return userIdToName(getJudgeIdForGameId(Session.get(SESSION_CURRENT_GAME)));
 	}
 	
-	Template.judge.rendered = refreshListviews;
+	Template.judge.rendered = function () {
+        refreshListviews;
+        if (Template.judge.isJudge())
+            $('#judgeText').addClass('judge');
+        else
+            $('#judgeText').removeClass('judge');
+    }
 	Template.judge.created = createListviews;
 	
 	Handlebars.registerHelper("judgeIsJudge",Template.judge.judge);

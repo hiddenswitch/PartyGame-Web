@@ -338,9 +338,9 @@
 <template name="judge">
 	{{#if judgeEmailAddress}}
 		{{#if isJudge}}
-			<li data-icon="star">You are the judge!</li>
+			<li id="judgeText" data-icon="star">You are the judge!</li>
 		{{else}}
-			<li>{{judgeEmailAddress}}</li>
+			<li id="judgeText">{{judgeEmailAddress}}</li>
 		{{/if}}
 	{{/if}}
 </template>
