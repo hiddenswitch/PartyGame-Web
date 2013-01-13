@@ -20,7 +20,7 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     var q = cardIdToText(questionCardId);
     var c = cardIdToText(answerCardId);
 
-    if (!c || !q) {
+    if (!c || !q || q == "REDACTED." || c == "REDACTED.") {
         return "REDACTED.";
     }
 
@@ -192,6 +192,34 @@ var matchMake = function() {
     });
 }
 
+var submissionCount = function () {
+    return Submissions.find({gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)}).count();
+}
+
+var maxSubmissionsCount = function () {
+    var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+    if (g && g.connected)
+        return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)}).connected.length-1;
+    else
+        return 0;
+}
+
+var playersCount = function () {
+    var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+    if (g && g.users)
+        return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)}).users.length;
+    else
+        return 0;
+}
+
+var playersRemainingCount = function () {
+    var _maxSubmissionsCount = maxSubmissionsCount();
+    if (_maxSubmissionsCount > 0)
+        return "(" + submissionCount().toString() + "/" + _maxSubmissionsCount.toString() + ")";
+    else
+        return "";
+}
+
 var createAndJoinGame = function() {
 	var gameTitle = $('#gameTitle').attr('value');
 	var gamePassword = $('#gamePassword').attr('value');
@@ -245,6 +273,12 @@ var joinGameOnClick = function(e) {
 	});
 }
 
+var isJudge = function() {
+    var theUserId = Meteor.userId();
+    var currentGameId = Session.get(SESSION_CURRENT_GAME);
+    return (theUserId == getJudgeIdForGameId(currentGameId));
+}
+
 var registerTemplates = function() {	
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
 	Handlebars.registerHelper("userIdToName",userIdToName);
@@ -273,7 +307,7 @@ var registerTemplates = function() {
 		if (g)
 			return g.title
 		else
-			return "Loading Game"
+			return "REDACTED."
 	}
 	
 	Template.game.round = function() {
@@ -320,30 +354,30 @@ var registerTemplates = function() {
 	Handlebars.registerHelper("gameIsOwner",Template.game.isOwner);
 	Handlebars.registerHelper("gameLastVote",Template.game.lastVote);
 	
-	Template.judge.isJudge = function() {
-		var theUserId = Meteor.userId();
-		var currentGameId = Session.get(SESSION_CURRENT_GAME);
-		return (theUserId == getJudgeIdForGameId(currentGameId));
-	}
+	Template.judge.isJudge = isJudge;
 	
 	Template.judge.judge = function() {
 		return Meteor.users.findOne({_id:getJudgeIdForGameId(Session.get(SESSION_CURRENT_GAME))});
 	}
 	
 	Template.judge.judgeEmailAddress = function() {
-		return userIdToName(getJudgeIdForGameId(Session.get(SESSION_CURRENT_GAME)));
-	}
+        if (playersCount() > 1) {
+            if (isJudge())
+                return "You are the judge!";
+            else
+                return userIdToName(getJudgeIdForGameId(Session.get(SESSION_CURRENT_GAME)));
+        } else
+            return "Waiting for more players...";
+    }
 	
 	Template.judge.rendered = function () {
         refreshListviews;
-        if (Template.judge.isJudge())
-            $('#judgeText').addClass('judge');
+        if (Template.judge.isJudge() && playersCount() > 1)
+            $('#judgeText').addClass('magic');
         else
-            $('#judgeText').removeClass('judge');
+            $('#judgeText').removeClass('magic');
     }
 	Template.judge.created = createListviews;
-	
-	Handlebars.registerHelper("judgeIsJudge",Template.judge.judge);
 	
 	Template.question.question = function() {
 		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -396,13 +430,18 @@ var registerTemplates = function() {
 	
 	Template.myGames.rendered = refreshListviews;
 	Template.myGames.created = createListviews;
-	
+
+    Template.submissions.isJudge = isJudge;
 	Template.submissions.submissions = function () {
 		var submissions = Submissions.find({gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)}).fetch();
 		return _.map(submissions, function(o) {
             return _.extend({text:cardIdToText(o.answerId)},o)
         });
 	}
+
+    Template.submissions.count = function () {
+        return "(" + submissionCount().toString() + "/" + maxSubmissionsCount().toString() + ")";
+    }
 	
 	Template.submissions.events = {
 		'click .submission':function(e) {
@@ -428,7 +467,9 @@ var registerTemplates = function() {
 	}
 	
 	Template.submissions.rendered = refreshListviews;
+
 	Template.submissions.created = createListviews;
+
 	
 	Template.hand.hand = function () {
 		return Hands.findOne({_id:Session.get(SESSION_CURRENT_HAND)});

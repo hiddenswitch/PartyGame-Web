@@ -83,8 +83,11 @@
 				{{/isolate}}
 			</ul>
 
-            <div data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="true" data-collapsed="false">
-                <h3>Submitted Cards</h3>
+            <div id="submissionsCollapsible" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="true" data-collapsed="false">
+                <h3>Submitted Cards
+                    {{#isolate}}
+                        {{playersRemainingCount}}
+                    {{/isolate}}</h3>
                 <ul data-role="listview" data-inset="true" data-theme="c">
                     {{#isolate}}
                         {{> submissions}}
@@ -338,7 +341,7 @@
 <template name="judge">
 	{{#if judgeEmailAddress}}
 		{{#if isJudge}}
-			<li id="judgeText" data-icon="star">You are the judge!</li>
+			<li id="judgeText" data-icon="star">{{judgeEmailAddress}}</li>
 		{{else}}
 			<li id="judgeText">{{judgeEmailAddress}}</li>
 		{{/if}}
@@ -372,7 +375,7 @@
 <template name="submissions">
 	{{#if submissions}}
 		{{#each submissions}}
-			{{#if judgeIsJudge}}
+			{{#if isJudge}}
 				<li><a class="submission" id="{{_id}}" href="#preview">{{{text}}}</a></li>
 			{{else}}
 				<li>{{{text}}}</li>

@@ -387,11 +387,8 @@ Meteor.methods({
 	},
 	
 	// Submit a card for voting
-	submitAnswerCard: function(gameId,answerId) {
+	submitAnswerCard: function(gameId, answerId) {
 		var game = Games.findOne({_id:gameId, users:this.userId});
-
-        if (!answerId || answerId == "")
-            throw new Meteor.Error(500,"You can't vote for a redacted answer!");
 
 		if (!game)
 			throw new Meteor.Error(404,"No game found to submit answer card to.");
@@ -407,7 +404,7 @@ Meteor.methods({
 			// throw new Meteor.Error(500,"Too few players to submit answer.");
 			
 		if (this.userId == getJudgeId(game))
-			throw new Meteor.Error(500,"You canot submit a card. You're the judge!");
+			throw new Meteor.Error(500,"You cannot submit a card. You're the judge!");
 		
 		var submission = Submissions.findOne({gameId:gameId,userId:this.userId,round:game.round});
 		
@@ -449,12 +446,18 @@ Meteor.methods({
 			throw new Meteor.Error(500,"User " + judge.username + " is the judge for this round.");
 		
 		var submission = Submissions.findOne({_id:submissionId});
-		
+		var submissionCount = Submissions.find({gameId:gameId,round:game.round}).count();
+
+        if (submissionCount < game.connected.length-1)
+            throw new Meteor.Error(500,"Wait until everyone has submitted a card!");
+
 		if (!submission)
 			throw new Meteor.Error(404,"Submission not found.");
 		
 		if (submission.userId == judgeId)
 			throw new Meteor.Error(500,"You cannot pick your own card as the winning card.");
+
+
 
         if (!submission.answerId || submission.answerId == "")
             throw new Meteor.Error(500,"You can't pick a redacted answer! Wait until everyone has put in a card.")
