@@ -155,7 +155,7 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     var q = cardIdToText(questionCardId);
     var c = cardIdToText(answerCardId);
 
-    if (!c || !q) {
+    if (!c || !q || q == "REDACTED." || c == "REDACTED.") {
         return "REDACTED.";
     }
 
