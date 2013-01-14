@@ -153,8 +153,13 @@ var login = function() {
 	Meteor.loginWithPassword(loginUsernameOrEmail,password,setErrorAndGoHome);
 }
 
+var loginAnonymously = function() {
+    var nickname = $('#anonymousNickname').attr('value');
+    createNewAnonymousUser(nickname,setErrorAndGoHome);
+}
+
 var loginWithFacebook = function() {
-	Meteor.loginWithFacebook({requestPermissions:['user_likes']},setErrorAndGoHome)
+	Meteor.loginWithFacebook({},setErrorAndGoHome)
 }
 
 var loginWithGoogle = function() {

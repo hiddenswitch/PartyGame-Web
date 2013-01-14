@@ -266,6 +266,13 @@ var createNewUserAndLogin = function(username,email,password,callback) {
 	}
 }
 
+var createNewAnonymousUser = function(nickname,callback) {
+    nickname = nickname || "REDACTED."
+    var userIdPadding = Math.random().toString(36).slice(-8);
+    var password = Math.random().toString(36).slice(-8);
+    Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname}},callback)
+}
+
 var cardIdToText = function(cardId) {
 	var c = Cards.findOne({_id:cardId});
 	if (c)

@@ -204,15 +204,51 @@
 			<h1>Login</h1>
 		</div>
 		<div data-role="content">
-			<a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
-			<a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
-			<form>
-				<label for="loginUsernameOrEmail" class="ui-hidden-accessible">Username or E-mail</label>
-				<input type="text" name="loginUsernameOrEmail" id="loginUsernameOrEmail" value="" placeholder="Username or E-mail"/>
-				<label for="loginPassword" class="ui-hidden-accessible">Password</label>
-				<input type="password" name="loginPassword" id="loginPassword" value="" placeholder="Password"/>
-			</form>
-			<a href="#" data-role="button" data-icon="plus" onclick="login()">Login</a>
+            <div data-role="collapsible-set">
+                <div data-role="collapsible" data-collapsed="false">
+                    <h3>Login with Facebook or Google</h3>
+                    <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
+                    <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
+                    <p>We won't post anything, we won't steal your information, and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with the Besties XOXO.</p>
+                </div>
+                <div data-role="collapsible">
+                    <h3>Play Anonymously</h3>
+                    <form>
+                        <label for="anonymousNickname" class="ui-hidden-accessible">Nickname</label>
+                        <input type="text" name="anonymousNickname" id="anonymousNickname" value="" placeholder="Nickname"/>
+                    </form>
+                    <a href="#" data-role="button" data-icon="arrow-r" onclick="loginAnonymously()">Login Anonymously</a>
+                    <p>Take advantage of our free game. Rob us of the opportunity to make our game better by seeing if you ever play again. Be that way.</p>
+                </div>
+                <div data-role="collapsible">
+                    <h3>Create An Account</h3>
+                    <div data-role="collapsible-set">
+                        <div data-role="collapsible" data-collapsed="false">
+                            <h3>Make a New Account</h3>
+                            <form>
+                                <label for="signUpUsername" class="ui-hidden-accessible">Username</label>
+                                <input type="text" name="signUpUsername" id="signUpUsername" value="" placeholder="Username"/>
+                                <label for="signUpEmail" class="ui-hidden-accessible">E-mail Address</label>
+                                <input type="email" name="signUpEmail" id="signUpEmail" value="" placeholder="E-mail Address"/>
+                                <label for="signUpUsername" class="ui-hidden-accessible">Password</label>
+                                <input type="password" name="signUpPassword" id="signUpPassword" value="" placeholder="Password"/>
+                            </form>
+                            <a href="#" data-role="button" data-icon="plus" onclick="signUp()">Create</a>
+                        </div>
+                        <div data-role="collapsible">
+                            <h3>Login with an Existing Account</h3>
+                            <form>
+                                <label for="loginUsernameOrEmail" class="ui-hidden-accessible">Username or E-mail</label>
+                                <input type="text" name="loginUsernameOrEmail" id="loginUsernameOrEmail" value="" placeholder="Username or E-mail"/>
+                                <label for="loginPassword" class="ui-hidden-accessible">Password</label>
+                                <input type="password" name="loginPassword" id="loginPassword" value="" placeholder="Password"/>
+                            </form>
+                            <a href="#" data-role="button" data-icon="plus" onclick="login()">Login</a>
+                        </div>
+                    </div>
+                    <p>Go through the hassle of making a custom account just for us. We love you.</p>
+                </div>
+            </div>
 			{{#isolate}}
 				{{> connection}}
 				{{> error}}
@@ -297,12 +333,12 @@
 
 	<div data-role="page" id="areYouSure" data-theme="a">
 		<div data-role="header">
-			<h1>Preview</h1>
+			<h1>Does this look good?</h1>
 		</div>
 		<div data-role="content">
 			<div class="ui-grid-a">
-				<div class="ui-block-a"><a href="#game" onclick="previewNo()" data-icon="minus" data-role="button">Nah</a></div>
-				<div class="ui-block-b"><a href="#game" data-theme="d" onclick="previewYes()" data-icon="check" data-role="button">Yep</a></div>
+				<div class="ui-block-a"><a href="#game" onclick="previewNo()" data-icon="minus" data-role="button">No</a></div>
+				<div class="ui-block-b"><a href="#game" data-theme="d" onclick="previewYes()" data-icon="check" data-role="button">Yes</a></div>
 			</div>
 		</div>
 	</div>
@@ -365,10 +401,8 @@
 		<li><a href="#createGame">Create New Game</a></li>
 		<li><a href="#" onclick="Meteor.logout()">Logout</a></li>
 	{{else}}
-		Login with Facebook or Google, or create a new account below. It only takes a few seconds.<p>&nbsp;</p>
         <li class="ui-btn-up-b"><a href="#news">News</a></li>
-        <li><a href="#login">Login</a></li>
-		<li><a href="#signUp">Sign Up</a></li>
+        <li><a href="#login">Play Now</a></li>
 	{{/if}}
 </template>
 
