@@ -376,11 +376,12 @@ var registerTemplates = function() {
     }
 	
 	Template.judge.rendered = function () {
-        refreshListviews;
-        if (Template.judge.isJudge() && playersCount() > 1)
+
+        if (isJudge() && playersCount() > 1)
             $('#judgeText').addClass('magic');
         else
             $('#judgeText').removeClass('magic');
+        refreshListviews;
     }
 	Template.judge.created = createListviews;
 	
@@ -471,10 +472,18 @@ var registerTemplates = function() {
 		}
 	}
 	
-	Template.submissions.rendered = refreshListviews;
+	Template.submissions.rendered = function() {
+        if (isJudge() && playersCount() > 1) {
+            $('#submissionsCollapsible h3 a').addClass('magic');
+        } else {
+            $('#submissionsCollapsible h3 a').removeClass('magic');
+        }
+        refreshListviews;
+    }
 
 	Template.submissions.created = createListviews;
 
+    Template.hand.isJudge = isJudge;
 	
 	Template.hand.hand = function () {
 		return Hands.findOne({_id:Session.get(SESSION_CURRENT_HAND)});
@@ -503,7 +512,16 @@ var registerTemplates = function() {
 		}
 	}
 	
-	Template.hand.rendered = refreshListviews;
+	Template.hand.rendered = function() {
+        if (isJudge()) {
+            $('#handHeader').text("Your Hand");
+            $('#handCollapsible h3 a').removeClass('magic');
+        } else {
+            $('#handHeader').text("Play a Card");
+            $('#handCollapsible h3 a').addClass('magic');
+        }
+        refreshListviews;
+    }
 	Template.hand.created = createListviews;
 	
 	Template.preview.text = function() {
@@ -590,7 +608,7 @@ Meteor.startup(function() {
     },K_HEARTBEAT);
 
 	mutationObserver = new MutationSummary({
-		queries: [{element:'[data-role="page"]',elementAttributes:'class'},{element:'[data-role="listview"]'},{element:'[data-role="button"]'}],
+		queries: [{element:'[data-role="page"]',elementAttributes:'class'},{element:'[data-role="listview"]'},{element:'li'},{element:'[data-role="button"]'}],
 		callback: function(summaries) {
 			refreshListviews();
 		}

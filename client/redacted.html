@@ -84,8 +84,13 @@
 			</ul>
 
             <div id="submissionsCollapsible" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="true" data-collapsed="false">
-                <h3>Submitted Cards
+                <h3>
                     {{#isolate}}
+                        {{#if isJudge}}
+                            Pick a Card
+                        {{else}}
+                            Cards in Play
+                        {{/if}}
                         {{playersRemainingCount}}
                     {{/isolate}}</h3>
                 <ul data-role="listview" data-inset="true" data-theme="c">
@@ -96,8 +101,15 @@
             </div>
 
 
-            <div data-role="collapsible" data-theme="d" data-content-theme="d" data-inset="true" data-collapsed="false">
-                <h3>Your Hand</h3>
+            <div id="handCollapsible" data-role="collapsible" data-theme="d" data-content-theme="d" data-inset="true" data-collapsed="false">
+                <h3>
+                    {{#isolate}}
+                        {{#if isJudge}}
+                            Your Hand
+                        {{else}}
+                            Pick a Card
+                        {{/if}}
+                    {{/isolate}}</h3>
                 <ul data-role="listview" data-inset="true" data-theme="d">
                     {{#isolate}}
                         {{> hand}}
