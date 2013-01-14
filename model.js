@@ -400,12 +400,18 @@ Meteor.methods({
 		if (!_.contains(game.users,this.userId))
 			throw new Meteor.Error(500,"You are not a player in this game: Cannot submit card.","userId: " + this.userid +", gameId: " + game._id);
 		
-		// if (game.users.length < 3)
-			// throw new Meteor.Error(500,"Too few players to submit answer.");
+		if (game.users.length < 2)
+			throw new Meteor.Error(500,"Too few players to submit answer.");
 			
 		if (this.userId == getJudgeId(game))
 			throw new Meteor.Error(500,"You cannot submit a card. You're the judge!");
-		
+
+        // does this player have this card in his hand?
+        var hand = Hands.find({userId:this.userId,gameId:gameId,round:game.round,hand:answerId}).count();
+
+        if (!hand)
+            throw new Meteor.Error(500,"You can't submit a card you don't have!");
+
 		var submission = Submissions.findOne({gameId:gameId,userId:this.userId,round:game.round});
 		
 		if (submission) {
@@ -443,13 +449,13 @@ Meteor.methods({
 			throw new Meteor.Error(404,"Judge with id "+judgeId.toString()+" not found.")
 		
 		if (this.userId != judgeId)
-			throw new Meteor.Error(500,"User " + judge.username + " is the judge for this round.");
+			throw new Meteor.Error(500,"It's not your turn to judge!");
 		
 		var submission = Submissions.findOne({_id:submissionId});
 		var submissionCount = Submissions.find({gameId:gameId,round:game.round}).count();
 
         if (submissionCount < game.connected.length-1)
-            throw new Meteor.Error(500,"Wait until everyone has submitted a card!");
+            throw new Meteor.Error(500,"Wait until everyone connected has submitted a card!");
 
 		if (!submission)
 			throw new Meteor.Error(404,"Submission not found.");
@@ -457,9 +463,7 @@ Meteor.methods({
 		if (submission.userId == judgeId)
 			throw new Meteor.Error(500,"You cannot pick your own card as the winning card.");
 
-
-
-        if (!submission.answerId || submission.answerId == "")
+        if (!submission.answerId || (submission.answerId == ""))
             throw new Meteor.Error(500,"You can't pick a redacted answer! Wait until everyone has put in a card.")
 
 		var winner = Votes.findOne({gameId:gameId,round:game.round});
@@ -494,6 +498,12 @@ Meteor.methods({
 		Submissions.find({gameId:gameId,round:game.round}).forEach(function(submission) {
             if (!submission.answerId || submission.answerId == "")
                 throw new Meteor.Error(500,"Somebody submitted a redacted answer. Try again!");
+
+            // does this player have this card in his hand?
+            var hand = Hands.find({userId:submission.userId,gameId:gameId,round:game.round,hand:submission.answerId}).count();
+
+            if (!hand)
+                throw new Meteor.Error(500,"You can't submit a card you don't have!");
 
 			Hands.update({gameId:gameId,round:game.round,userId:submission.userId},{$pull:{hand:submission.answerId}});
 		});

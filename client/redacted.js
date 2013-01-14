@@ -571,7 +571,7 @@ Meteor.startup(function() {
 			console.log(currentError);
 			Meteor.setTimeout(function(){
 				Session.set(SESSION_CURRENT_ERROR,null);
-			},5000);	
+			},5000);
 		}
 	});
 
