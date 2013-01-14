@@ -632,9 +632,9 @@ Meteor.methods({
 		location = location || null;
 
 		if (title=="")
-			title = "Game #" + Games.find({}).count().toString();
+			title = "Game #" + Games.find({}).count().toString() + 1;
 		
-		if (Games.find({title:title}).count() > 0)
+		if (Games.find({title:title,open:true}).count() > 0)
 			throw new Meteor.Error(500,"A game by that name already exists!");
 		
 		var shuffledAnswerCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_ANSWER},{fields:{_id:1}}).fetch(),'_id'));

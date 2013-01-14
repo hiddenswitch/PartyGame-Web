@@ -179,31 +179,10 @@
 			<form>
 				<label for="gameTitle" class="ui-hidden-accessible">Title</label>
 				<input type="text" name="gameTitle" id="gameTitle" value="" placeholder="Title"/>
-				<label for="gamePassword" class="ui-hidden-accessible">Password</label>
-				<input type="text" name="gamePassword" id="gamePassword" value="" placeholder="Password (Unsupported)"/>
+				<label style="visibility: hidden;" for="gamePassword" class="ui-hidden-accessible">Password</label>
+				<input style="visibility: hidden;" type="text" name="gamePassword" id="gamePassword" value="" placeholder="Password (Unsupported)"/>
 			</form>
 			<a href="#" data-role="button" data-icon="plus" onclick="createAndJoinGame()">Create and Join</a>
-			{{#isolate}}
-				{{> connection}}
-				{{> error}}
-			{{/isolate}}
-		</div>
-	</div>
-	
-	<div data-role="page" id="signUp" data-add-back-btn="true" data-theme="a">
-		<div data-role="header">
-			<h1>Sign Up</h1>
-		</div>
-		<div data-role="content">
-			<form>
-				<label for="signUpUsername" class="ui-hidden-accessible">Username</label>
-				<input type="text" name="signUpUsername" id="signUpUsername" value="" placeholder="Username"/>
-				<label for="signUpEmail" class="ui-hidden-accessible">E-mail Address</label>
-				<input type="email" name="signUpEmail" id="signUpEmail" value="" placeholder="E-mail Address"/>
-				<label for="signUpUsername" class="ui-hidden-accessible">Password</label>
-				<input type="password" name="signUpPassword" id="signUpPassword" value="" placeholder="Password"/>
-			</form>
-			<a href="#" data-role="button" data-icon="plus" onclick="signUp()">Sign Up</a>
 			{{#isolate}}
 				{{> connection}}
 				{{> error}}
