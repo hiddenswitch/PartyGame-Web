@@ -284,6 +284,13 @@ var isJudge = function() {
     return (theUserId == getJudgeIdForGameId(currentGameId));
 }
 
+var joinGameFromHash = function() {
+    // TODO Create dialog to ask for nickname, then join into game.
+    var url = window.location.href;
+    var gameId = /\?([A-z0-9\-])#+/.exec(url)[1];
+    if (!Meteor.user()) {};
+}
+
 var registerTemplates = function() {	
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
 	Handlebars.registerHelper("userIdToName",userIdToName);

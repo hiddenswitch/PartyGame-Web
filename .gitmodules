@@ -1,0 +1,3 @@
+[submodule "client/purl"]
+	path = client/purl
+	url = https://github.com/allmarkedup/jQuery-URL-Parser.git

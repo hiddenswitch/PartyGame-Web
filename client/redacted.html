@@ -192,7 +192,7 @@
 	
 	<div data-role="page" id="login" data-add-back-btn="true" data-theme="a">
 		<div data-role="header">
-			<h1>Login</h1>
+			<h1>Get Started</h1>
 		</div>
 		<div data-role="content">
             <div data-role="collapsible-set">
@@ -200,7 +200,7 @@
                     <h3>Login with Facebook or Google</h3>
                     <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
                     <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
-                    <p>We won't post anything, we won't steal your information, and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with the Besties XOXO.</p>
+                    <p>Login with Facebook or Google for the best experience. We won't post anything, we won't steal your information, and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with the Besties XOXO.</p>
                 </div>
                 <div data-role="collapsible">
                     <h3>Play Anonymously</h3>
@@ -453,9 +453,8 @@
 <template name="connection">
 	{{#if connectionStatus}}
 		{{connectionStatus}}
-		<p>&nbsp;</p>
 	{{/if}}
 	{{#if loggingIn}}
-		Logging in...
+		(Logging in...)
 	{{/if}}
 </template>
