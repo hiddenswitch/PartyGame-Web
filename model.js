@@ -4,6 +4,31 @@
  */
 
 
+// Adapted from http://stackoverflow.com/a/11379791/1757994
+Array.prototype.superSort = function() {
+    function dynamicSort(property) {
+        return function (obj1,obj2) {
+            return obj1[property] > obj2[property] ? 1
+                : obj1[property] < obj2[property] ? -1 : 0;
+        }
+    }
+
+    var props = arguments;
+
+    return this.sort(function (obj1, obj2) {
+        var i = 0, result = 0, numberOfProperties = props.length;
+        /* try getting a different result from 0 (equal)
+         * as long as we have extra properties to compare
+         */
+        while(result === 0 && i < numberOfProperties) {
+            result = dynamicSort(props[i])(obj1, obj2);
+            i++;
+        }
+        return result;
+    });
+}
+
+
 var THEME_URL = "http://jquerymobile.com/themeroller/?ver=1.2.0&style_id=20121211-131";
 
 var K_DEFAULT_HAND_SIZE = 8; // default hand size
@@ -15,7 +40,7 @@ var K_BLANK_ANSWER_CARD = ""; // the id of the blank answer card.
 var E_NO_MORE_CARDS = "No more cards.";
 var E_GAME_OVER = "The game is over.";
 
-var ROUNDS_SCHEMA = function() {
+var Round = function() {
 	return {
 		gameId:"",
 		round:0,
@@ -25,7 +50,7 @@ var ROUNDS_SCHEMA = function() {
 	}
 }
 
-var GAMES_SCHEMA = function() {
+var Game = function() {
 	return {
 		title:"", // game title
 		password:"", // game password if any
@@ -40,7 +65,8 @@ var GAMES_SCHEMA = function() {
 		ownerId:0, // owner of the game
 		created: new Date(), // date created
 		modified: new Date(), // date modified
-        location:null // location of game
+        location:null, // location of game
+        judge:"" // userId of next judge
 	}
 }
 
@@ -48,14 +74,14 @@ var CARD_TYPE_QUESTION = 1; // card of type question
 var CARD_TYPE_ANSWER = 2; // card of type answer
 var CARD_BLANK_ANSWER_CARD = {type:CARD_TYPE_ANSWER,text:'(Waiting for submissions...)'};
 
-var CARD_SCHEMA = function() {
+var Card = function() {
 	return {
 		type:CARD_TYPE_QUESTION, // question or answer card
 		text:"" // text of the card
 	}
 }
 
-var HAND_SCHEMA = function() {
+var Hand = function() {
 	return {
 		gameId:0,
 		userId:0,
@@ -64,7 +90,7 @@ var HAND_SCHEMA = function() {
 	}
 }
 
-var VOTE_SCHEMA = function() {
+var Vote = function() {
 	return {
 		gameId:0,
 		round:0,
@@ -75,7 +101,7 @@ var VOTE_SCHEMA = function() {
 	}
 }
 
-var SUBMISSION_SCHEMA = function () {
+var Submission = function () {
 	return {
 		gameId:0,
 		round:0,
@@ -84,7 +110,7 @@ var SUBMISSION_SCHEMA = function () {
 	}
 }
 
-var CHAT_SCHEMA = function () {
+var Chat = function () {
 	return {
 		gameId:0,
 		userId:0,
@@ -115,11 +141,10 @@ var distance = function(p1,p2) {
 // TODO Make the current judge stable even when the connected user changes.
 // Get the current judge id
 var getJudgeId = function(g) {
-    if (g && g.connected.length > 0) {
-        return g && g.connected[g.round % g.connected.length];
-    } else {
-        return g && g.users[g.round % g.users.length];
-    }
+    if (g && g.connected.length > 0)
+        return g.judge;
+    else
+        return "";
 }
 
 var getJudgeIdForGameId = function(id) {
@@ -649,7 +674,10 @@ Meteor.methods({
 			throw new Meteor.Error(404,"No question cards found.");
 		
 		var firstQuestionCardId = shuffledQuestionCards.pop();
-		
+
+        var firstJudgeTable = {};
+        firstJudgeTable[this.userId] = 0;
+
 		return Games.insert({
 			title:title, // game title
 			password:password, // game password if any
@@ -663,9 +691,60 @@ Meteor.methods({
 			ownerId:this.userId,
 			created: new Date(),
 			modified: new Date(),
+            judge:this.userId,
+            judges:firstJudgeTable,
             location: location
 		});
 	},
+
+    // Update the current judge
+    updateJudge: function(gameId) {
+        var g = Games.findOne({_id:gameId});
+
+        if (!g)
+            throw new Meteor.Error(404,"A game cannot be found. Cannot update the judge.");
+
+        if (!g.open)
+            throw new Meteor.Error(403,"This game is closed. Cannot update judge.");
+
+        // Get a list of all the users and whether or not they've judged and if they're connected
+
+        var votes = Votes.find({gameId:gameId}).fetch();
+        var judges = {};
+
+        // Get all the possible judges
+        _.each(g.users,function (user) {
+            judges[user] = {userId:user,connected:_.contains(g.connected,user),votes:0};
+        });
+
+        // Count the number of times this user has voted
+        _.each(votes,function(vote){
+            judges[vote.judgeId]++;
+        });
+
+        // Find the player who has voted the greatest number of times, and use this as the starting vote for players
+        // who have votes more than one time fewer (i.e., who have joined the game late)
+        var maxVotes = _.max(judges,function(judge) {return judge.votes;}).votes;
+
+        _.each(
+            _.filter(
+                _.keys(judges),function(judgeId) {
+                    return (maxVotes - judges[judgeId].votes) > 1;
+            }),function(judgeId) {
+                judges[judgeId].votes = maxVotes - 1;
+            }
+        );
+
+
+        // Sort the array of candidate judges
+        var candidates = _.values(judges);
+
+        candidates = _.filter(candidates,function (candidate) {return candidate.connected;})
+            .superSort("votes","userId");
+
+        // The first judge on this list is the judge for the round
+        Games.update({_id:gameId},{$set:{judge:candidates[0]}});
+    },
 	
 	// Close the game
 	closeGame: function(gameId) {
