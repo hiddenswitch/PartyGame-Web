@@ -306,6 +306,65 @@ var cardIdToText = function(cardId) {
 	else
 		return "REDACTED.";
 }
+
+// Gets the current judge
+// Use the user's number of times voted to fairly pick the next judge
+// Use the user's index in the game.users array to pick the user who connected earliest
+// Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
+// connects or disconnects.
+var currentJudge = function(g) {
+    // Get a list of all the users and whether or not they've judged and if they're connected
+    var votes = Votes.find({gameId:gameId}).fetch();
+    var judges = {};
+
+    // Get all the possible judges
+    for (var i = 0; i < g.users.length; i++) {
+        judges[g.users[i]] = {userId:g.users[i], userIndex:i, connected:_.contains(g.connected, g.users[i]), votes:0};
+    }
+
+    // Count the number of times this user has voted
+    _.each(votes,function(vote){
+        judges[vote.judgeId].votes++;
+    });
+
+    // Find the player who has voted the greatest number of times, and use this as the starting vote for players
+    // who have votes more than one time fewer (i.e., who have joined the game late).
+    var maxVotes = _.max(judges,function(judge) {return judge.votes;}).votes;
+
+    _.each(
+        _.filter(
+            _.keys(judges),function(judgeId) {
+                return (maxVotes - judges[judgeId].votes) > 1;
+            }),function(judgeId) {
+            judges[judgeId].votes = maxVotes - 1;
+        }
+    );
+
+
+    // Sort the array of candidate judges
+    var candidates = _.values(judges);
+
+    // Filter out disconnected candidates.
+    // Then, sort first by votes ascending, then by userIndex ascending. In other words, the player who has voted
+    // the least and connected the earliest will be the next judge.
+    candidates = _.filter(candidates,function (candidate) {return candidate.connected;})
+        .superSort("votes","userIndex");
+
+    return candidates[0].userId;
+}
+
+var currentJudgeForGameId = function(gameId) {
+    var g = Games.findOne({_id:gameId});
+
+    if (!g)
+        throw new Meteor.Error(404,"A game cannot be found. Cannot update the judge.");
+
+    if (!g.open)
+        throw new Meteor.Error(403,"This game is closed. Cannot update judge.");
+
+    return currentJudge(g);
+}
+
 /*
  * Game flow:
  * 
@@ -550,9 +609,12 @@ Meteor.methods({
 		} else {
 			open = false;
 		}
+
+        // The vote has been submitted, so get the next judge. Does not depend on round, only on votes.
+        var nextJudge = currentJudge(game);
 		
 		// increment round
-		Games.update({_id:gameId},{$set:{open:open,questionId:questionCardId,modified:new Date()},$inc:{round:1},$pop:{questionCards:1}});
+		Games.update({_id:gameId},{$set:{open:open,questionId:questionCardId,modified:new Date(),judge:nextJudge},$inc:{round:1},$pop:{questionCards:1}});
 		
 		// draw new cards
 		Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
@@ -697,53 +759,8 @@ Meteor.methods({
 		});
 	},
 
-    // Update the current judge
     updateJudge: function(gameId) {
-        var g = Games.findOne({_id:gameId});
-
-        if (!g)
-            throw new Meteor.Error(404,"A game cannot be found. Cannot update the judge.");
-
-        if (!g.open)
-            throw new Meteor.Error(403,"This game is closed. Cannot update judge.");
-
-        // Get a list of all the users and whether or not they've judged and if they're connected
-
-        var votes = Votes.find({gameId:gameId}).fetch();
-        var judges = {};
-
-        // Get all the possible judges
-        _.each(g.users,function (user) {
-            judges[user] = {userId:user,connected:_.contains(g.connected,user),votes:0};
-        });
-
-        // Count the number of times this user has voted
-        _.each(votes,function(vote){
-            judges[vote.judgeId]++;
-        });
-
-        // Find the player who has voted the greatest number of times, and use this as the starting vote for players
-        // who have votes more than one time fewer (i.e., who have joined the game late)
-        var maxVotes = _.max(judges,function(judge) {return judge.votes;}).votes;
-
-        _.each(
-            _.filter(
-                _.keys(judges),function(judgeId) {
-                    return (maxVotes - judges[judgeId].votes) > 1;
-            }),function(judgeId) {
-                judges[judgeId].votes = maxVotes - 1;
-            }
-        );
-
-
-        // Sort the array of candidate judges
-        var candidates = _.values(judges);
-
-        candidates = _.filter(candidates,function (candidate) {return candidate.connected;})
-            .superSort("votes","userId");
-
-        // The first judge on this list is the judge for the round
-        Games.update({_id:gameId},{$set:{judge:candidates[0]}});
+        Games.update({_id:gameId},{$set:{judge:currentJudge(gameId)}});
     },
 	
 	// Close the game
@@ -777,7 +794,8 @@ Meteor.methods({
         Meteor.users.update({_id:this.userId},{$set:{heartbeat:d,location:currentLocation}});
 
         // update game connected info
-        var updates = _.compact(Games.find({users:this.userId,open:true}).map(function(game){
+        var games = Games.find({users:this.userId,open:true}).fetch();
+        var updates = _.compact(_.map(games,function(game){
             // for each game and each user, check the last heartbeat time
             var connectedUsers = _.compact(Meteor.users.find({_id:{$in:game.users}}).map(function(user){
                 // if it has been less than 2*K_HEARTBEAT seconds since the last heartbeat, the user should be in the connected table
@@ -786,9 +804,10 @@ Meteor.methods({
                 else
                     return undefined;
             }));
-            console.log("Game " + game._id + " connected users: " + JSON.stringify(connectedUsers));
+
+            // If the number of connected users has changed, update the connected users and compute a new judge
             if (_.difference(connectedUsers,game.connected).length + _.difference(game.connected,connectedUsers).length > 0) {
-                return [{_id:game._id},{$set:{connected:connectedUsers}}];
+                return [{_id:game._id},{$set:{connected:connectedUsers,judge:currentJudge(game)}}];
             } else {
                 return undefined;
             }
