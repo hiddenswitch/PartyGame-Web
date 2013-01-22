@@ -268,9 +268,9 @@ var createNewUserAndLogin = function(username,email,password,callback) {
 }
 
 var createNewAnonymousUser = function(nickname,callback) {
-    nickname = nickname || "REDACTED."
     var userIdPadding = Math.random().toString(36).slice(-8);
     var password = Math.random().toString(36).slice(-8);
+    nickname = nickname || "REDACTED (" + userIdPadding + ")";
     Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname}},callback)
 }
 
