@@ -314,7 +314,7 @@ var cardIdToText = function(cardId) {
 // connects or disconnects.
 var currentJudge = function(g) {
     // Get a list of all the users and whether or not they've judged and if they're connected
-    var votes = Votes.find({gameId:gameId}).fetch();
+    var votes = Votes.find({gameId:g._id}).fetch();
     var judges = {};
 
     // Get all the possible judges
@@ -343,6 +343,8 @@ var currentJudge = function(g) {
 
     // Sort the array of candidate judges
     var candidates = _.values(judges);
+
+    console.log(candidates);
 
     // Filter out disconnected candidates.
     // Then, sort first by votes ascending, then by userIndex ascending. In other words, the player who has voted
@@ -567,7 +569,7 @@ Meteor.methods({
 			return Votes.insert({gameId:gameId,round:game.round,judgeId:judgeId,userId:submission.userId,questionId:game.questionId,answerId:submission.answerId})
 		}
 	},
-	
+
 	// Remove submitted hands from the committed round and increment the round number.
 	// Close the game if there are no more question cards left.
 	finishRound: function(gameId) {
@@ -667,7 +669,7 @@ Meteor.methods({
 	
 	// Join a game
 	joinGame: function(gameId) {
-		Games.update({_id:gameId},{$addToSet: {users:this.userId},$set:{modified:new Date()}});
+		Games.update({_id:gameId},{$addToSet: {users:this.userId, connected:this.userId},$set:{modified:new Date()}});
 		
 		Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
 		

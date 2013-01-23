@@ -89,12 +89,7 @@ Meteor.startup(function () {
 
     try {
         // Add a blank answer card.
-        var blankAnswerCard = Cards.findOne(CARD_BLANK_ANSWER_CARD);
-
-        if (blankAnswerCard)
-            K_BLANK_ANSWER_CARD = blankAnswerCard._id;
-        else
-            K_BLANK_ANSWER_CARD = Cards.insert(CARD_BLANK_ANSWER_CARD)
+        var blankAnswerCard = Cards.remove(CARD_BLANK_ANSWER_CARD);
 
         if (Cards.find({}).count() < 1) {
             _.forEach(CAH_QUESTION_CARDS,function(c){
