@@ -82,6 +82,9 @@ Meteor.startup(function () {
     // enable the geospatial index on games and users
     try {
         Games._ensureIndex({location:"2d",modified:-1});
+        Votes._ensureIndex({gameId:1});
+        Hands._ensureIndex({gameId:1});
+        Submissions._ensureIndex({gameId:1});
         Meteor.users._ensureIndex({location:"2d"});
     } catch (e) {
         console.log("Indexing failure. " + e);

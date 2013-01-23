@@ -73,30 +73,30 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     }
 
     return "REDACTED.";
-}
+};
 
 var refreshListviews = function() {
 	$('.ui-listview[data-role="listview"]').listview("refresh");
 	$('[data-role="button"]:visible').button();
-}
+};
 
 var createListviews = function() {
 	$('[data-role="listview"]').listview();
 	//$.mobile.initializePage('[data-role="page"]');
-}
+};
 
 var setError = function(err,r) {
 	if (err) {
 		Session.set(SESSION_CURRENT_ERROR,err.reason);
 		console.log(err);
 	}
-}
+};
 
 var setErrorAndGoHome = function (err,r) {
 	setError(err,r);
 	
 	$.mobile.changePage('#home');
-}
+};
 
 var requestLocation = function(callback) {
     if (navigator && navigator.geolocation) {
@@ -113,7 +113,7 @@ var requestLocation = function(callback) {
         if (callback)
             callback(new Meteor.Error(404,"Geolocation not supported."),null)
     }
-}
+};
 
 var closeThisGame = function() {
 	if (!Session.get(SESSION_CURRENT_GAME)) {
@@ -122,7 +122,7 @@ var closeThisGame = function() {
 	}
 	
 	Meteor.call("closeGame",Session.get(SESSION_CURRENT_GAME),setError);
-}
+};
 
 var kickThisPlayer = function(kickId) {
 	if (!Session.get(SESSION_CURRENT_GAME)) {
@@ -135,7 +135,7 @@ var kickThisPlayer = function(kickId) {
 		if (r)
 			setError({reason:"Player kicked."});
 	});
-}
+};
 
 var quitThisGame = function() {
 	if (!Session.get(SESSION_CURRENT_GAME)) {
@@ -144,27 +144,27 @@ var quitThisGame = function() {
 	}
 	
 	Meteor.call("quitGame",Session.get(SESSION_CURRENT_GAME),setError);
-}
+};
 
 var login = function() {
 	var loginUsernameOrEmail = $('#loginUsernameOrEmail').attr('value');
 	var password = $('#loginPassword').attr('value');
 	
 	Meteor.loginWithPassword(loginUsernameOrEmail,password,setErrorAndGoHome);
-}
+};
 
 var loginAnonymously = function() {
     var nickname = $('#anonymousNickname').attr('value');
     createNewAnonymousUser(nickname,setErrorAndGoHome);
-}
+};
 
 var loginWithFacebook = function() {
 	Meteor.loginWithFacebook({},setErrorAndGoHome)
-}
+};
 
 var loginWithGoogle = function() {
 	Meteor.loginWithGoogle({},setErrorAndGoHome)
-}
+};
 
 var signUp = function() {
 	if (Meteor.user()) {
@@ -184,7 +184,7 @@ var signUp = function() {
 			$.mobile.changePage('#home');
 		}
 	});
-}
+};
 
 var matchMake = function() {
     requestLocation(function (locationE,locationR){
@@ -195,11 +195,11 @@ var matchMake = function() {
             setError(err);
         });
     });
-}
+};
 
 var submissionCount = function () {
     return Submissions.find({gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)}).count();
-}
+};
 
 var maxSubmissionsCount = function () {
     var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -207,7 +207,7 @@ var maxSubmissionsCount = function () {
         return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)}).connected.length-1;
     else
         return 0;
-}
+};
 
 var playersCount = function () {
     var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -215,7 +215,7 @@ var playersCount = function () {
         return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)}).users.length;
     else
         return 0;
-}
+};
 
 var playersRemainingCount = function () {
     var _maxSubmissionsCount = maxSubmissionsCount();
@@ -223,7 +223,7 @@ var playersRemainingCount = function () {
         return "(" + submissionCount().toString() + "/" + _maxSubmissionsCount.toString() + ")";
     else
         return "";
-}
+};
 
 var createAndJoinGame = function() {
 	var gameTitle = $('#gameTitle').attr('value');
@@ -250,7 +250,7 @@ var createAndJoinGame = function() {
 		}
 		setError(e);
 	});
-}
+};
 
 var userIdToName = function(id) {
 	var u = Meteor.users.findOne({_id:id});
@@ -266,7 +266,9 @@ var userIdToName = function(id) {
 	
 	if (u.emails && u.emails[0] && u.emails[0].address)
 		return u.emails[0].address;
-}
+
+    return "REDACTED.";
+};
 
 var joinGameOnClick = function(e) {
 	var gameId = $(e.target).attr('id');
@@ -276,20 +278,20 @@ var joinGameOnClick = function(e) {
 		}
 		setError(e);
 	});
-}
+};
 
 var isJudge = function() {
     var theUserId = Meteor.userId();
     var currentGameId = Session.get(SESSION_CURRENT_GAME);
     return (theUserId == getJudgeIdForGameId(currentGameId));
-}
+};
 
 var joinGameFromHash = function() {
     // TODO Create dialog to ask for nickname, then join into game.
     var url = window.location.href;
     var gameId = /\?([A-z0-9\-])#+/.exec(url)[1];
     if (!Meteor.user()) {};
-}
+};
 
 var registerTemplates = function() {	
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
@@ -300,7 +302,7 @@ var registerTemplates = function() {
 		if (status == "connected") {
 			return false;
 		} else if (status == "connecting") {
-			return "Connecting to server..."
+			return "Connecting to server...";
 		} else if (status == "waiting") {
 			return "Failed to connect. Retrying connection...";
 		}
@@ -308,19 +310,19 @@ var registerTemplates = function() {
 	
 	Template.error.error = function() {
 		return Session.get(SESSION_CURRENT_ERROR);
-	}
+	};
 	
 	Template.game.game = function () {
 		return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
-	}
+	};
 	
 	Template.game.title = function() {
 		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
 		if (g)
-			return g.title
+			return g.title;
 		else
-			return "REDACTED."
-	}
+			return "REDACTED.";
+	};
 	
 	Template.game.round = function() {
 		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -328,7 +330,7 @@ var registerTemplates = function() {
 			return g.round+1;
 		else
 			return 1;
-	}
+	};
 	
 	Template.game.isOpen = function() {
 		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -337,7 +339,7 @@ var registerTemplates = function() {
 		} else {
 			return false;
 		}
-	}
+	};
 	
 	Template.game.isOwner = function() {
 		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -350,11 +352,11 @@ var registerTemplates = function() {
 		} else {
 			return false;
 		}
-	}
+	};
 	
 	Template.game.lastVote = function() {
 		return Votes.findOne({gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)-1});
-	}
+	};
 	
 	Template.game.rendered = refreshListviews;
 	Template.game.created = createListviews;
@@ -383,13 +385,13 @@ var registerTemplates = function() {
     }
 	
 	Template.judge.rendered = function () {
-
+        refreshListviews();
         if (isJudge() && playersCount() > 1)
             $('#judgeText').addClass('magic');
         else
             $('#judgeText').removeClass('magic');
-        refreshListviews;
-    }
+    };
+
 	Template.judge.created = createListviews;
 	
 	Template.question.question = function() {
@@ -399,7 +401,7 @@ var registerTemplates = function() {
 		} else {
 			return "REDACTED.";
 		}
-	}
+	};
 	
 	Template.question.rendered = refreshListviews;
 	Template.question.created = createListviews;  
@@ -407,7 +409,7 @@ var registerTemplates = function() {
 	Template.players.players = function () {
 		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
 		return _.map(gameDoc.users, function (o) {return Meteor.users.findOne({_id:o})});
-	}
+	};
 	
 	Template.players.rendered = refreshListviews;
 	Template.players.created = createListviews;
@@ -428,18 +430,18 @@ var registerTemplates = function() {
 	
 	Template.browse.events = {
 		'click a': joinGameOnClick
-	}
+	};
 	
 	Template.browse.rendered = refreshListviews;
 	Template.browse.created = createListviews;
 	
 	Template.myGames.games = function() {
 		return Games.find({open:true,users:Meteor.userId()}).fetch();
-	}
+	};
 	
 	Template.myGames.events = {
 		'click a': joinGameOnClick
-	}
+	};
 	
 	Template.myGames.rendered = refreshListviews;
 	Template.myGames.created = createListviews;
@@ -450,11 +452,11 @@ var registerTemplates = function() {
 		return _.map(submissions, function(o) {
             return _.extend({text:cardIdToText(o.answerId)},o)
         });
-	}
+	};
 
     Template.submissions.count = function () {
         return "(" + submissionCount().toString() + "/" + maxSubmissionsCount().toString() + ")";
-    }
+    };
 	
 	Template.submissions.events = {
 		'click .submission':function(e) {
@@ -480,13 +482,13 @@ var registerTemplates = function() {
 	}
 	
 	Template.submissions.rendered = function() {
+        refreshListviews();
         if (isJudge() && playersCount() > 1) {
             $('#submissionsCollapsible h3 a').addClass('magic');
         } else {
             $('#submissionsCollapsible h3 a').removeClass('magic');
         }
-        refreshListviews;
-    }
+    };
 
 	Template.submissions.created = createListviews;
 
@@ -517,9 +519,10 @@ var registerTemplates = function() {
 				});
 			};
 		}
-	}
+	};
 	
 	Template.hand.rendered = function() {
+        refreshListviews();
         if (isJudge()) {
             $('#handHeader').text("Your Hand");
             $('#handCollapsible h3 a').removeClass('magic');
@@ -527,8 +530,8 @@ var registerTemplates = function() {
             $('#handHeader').text("Play a Card");
             $('#handCollapsible h3 a').addClass('magic');
         }
-        refreshListviews;
-    }
+    };
+
 	Template.hand.created = createListviews;
 	
 	Template.preview.text = function() {
@@ -537,11 +540,11 @@ var registerTemplates = function() {
 			return questionAndAnswerText(gameDoc.questionId,Session.get(SESSION_CURRENT_PREVIEW_CARD));
 		else
 			return "REDACTED.";
-	}
+	};
 	
 	Template.preview.rendered = refreshListviews;
 	Template.preview.created = createListviews;
-}
+};
 
 Meteor.subscribe("openGames");
 Meteor.subscribe("myHands");
