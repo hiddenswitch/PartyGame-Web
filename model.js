@@ -26,7 +26,7 @@ Array.prototype.superSort = function() {
         }
         return result;
     });
-}
+};
 
 
 var THEME_URL = "http://jquerymobile.com/themeroller/?ver=1.2.0&style_id=20121211-131";
@@ -35,7 +35,6 @@ var K_DEFAULT_HAND_SIZE = 8; // default hand size
 var K_HEARTBEAT = 8 * 1000; // default heartbeat length
 var K_LOCAL_DISTANCE = 0.0003; // distance in lat-lon units, approximately 150 ft (?)
 var K_PREFERRED_GAME_SIZE = 7; // the size of a game matchmaking prefers to make
-var K_BLANK_ANSWER_CARD = ""; // the id of the blank answer card.
 
 var E_NO_MORE_CARDS = "No more cards.";
 var E_GAME_OVER = "The game is over.";
@@ -48,7 +47,7 @@ var Round = function() {
 		questionId:"",
 		winner:""
 	}
-}
+};
 
 var Game = function() {
 	return {
@@ -68,18 +67,17 @@ var Game = function() {
         location:null, // location of game
         judge:"" // userId of next judge
 	}
-}
+};
 
 var CARD_TYPE_QUESTION = 1; // card of type question
 var CARD_TYPE_ANSWER = 2; // card of type answer
-var CARD_BLANK_ANSWER_CARD = {type:CARD_TYPE_ANSWER,text:'(Waiting for submissions...)'};
 
 var Card = function() {
 	return {
 		type:CARD_TYPE_QUESTION, // question or answer card
 		text:"" // text of the card
 	}
-}
+};
 
 var Hand = function() {
 	return {
@@ -88,7 +86,7 @@ var Hand = function() {
 		round:0,
 		hand:[]
 	}
-}
+};
 
 var Vote = function() {
 	return {
@@ -99,7 +97,7 @@ var Vote = function() {
 		questionId:0,
 		answerId:0
 	}
-}
+};
 
 var Submission = function () {
 	return {
@@ -108,7 +106,7 @@ var Submission = function () {
 		userId:0,
 		answerId:0
 	}
-}
+};
 
 var Chat = function () {
 	return {
@@ -117,7 +115,7 @@ var Chat = function () {
 		dateTime:0,
 		text:""
 	}
-}
+};
 
 var COLLECTIONS_CARDS = "cards";
 var COLLECTIONS_GAMES = "games";
@@ -136,7 +134,7 @@ var Chats = new Meteor.Collection(COLLECTIONS_CHATS);
 // get the distance between two points
 var distance = function(p1,p2) {
     return Math.sqrt(Math.pow(p1[0]-p2[0],2)+Math.pow(p1[1]-p2[1],2));
-}
+};
 
 // TODO Make the current judge stable even when the connected user changes.
 // Get the current judge id
@@ -145,12 +143,12 @@ var getJudgeId = function(g) {
         return g.judge;
     else
         return "";
-}
+};
 
 var getJudgeIdForGameId = function(id) {
     var g = Games.findOne({_id:id});
     return getJudgeId(g);
-}
+};
 
 // Convert an id to a username, email address or facebook profile name
 var userIdToName = function(id) {
@@ -167,7 +165,7 @@ var userIdToName = function(id) {
 	
 	if (u.emails && u.emails[0] && u.emails[0].address)
 		return u.emails[0].address;
-}
+};
 
 var submissionIdToCardId = function(id) {
 	var submission = Submissions.findOne({_id:id});
@@ -175,14 +173,14 @@ var submissionIdToCardId = function(id) {
         return submission.answerId;
     else
         return "";
-}
+};
 
 var questionAndAnswerText = function(questionCardId,answerCardId) {
     var q = cardIdToText(questionCardId);
     var c = cardIdToText(answerCardId);
 
-    if (!c || !q || q == "REDACTED." || c == "REDACTED.") {
-        return "REDACTED.";
+    if (!c || !q || q === "(Waiting for players to submit...)" || c === "(Waiting for players to submit...)") {
+        return "(Waiting for players to submit...)";
     }
 
     var matches = [];
@@ -232,9 +230,7 @@ var questionAndAnswerText = function(questionCardId,answerCardId) {
     } else {
         return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
     }
-
-    return "REDACTED.";
-}
+};
 
 // Match into an existing game, or create a new one to join into
 var match = function(location,gameJoinedCallback) {
@@ -254,7 +250,7 @@ var match = function(location,gameJoinedCallback) {
 					});
 			});
 	});
-}
+};
 
 	// get a {userId, score} dictionary containing the current scores
 var scores = function(gameId) {
@@ -290,22 +286,22 @@ var createNewUserAndLogin = function(username,email,password,callback) {
 	} else {
 		throw new Meteor.Error(403,"Please fill out: " + (username ? "" : " username") + (email ? "" : " email") + (password ? "" : " password")+".");
 	}
-}
+};
 
 var createNewAnonymousUser = function(nickname,callback) {
     var userIdPadding = Math.random().toString(36).slice(-8);
     var password = Math.random().toString(36).slice(-8);
     nickname = nickname || "REDACTED (" + userIdPadding + ")";
     Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname}},callback)
-}
+};
 
 var cardIdToText = function(cardId) {
 	var c = Cards.findOne({_id:cardId});
 	if (c)
 		return c.text;
 	else
-		return "REDACTED.";
-}
+		return "(Waiting for players to submit...)";
+};
 
 // Gets the current judge
 // Use the user's number of times voted to fairly pick the next judge
@@ -353,7 +349,7 @@ var currentJudge = function(g) {
         .superSort("votes","userIndex");
 
     return candidates[0].userId;
-}
+};
 
 var currentJudgeForGameId = function(gameId) {
     var g = Games.findOne({_id:gameId});
@@ -365,7 +361,7 @@ var currentJudgeForGameId = function(gameId) {
         throw new Meteor.Error(403,"This game is closed. Cannot update judge.");
 
     return currentJudge(g);
-}
+};
 
 /*
  * Game flow:
@@ -821,4 +817,4 @@ Meteor.methods({
 
         return d;
     }
-})
+});

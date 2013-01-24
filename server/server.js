@@ -39,6 +39,7 @@ Meteor.publish("submissions", function(gameId,round) {
                 recordset.set("submissions",submission._id, _.omit(submission,['_id','answerId']));
             });
         }
+
         recordset.flush();
     }
 
@@ -91,9 +92,6 @@ Meteor.startup(function () {
     }
 
     try {
-        // Add a blank answer card.
-        var blankAnswerCard = Cards.remove(CARD_BLANK_ANSWER_CARD);
-
         if (Cards.find({}).count() < 1) {
             _.forEach(CAH_QUESTION_CARDS,function(c){
                 Cards.insert({text:c,type:CARD_TYPE_QUESTION});
@@ -125,13 +123,14 @@ Meteor.startup(function () {
 
 
     // maintenance
-    Meteor.autorun(function () {
-        Games.find({open:true,$or:
+    Meteor.setInterval(function () {
+        var games = Games.find({open:true,$or:
             [{$where:"new Date() - this.modified > 20*" + K_HEARTBEAT}, // close the game after 20 heartbeats
-                {connected:{$size:0}}]}).forEach(function(game){ // close games with no connected users
+                {connected:{$size:0}}]}).fetch();
+        _.each(games,function(game){ // close games with no connected users
                 Games.update({_id:game._id},
                     {$set:{open:false}});
                 console.log("Closed game "+game._id);
         });
-    });
+    },40*K_HEARTBEAT);
 });

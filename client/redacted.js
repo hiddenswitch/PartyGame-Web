@@ -82,7 +82,6 @@ var refreshListviews = function() {
 
 var createListviews = function() {
 	$('[data-role="listview"]').listview();
-	//$.mobile.initializePage('[data-role="page"]');
 };
 
 var setError = function(err,r) {
@@ -286,6 +285,12 @@ var isJudge = function() {
     return (theUserId == getJudgeIdForGameId(currentGameId));
 };
 
+var defaultPreserve = {
+    '[id]':function(node) {
+        return node.id;
+    }
+};
+
 var joinGameFromHash = function() {
     // TODO Create dialog to ask for nickname, then join into game.
     var url = window.location.href;
@@ -360,7 +365,8 @@ var registerTemplates = function() {
 	
 	Template.game.rendered = refreshListviews;
 	Template.game.created = createListviews;
-	
+    Template.game.preserve(defaultPreserve);
+
 	Handlebars.registerHelper("gameGame",Template.game.game);
 	Handlebars.registerHelper("gameTitle",Template.game.title);
 	Handlebars.registerHelper("gameIsOpen",Template.game.isOpen);
@@ -385,7 +391,6 @@ var registerTemplates = function() {
     }
 	
 	Template.judge.rendered = function () {
-        refreshListviews();
         if (isJudge() && playersCount() > 1)
             $('#judgeText').addClass('magic');
         else
@@ -393,6 +398,7 @@ var registerTemplates = function() {
     };
 
 	Template.judge.created = createListviews;
+    Template.judge.preserve(defaultPreserve);
 	
 	Template.question.question = function() {
 		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -402,9 +408,8 @@ var registerTemplates = function() {
 			return "REDACTED.";
 		}
 	};
-	
-	Template.question.rendered = refreshListviews;
-	Template.question.created = createListviews;  
+
+    Template.question.preserve(defaultPreserve);
 	
 	Template.players.players = function () {
 		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -413,6 +418,7 @@ var registerTemplates = function() {
 	
 	Template.players.rendered = refreshListviews;
 	Template.players.created = createListviews;
+    Template.players.preserve(defaultPreserve);
 	
 	Template.scores.scores = function() {
 		if (!Session.get(SESSION_CURRENT_GAME))
@@ -423,6 +429,7 @@ var registerTemplates = function() {
 	
 	Template.scores.rendered = refreshListviews;
 	Template.scores.created = createListviews;
+    Template.scores.preserve(defaultPreserve);
 	
 	Template.browse.games = function() {
 		return Games.find({open:true}).fetch();
@@ -434,6 +441,7 @@ var registerTemplates = function() {
 	
 	Template.browse.rendered = refreshListviews;
 	Template.browse.created = createListviews;
+    Template.browse.preserve(defaultPreserve);
 	
 	Template.myGames.games = function() {
 		return Games.find({open:true,users:Meteor.userId()}).fetch();
@@ -445,6 +453,7 @@ var registerTemplates = function() {
 	
 	Template.myGames.rendered = refreshListviews;
 	Template.myGames.created = createListviews;
+    Template.myGames.preserve(defaultPreserve);
 
     Template.submissions.isJudge = isJudge;
 	Template.submissions.submissions = function () {
@@ -491,6 +500,7 @@ var registerTemplates = function() {
     };
 
 	Template.submissions.created = createListviews;
+    Template.submissions.preserve(defaultPreserve);
 
     Template.hand.isJudge = isJudge;
 	
@@ -533,6 +543,7 @@ var registerTemplates = function() {
     };
 
 	Template.hand.created = createListviews;
+    Template.hand.preserve(defaultPreserve);
 	
 	Template.preview.text = function() {
 		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
@@ -541,9 +552,9 @@ var registerTemplates = function() {
 		else
 			return "REDACTED.";
 	};
-	
-	Template.preview.rendered = refreshListviews;
-	Template.preview.created = createListviews;
+
+    Template.menu.rendered = refreshListviews;
+    Template.menu.created = createListviews;
 };
 
 Meteor.subscribe("openGames");
@@ -585,16 +596,6 @@ Meteor.startup(function() {
 		var currentHand = Hands.findOne({userId:Meteor.userId(),gameId:currentGameId,round:currentRound});
 		if (currentHand)
 			Session.set(SESSION_CURRENT_HAND,currentHand._id);
-	});
-	
-	// refresh listviews when logging in and out
-	Meteor.autorun(function () {
-		var loggingIn = Meteor.loggingIn();
-		if (loggingIn) {
-			refreshListviews();
-		} else {
-			refreshListviews();
-		}
 	});
 	
 	// clear error after 5 seconds
