@@ -634,9 +634,6 @@ Meteor.methods({
 		
 		var firstQuestionCardId = shuffledQuestionCards.pop();
 
-        var firstJudgeTable = {};
-        firstJudgeTable[this.userId] = 0;
-
 		return Games.insert({
 			title:title, // game title
 			password:password, // game password if any
@@ -651,7 +648,6 @@ Meteor.methods({
 			created: new Date(),
 			modified: new Date(),
             judge:this.userId,
-            judges:firstJudgeTable,
             location: location
 		});
 	},
