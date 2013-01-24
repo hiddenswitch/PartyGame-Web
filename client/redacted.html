@@ -281,6 +281,15 @@
 		</div>
 	</div>
 
+    <div data-role="page" id="invitation" data-theme="a">
+        <div data-role="header">
+            <h1>Invitation</h1>
+        </div>
+        <div data-role="content">
+            {{> invitation}}
+        </div>
+    </div>
+
     <div data-role="page" id="news" data-add-back-btn="true" data-theme="a">
         <div data-role="header">
             <h1>News</h1>
@@ -369,6 +378,19 @@
     {{else}}
         <li>No open games.</li>
 	{{/if}}
+</template>
+
+<template name="invitation">
+    <h3>You have been invited to a game!</h3>
+    {{#if currentUser}}
+        <a href="#" data-role="button" data-icon="arrow-r" data-theme="b" onclick="acceptInvite()">Accept</a>
+    {{else}}
+        <form>
+            <label for="anonymousNickname" class="ui-hidden-accessible">Nickname</label>
+            <input type="text" name="anonymousNickname" id="anonymousNickname" value="" placeholder="Nickname"/>
+        </form>
+        <a href="#" data-role="button" data-icon="arrow-r" onclick="loginAndAcceptInvite()">Accept</a>
+    {{/if}}
 </template>
 
 <template name="myGames">

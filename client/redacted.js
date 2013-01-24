@@ -210,6 +210,79 @@ var userIdToName = function(id) {
     return "REDACTED.";
 };
 
+var cardIdToText = function(cardId) {
+    var c = Cards.findOne({_id:cardId});
+    if (c)
+        return c.text;
+    else
+        return "(Waiting for players to submit...)";
+};
+
+var submissionIdToCardId = function(id) {
+    var submission = Submissions.findOne({_id:id});
+    if (submission.answerId)
+        return submission.answerId;
+    else
+        return "";
+};
+
+var questionAndAnswerText = function(questionCardId,answerCardId) {
+    var q = cardIdToText(questionCardId);
+    var c = cardIdToText(answerCardId);
+
+    if (!c || !q || q === "(Waiting for players to submit...)" || c === "(Waiting for players to submit...)") {
+        return "(Waiting for players to submit...)";
+    }
+
+    var matches = [];
+    var match = /(.{0,2})(__)(.+)/g;
+    var isName = /^[A-Z]\w+\s+[A-Z]/;
+
+    var beforeAndAfter = match.exec(q);
+
+    // Handle multiple underscores
+    while (beforeAndAfter) {
+        // clone array into matches
+        matches.push(beforeAndAfter.slice(0));
+        beforeAndAfter = match.exec(q);
+    }
+
+    var replacements = _.map(matches, function (anUnderscore) {
+        if (c && anUnderscore && anUnderscore[2]) {
+            var before = anUnderscore[1];
+            var startsWithPeriod = /[\.\?!]\s/;
+
+            // check if the card text should be lowercase
+            if (before != "" && !startsWithPeriod.exec(before) && !isName.exec(c)) {
+                c = c.charAt(0).toLowerCase() + c.slice(1);
+            }
+
+            // check if the triple underscore ends with a punctuation
+
+            var after = anUnderscore[3];
+
+            // since there is stuff after, remove punctuation.
+            if (after) {
+                var punctuation = /[^\w\s]/;
+
+                // if the card text ends in punctuation, remove any existing punctuation
+                if (punctuation.exec(after))
+                    c = c.slice(0,c.length-1);
+            }
+
+            return "<span style='font-style:italic;'>"+c+"</span>";
+        }
+    });
+
+    if (replacements && replacements.length > 0) {
+        return _.reduce(replacements,function(memo,text) {
+            return memo.replace("__",text);
+        },q);
+    } else {
+        return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
+    }
+};
+
 var joinGameOnClick = function(e) {
 	var gameId = $(e.target).attr('id');
 	Meteor.call("joinGame",gameId,function(e,r) {
@@ -227,16 +300,27 @@ var isJudge = function() {
 };
 
 var defaultPreserve = {
-    '[id]':function(node) {
+    'li[id]':function(node) {
         return node.id;
     }
 };
+
+var acceptInvite = function() {
+
+}
+
+var loginAndAcceptInvite = function() {
+
+}
 
 var joinGameFromHash = function() {
     // TODO Create dialog to ask for nickname, then join into game.
     var url = window.location.href;
     var gameId = /\?([A-z0-9\-])#+/.exec(url)[1];
-    if (!Meteor.user()) {};
+
+    if (!Meteor.user()) {
+
+    }
 };
 
 var registerTemplates = function() {	
@@ -331,14 +415,7 @@ var registerTemplates = function() {
             return "Waiting for more players...";
     }
 	
-	Template.judge.rendered = function () {
-        refreshListviews();
-        if (isJudge() && playersCount() > 1)
-            $('#judgeText').addClass('magic');
-        else
-            $('#judgeText').removeClass('magic');
-    };
-
+	Template.judge.rendered = refreshListviews;
 	Template.judge.created = createListviews;
     Template.judge.preserve(defaultPreserve);
 	

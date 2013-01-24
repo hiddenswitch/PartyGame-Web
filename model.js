@@ -139,88 +139,6 @@ var getJudgeIdForGameId = function(id) {
     return getJudgeId(g);
 };
 
-// Convert an id to a username, email address or facebook profile name
-var userIdToName = function(id) {
-	var u = Meteor.users.findOne({_id:id});
-	
-	if (!u)
-		return "REDACTED.";
-	
-	if (u.profile && u.profile.name)
-		return u.profile.name;
-	
-	if (u.username)
-		return u.username;
-	
-	if (u.emails && u.emails[0] && u.emails[0].address)
-		return u.emails[0].address;
-};
-
-var submissionIdToCardId = function(id) {
-	var submission = Submissions.findOne({_id:id});
-    if (submission.answerId)
-        return submission.answerId;
-    else
-        return "";
-};
-
-var questionAndAnswerText = function(questionCardId,answerCardId) {
-    var q = cardIdToText(questionCardId);
-    var c = cardIdToText(answerCardId);
-
-    if (!c || !q || q === "(Waiting for players to submit...)" || c === "(Waiting for players to submit...)") {
-        return "(Waiting for players to submit...)";
-    }
-
-    var matches = [];
-    var match = /(.{0,2})(__)(.+)/g;
-    var isName = /^[A-Z]\w+\s+[A-Z]/;
-
-    var beforeAndAfter = match.exec(q);
-
-    // Handle multiple underscores
-    while (beforeAndAfter) {
-        // clone array into matches
-        matches.push(beforeAndAfter.slice(0));
-        beforeAndAfter = match.exec(q);
-    }
-
-    var replacements = _.map(matches, function (anUnderscore) {
-        if (c && anUnderscore && anUnderscore[2]) {
-            var before = anUnderscore[1];
-            var startsWithPeriod = /[\.\?!]\s/;
-
-            // check if the card text should be lowercase
-            if (before != "" && !startsWithPeriod.exec(before) && !isName.exec(c)) {
-                c = c.charAt(0).toLowerCase() + c.slice(1);
-            }
-
-            // check if the triple underscore ends with a punctuation
-
-            var after = anUnderscore[3];
-
-            // since there is stuff after, remove punctuation.
-            if (after) {
-                var punctuation = /[^\w\s]/;
-
-                // if the card text ends in punctuation, remove any existing punctuation
-                if (punctuation.exec(after))
-                    c = c.slice(0,c.length-1);
-            }
-
-            return "<span style='font-style:italic;'>"+c+"</span>";
-        }
-    });
-
-    if (replacements && replacements.length > 0) {
-        return _.reduce(replacements,function(memo,text) {
-            return memo.replace("__",text);
-        },q);
-    } else {
-        return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
-    }
-};
-
 // Match into an existing game, or create a new one to join into
 var match = function(location,gameJoinedCallback) {
 	Meteor.call("findLocalGame",location,function(e,r) {
@@ -284,13 +202,6 @@ var createNewAnonymousUser = function(nickname,callback) {
     Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname}},callback)
 };
 
-var cardIdToText = function(cardId) {
-	var c = Cards.findOne({_id:cardId});
-	if (c)
-		return c.text;
-	else
-		return "(Waiting for players to submit...)";
-};
 
 // Gets the current judge
 // Use the user's number of times voted to fairly pick the next judge
