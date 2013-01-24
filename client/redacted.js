@@ -307,11 +307,11 @@ var defaultPreserve = {
 
 var acceptInvite = function() {
 
-}
+};
 
 var loginAndAcceptInvite = function() {
 
-}
+};
 
 var joinGameFromHash = function() {
     // TODO Create dialog to ask for nickname, then join into game.
@@ -581,7 +581,7 @@ Meteor.subscribe("openGames");
 Meteor.subscribe("myHands");
 Meteor.subscribe("myGames");
 Meteor.subscribe("myOwnedGames");
-Meteor.subscribe("cards");	
+Meteor.subscribe("cards");
 
 Meteor.startup(function() {
 	Session.set(SESSION_CURRENT_ERROR,null);

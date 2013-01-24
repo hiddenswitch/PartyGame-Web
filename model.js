@@ -600,8 +600,7 @@ Meteor.methods({
     },
 	
 	findAnyGame: function() {
-
-		var game = Games.findOne({open:true});;
+		var game = Games.findOne({open:true});
 
 		if (!game)
 			return false;
