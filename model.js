@@ -50,71 +50,60 @@ var Round = function() {
 };
 
 var Game = function() {
-	return {
-		title:"", // game title
-		password:"", // game password if any
-		users:[], // players in the game, stored as userId's
-        connected:[], // players that have given heartbeats in the last 8 seconds
-		round:-1, // round number
-		questionId:0, // id of current question
-		questionCards:[], // question cards
-		answerCards:[], // answer cards
-		submissions:[], // current submissions
-		open:1, // is the game open
-		ownerId:0, // owner of the game
-		created: new Date(), // date created
-		modified: new Date(), // date modified
-        location:null, // location of game
-        judge:"" // userId of next judge
-	}
+    this.title = ""; // game title
+    this.password = ""; // game password if any
+    this.users = []; // players in the game; stored as userId's
+    this.connected = []; // players that have given heartbeats in the last 8 seconds
+    this.round = -1; // round number
+    this.questionId = 0; // id of current question
+    this.questionCards = []; // question cards
+    this.answerCards = []; // answer cards
+    this.submissions = []; // current submissions
+    this.open = 1; // is the game open
+    this.ownerId = 0; // owner of the game
+    this.created =  new Date(); // date created
+    this.modified =  new Date(); // date modified
+    this.location = null; // location of game
+    this.judge = ""; // userId of next judge
 };
 
 var CARD_TYPE_QUESTION = 1; // card of type question
 var CARD_TYPE_ANSWER = 2; // card of type answer
 
 var Card = function() {
-	return {
-		type:CARD_TYPE_QUESTION, // question or answer card
-		text:"" // text of the card
-	}
+	this.type = CARD_TYPE_QUESTION;  // question or answer card
+    this.deck = ""; // The name of the deck
+	this.text = ""; // text of the card
 };
 
 var Hand = function() {
-	return {
-		gameId:0,
-		userId:0,
-		round:0,
-		hand:[]
-	}
+	this.gameId = 0; 
+	this.userId = 0; 
+	this.round = 0; 
+	this.hand = [];
 };
 
 var Vote = function() {
-	return {
-		gameId:0,
-		round:0,
-		judgeId:0,
-		userId:0,
-		questionId:0,
-		answerId:0
-	}
+	this.gameId = 0; 
+	this.round = 0; 
+	this.judgeId = 0; 
+	this.userId = 0; 
+	this.questionId = 0; 
+	this.answerId = 0;
 };
 
 var Submission = function () {
-	return {
-		gameId:0,
-		round:0,
-		userId:0,
-		answerId:0
-	}
+	this.gameId = 0; 
+	this.round = 0; 
+	this.userId = 0; 
+	this.answerId = 0;
 };
 
 var Chat = function () {
-	return {
-		gameId:0,
-		userId:0,
-		dateTime:0,
-		text:""
-	}
+	this.gameId = 0; 
+	this.userId = 0; 
+	this.dateTime = 0; 
+	this.text = "";
 };
 
 var COLLECTIONS_CARDS = "cards";

@@ -16,65 +16,6 @@ var previewNo = function () {};
 
 var mutationObserver = {};
 
-var questionAndAnswerText = function(questionCardId,answerCardId) {
-    var q = cardIdToText(questionCardId);
-    var c = cardIdToText(answerCardId);
-
-    if (!c || !q || q == "REDACTED." || c == "REDACTED.") {
-        return "REDACTED.";
-    }
-
-    var matches = [];
-    var match = /(.{0,2})(__)(.+)/g;
-    var isName = /^[A-Z]\w+\s+[A-Z]/;
-
-    var beforeAndAfter = match.exec(q);
-
-    // Handle multiple underscores
-    while (beforeAndAfter) {
-        // clone array into matches
-        matches.push(beforeAndAfter.slice(0));
-        beforeAndAfter = match.exec(q);
-    }
-
-    var replacements = _.map(matches, function (anUnderscore) {
-        if (c && anUnderscore && anUnderscore[2]) {
-            var before = anUnderscore[1];
-            var startsWithPeriod = /[\.\?!]\s/;
-
-            // check if the card text should be lowercase
-            if (before != "" && !startsWithPeriod.exec(before) && !isName.exec(c)) {
-                c = c.charAt(0).toLowerCase() + c.slice(1);
-            }
-
-            // check if the triple underscore ends with a punctuation
-
-            var after = anUnderscore[3];
-
-            // since there is stuff after, remove punctuation.
-            if (after) {
-                var punctuation = /[^\w\s]/;
-
-                // if the card text ends in punctuation, remove any existing punctuation
-                if (punctuation.exec(after))
-                    c = c.slice(0,c.length-1);
-            }
-
-            return "<span style='font-style:italic;'>"+c+"</span>";
-        }
-    });
-
-    if (replacements && replacements.length > 0) {
-        return _.reduce(replacements,function(memo,text) {
-            return memo.replace("__",text);
-        },q);
-    } else {
-        return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
-    }
-
-    return "REDACTED.";
-};
-
 var refreshListviews = function() {
 	$('.ui-listview[data-role="listview"]').listview("refresh");
 	$('[data-role="button"]:visible').button();
@@ -391,6 +332,7 @@ var registerTemplates = function() {
     }
 	
 	Template.judge.rendered = function () {
+        refreshListviews();
         if (isJudge() && playersCount() > 1)
             $('#judgeText').addClass('magic');
         else
@@ -410,6 +352,7 @@ var registerTemplates = function() {
 	};
 
     Template.question.preserve(defaultPreserve);
+    Template.question.rendered = refreshListviews;
 	
 	Template.players.players = function () {
 		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});

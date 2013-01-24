@@ -26,7 +26,7 @@
 			<h1>Redacted Online</h1>
 		</div>
 		<div data-role="content">
-			<ul data-role="listview" data-inset="true" class="rounded">
+			<ul id="menuList" data-role="listview" data-inset="true" class="rounded">
 				{{#isolate}}
 					{{> menu}}
 				{{/isolate}}
@@ -58,7 +58,7 @@
                 {{> error}}
             {{/isolate}}
 
-            <ul data-role="listview" data-inset="true" data-divider-theme="a">
+            <ul id="questionAndAnswerTextList" data-role="listview" data-inset="true" data-divider-theme="a">
 				{{#isolate}}
 					{{#if gameLastVote}}
 						{{#with gameLastVote}}
@@ -69,14 +69,14 @@
 				{{/isolate}}
 			</ul>
 
-            <ul data-role="listview" data-inset="true" data-divider-theme="a">
+            <ul id="judgeList" data-role="listview" data-inset="true" data-divider-theme="a">
                 <li data-role="list-divider">Judge</li>
                 {{#isolate}}
                 {{> judge}}
                 {{/isolate}}
             </ul>
 
-			<ul data-role="listview" data-inset="true" data-theme="b" data-divider-theme="b">
+			<ul id="questionList" data-role="listview" data-inset="true" data-theme="b" data-divider-theme="b">
                 <li data-role="list-divider">Question</li>
 				{{#isolate}}
 					{{> question}}
@@ -93,7 +93,7 @@
                         {{/if}}
                         {{playersRemainingCount}}
                     {{/isolate}}</h3>
-                <ul data-role="listview" data-inset="true" data-theme="c">
+                <ul id="submissionsList" data-role="listview" data-inset="true" data-theme="c">
                     {{#isolate}}
                         {{> submissions}}
                     {{/isolate}}
@@ -110,16 +110,16 @@
                             Pick a Card
                         {{/if}}
                     {{/isolate}}</h3>
-                <ul data-role="listview" data-inset="true" data-theme="d">
+                <ul id="handList" data-role="listview" data-inset="true" data-theme="d">
                     {{#isolate}}
                         {{> hand}}
                     {{/isolate}}
                 </ul>
             </div>
 
-            <div data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="true">
+            <div id="scoresCollapsible" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="false">
                 <h3>Scores</h3>
-                <ul data-role="listview" data-inset="true" data-split-icon="delete">
+                <ul id="scoresList" data-role="listview" data-inset="true" data-split-icon="delete">
                     {{#isolate}}
                         {{> scores}}
                     {{/isolate}}

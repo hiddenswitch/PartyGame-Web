@@ -41,7 +41,7 @@ Meteor.publish("submissions", function(gameId,round) {
         }
 
         recordset.flush();
-    }
+    };
 
     var submissionHandle = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).observe({
         added: updateSubmissions,
@@ -85,6 +85,8 @@ Meteor.startup(function () {
         Games._ensureIndex({location:"2d",modified:-1});
         Votes._ensureIndex({gameId:1});
         Hands._ensureIndex({gameId:1});
+        Cards._ensureIndex({deck:1});
+        Cards._ensureIndex({type:1});
         Submissions._ensureIndex({gameId:1});
         Meteor.users._ensureIndex({location:"2d"});
     } catch (e) {
@@ -94,11 +96,11 @@ Meteor.startup(function () {
     try {
         if (Cards.find({}).count() < 1) {
             _.forEach(CAH_QUESTION_CARDS,function(c){
-                Cards.insert({text:c,type:CARD_TYPE_QUESTION});
+                Cards.insert({text:c,type:CARD_TYPE_QUESTION,deck:"Cards Against Humanity"});
             });
 
             _.forEach(CAH_ANSWER_CARDS,function(c){
-                Cards.insert({text:c,type:CARD_TYPE_ANSWER});
+                Cards.insert({text:c,type:CARD_TYPE_ANSWER,deck:"Cards Against Humanity"});
             });
         }
     } catch (e) {
