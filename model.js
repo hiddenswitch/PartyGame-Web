@@ -698,8 +698,12 @@ Meteor.methods({
                     return undefined;
             }));
 
-            // If the number of connected users has changed, update the connected users and compute a new judge
-            if (_.difference(connectedUsers,game.connected).length + _.difference(game.connected,connectedUsers).length > 0) {
+            var correctJudge = currentJudge(game);
+
+            // If the number of connected users has changed or the judge has changed, update the connected users and
+            // compute a new judge
+            if (game.judge !== correctJudge ||
+                _.difference(connectedUsers,game.connected).length + _.difference(game.connected,connectedUsers).length > 0) {
                 return [{_id:game._id},{$set:{connected:connectedUsers,judge:currentJudge(game)}}];
             } else {
                 return undefined;
