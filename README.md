@@ -27,3 +27,17 @@ Otherwise, check out
 http://redacted.meteor.com
 
 for the latest version deployed to the web.
+
+
+License
+=======
+
+© 2012-2013 Benjamin Berman, all rights reserved.
+
+Use of this software is subject to the GPLv3 license with the following modifications:
+
+  1. You cannot use the name Redacted or Cards Against Humanity.
+  2. You cannot profitably use this software, similar to the non-commercial aspect of Creative Commons 3.0 licensing.
+  3. You cannot use this software at all, profitably or not, with the name Cards Against Humanity.
+
+The code is watermarked, please be respectful and judicious.
