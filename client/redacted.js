@@ -348,6 +348,9 @@ var registerTemplates = function() {
 	
 	Template.game.title = function() {
 		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+        try {
+            document.title = g.title;
+        }
 		if (g)
 			return g.title;
 		else

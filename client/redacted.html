@@ -22,9 +22,6 @@
 
 <body>
 	<div data-role="page" id="home" data-theme="a">
-		<div data-role="header">
-			<h1>Redacted Online</h1>
-		</div>
 		<div data-role="content">
 			<ul id="menuList" data-role="listview" data-inset="true" class="rounded">
 				{{#isolate}}
@@ -44,7 +41,7 @@
 				<h1>
 				{{#isolate}}
 					{{#if gameGame}}
-						Round {{gameRound}} in {{gameTitle}}
+						Round {{gameRound}}
 					{{else}}
 						Loading game...
 					{{/if}}
