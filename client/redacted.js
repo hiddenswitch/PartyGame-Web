@@ -350,7 +350,10 @@ var registerTemplates = function() {
 		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
         try {
             document.title = g.title;
+        } catch (e) {
+            console.log(e);
         }
+
 		if (g)
 			return g.title;
 		else
