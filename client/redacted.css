@@ -44,6 +44,19 @@
     100% {background:#8a2be2;}
 }
 
+[data-role=content] > * {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+[data-role=content] > ul, [data-role=content] > p, [data-role=content] > div, [data-role=content] > a {
+    max-width: 320pt;
+}
+
+[data-role=content] > header {
+    max-width: 975px;
+}
+
 /*Portrait iPhone*/
 @media only screen and (min-device-width: 320px) {
     #titleText {
@@ -61,7 +74,7 @@
 /*iPad*/
 @media only screen and (min-device-width: 768px) {
     #titleText {
-        font-size:72pt;
+        font-size:109.5pt;
     }
 }
 

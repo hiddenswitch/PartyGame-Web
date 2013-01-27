@@ -23,18 +23,18 @@
 <body>
 	<div data-role="page" id="home" data-theme="a">
 		<div data-role="content">
-            <div id="titleText" style="font-family: 'archiveregular','Helvetica Neue',Helvetica,sans">
-                <span>Redacted</span>
-            </div>
-            <aside>
-                <p>A Card Against Humanity clone. Which is itself an Apples to Apples clone. Except more disgusting, angry, humiliating, possessive, and mom-like. This is a beta.</p>
-                <p>Read the question. Pick the funniest answer from your hand. When you judge, pick the funniest submission.</p>
-            </aside>
-            <article>
-                <ul id="menuList" data-role="listview" data-inset="true" class="rounded">
-                    {{> menu}}
-                </ul>
-            </article>
+            <header>
+                <div id="titleText" style="font-family: 'archiveregular','Helvetica Neue',Helvetica,sans">
+                    <span>Redacted</span>
+                </div>
+            </header>
+
+            <p>A Card Against Humanity clone. Which is itself an Apples to Apples clone. Except more disgusting, angry, humiliating, possessive, and mom-like. This is a beta.</p>
+            <p>Read the question. Pick the funniest answer from your hand. When you judge, pick the funniest submission.</p>
+
+            <ul id="menuList" data-role="listview" data-inset="true" class="rounded">
+                {{> menu}}
+            </ul>
 		</div>
         <div data-role="footer" data-position="fixed" data-id="thefooter">
             <h4>{{> connectionError}}</h4>
