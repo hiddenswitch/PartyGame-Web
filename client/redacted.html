@@ -23,16 +23,22 @@
 <body>
 	<div data-role="page" id="home" data-theme="a">
 		<div data-role="content">
-			<ul id="menuList" data-role="listview" data-inset="true" class="rounded">
-				{{#isolate}}
-					{{> menu}}
-				{{/isolate}}
-			</ul>
-			{{#isolate}}
-				{{> connection}}
-				{{> error}}
-			{{/isolate}}
+            <div id="titleText" style="font-family: 'archiveregular','Helvetica Neue',Helvetica,sans">
+                <span>Redacted</span>
+            </div>
+            <aside>
+                <p>A Card Against Humanity clone. Which is itself an Apples to Apples clone. Except more disgusting, angry, humiliating, possessive, and mom-like. This is a beta.</p>
+                <p>Read the question. Pick the funniest answer from your hand. When you judge, pick the funniest submission.</p>
+            </aside>
+            <article>
+                <ul id="menuList" data-role="listview" data-inset="true" class="rounded">
+                    {{> menu}}
+                </ul>
+            </article>
 		</div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
+        </div>
 	</div>
 
 	<div data-role="page" id="game" data-theme="a">
@@ -50,10 +56,6 @@
 				<a href="#home" data-icon="delete" onclick="quitThisGame()">Quit</a>
 		</div>
 		<div data-role="content">
-            {{#isolate}}
-                {{> connection}}
-                {{> error}}
-            {{/isolate}}
 
             <ul id="questionAndAnswerTextList" data-role="listview" data-inset="true" data-divider-theme="a">
 				{{#isolate}}
@@ -129,6 +131,9 @@
 				{{/if}}
 			{{/isolate}}
 		</div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
+        </div>
 	</div>
 	
 	<div data-role="page" id="browse" data-add-back-btn="true" data-theme="a">
@@ -143,11 +148,10 @@
 				{{> browse}}
 			{{/isolate}}
 		</ul>
-		{{#isolate}}
-			{{> connection}}
-			{{> error}}
-		{{/isolate}}
 		</div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
+        </div>
 	</div>
 	
 	<div data-role="page" id="myGames" data-add-back-btn="true" data-theme="a">
@@ -161,11 +165,10 @@
 				{{> myGames}}
 			{{/isolate}}
 		</ul>
-		{{#isolate}}
-			{{> connection}}
-			{{> error}}
-		{{/isolate}}
 		</div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
+        </div>
 	</div>
 	
 	<div data-role="page" id="createGame" data-add-back-btn="true" data-theme="a">
@@ -173,18 +176,17 @@
 			<h1>Create New Game</h1>
 		</div>
 		<div data-role="content">
-			<form>
+			
 				<label for="gameTitle" class="ui-hidden-accessible">Title</label>
 				<input type="text" name="gameTitle" id="gameTitle" value="" placeholder="Title"/>
 				<label style="visibility: hidden;" for="gamePassword" class="ui-hidden-accessible">Password</label>
 				<input style="visibility: hidden;" type="text" name="gamePassword" id="gamePassword" value="" placeholder="Password (Unsupported)"/>
-			</form>
+			
 			<a href="#" data-role="button" data-icon="plus" onclick="createAndJoinGame()">Create and Join</a>
-			{{#isolate}}
-				{{> connection}}
-				{{> error}}
-			{{/isolate}}
 		</div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
+        </div>
 	</div>
 
     <div data-role="page" id="anonymousLogin" data-add-back-btn="true" data-theme="a">
@@ -192,16 +194,15 @@
             <h1>Anonymous Play</h1>
         </div>
         <div data-role="content">
-            <form>
+            
                 <label for="anonymousNickname" class="ui-hidden-accessible">Nickname</label>
                 <input type="text" name="anonymousNickname" id="anonymousNickname" value="" placeholder="Nickname"/>
-            </form>
+            
             <a href="#" data-role="button" data-icon="arrow-r" onclick="loginAnonymously()">Login Anonymously</a>
             <p>Take advantage of our free game. Rob us of the opportunity to make our game better by seeing if you ever play again. Be that way.</p>
-            {{#isolate}}
-            {{> connection}}
-            {{> error}}
-            {{/isolate}}
+        </div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
         </div>
     </div>
 
@@ -213,32 +214,31 @@
             <div data-role="collapsible-set">
                 <div data-role="collapsible" data-collapsed="false">
                     <h3>Make a New Account</h3>
-                    <form>
+                    
                         <label for="signUpUsername" class="ui-hidden-accessible">Username</label>
                         <input type="text" name="signUpUsername" id="signUpUsername" value="" placeholder="Username"/>
                         <label for="signUpEmail" class="ui-hidden-accessible">E-mail Address</label>
                         <input type="email" name="signUpEmail" id="signUpEmail" value="" placeholder="E-mail Address"/>
                         <label for="signUpUsername" class="ui-hidden-accessible">Password</label>
                         <input type="password" name="signUpPassword" id="signUpPassword" value="" placeholder="Password"/>
-                    </form>
+                    
                     <a href="#" data-role="button" data-icon="plus" onclick="signUp()">Create</a>
                 </div>
                 <div data-role="collapsible">
                     <h3>Login with an Existing Account</h3>
-                    <form>
+                    
                         <label for="loginUsernameOrEmail" class="ui-hidden-accessible">Username or E-mail</label>
                         <input type="text" name="loginUsernameOrEmail" id="loginUsernameOrEmail" value="" placeholder="Username or E-mail"/>
                         <label for="loginPassword" class="ui-hidden-accessible">Password</label>
                         <input type="password" name="loginPassword" id="loginPassword" value="" placeholder="Password"/>
-                    </form>
+                    
                     <a href="#" data-role="button" data-icon="plus" onclick="login()">Login</a>
                 </div>
             </div>
             <p>Go through the hassle of making a custom account just for us. We love you.</p>
-            {{#isolate}}
-            {{> connection}}
-            {{> error}}
-            {{/isolate}}
+        </div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
         </div>
     </div>
 	
@@ -356,6 +356,16 @@
 			</div>
 		</div>
 	</div>
+
+    <div data-role="page" id="contributors" data-theme="a">
+        <div data-role="header">
+            <h1>Contributors</h1>
+        </div>
+        <div data-role="content">
+            <h3>Fonts</h3>
+            <p>Archive, by <a href="http://www.behance.net/astronautdesign">Slava Kirilenko</a>, a graphic designer from Almaty, Kazakhstan.</p>
+        </div>
+    </div>
 </body>
 
 <template name="game">
@@ -382,10 +392,10 @@
     {{#if currentUser}}
         <a href="#" data-role="button" data-icon="arrow-r" data-theme="b" onclick="acceptInvite()">Accept</a>
     {{else}}
-        <form>
+        
             <label for="anonymousNickname" class="ui-hidden-accessible">Nickname</label>
             <input type="text" name="anonymousNickname" id="anonymousNickname" value="" placeholder="Nickname"/>
-        </form>
+        
         <a href="#" data-role="button" data-icon="arrow-r" onclick="loginAndAcceptInvite()">Accept</a>
     {{/if}}
 </template>
@@ -418,8 +428,6 @@
 </template>
 
 <template name="menu">
-	A Card Against Humanity clone. Which is itself an Apples to Apples clone. Except more disgusting, angry, humiliating, possessive, and mom-like. This is a beta.
-	<p>&nbsp;</p>Read the question. Pick the funniest answer from your hand. When you judge, pick the funniest submission.<p>&nbsp;</p>
 	{{#if currentUser}}
 		<li class="magic"><a id="matchButton" href="#game" onclick="matchMake()">Quick Match</a></li>
         <li class="ui-btn-up-c"><a href="#myGames">My Games</a></li>
@@ -475,9 +483,13 @@
 	{{/if}}
 </template>
 
+<template name="connectionError">
+    {{> error}} {{> connection}}
+</template>
+
 <template name="error">
 	{{#if error}}
-		<p>{{error}}</p>
+		{{error}}
 	{{/if}}
 </template>
 
@@ -489,7 +501,7 @@
 
 <template name="connection">
 	{{#if connectionStatus}}
-		{{connectionStatus}}
+		({{connectionStatus}})
 	{{/if}}
 	{{#if loggingIn}}
 		(Logging in...)

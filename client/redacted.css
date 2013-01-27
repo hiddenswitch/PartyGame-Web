@@ -43,3 +43,31 @@
     80% {background:yellow;}
     100% {background:#8a2be2;}
 }
+
+/*Portrait iPhone*/
+@media only screen and (min-device-width: 320px) {
+    #titleText {
+        font-size:32pt;
+    }
+}
+
+/*Landscape iPhone*/
+@media only screen and (min-device-width: 480px) {
+    #titleText {
+        font-size:44pt;
+    }
+}
+
+/*iPad*/
+@media only screen and (min-device-width: 768px) {
+    #titleText {
+        font-size:72pt;
+    }
+}
+
+/*Desktop*/
+@media only screen and (min-device-width: 1024px) {
+    #titleText {
+        font-size:144pt;
+    }
+}
