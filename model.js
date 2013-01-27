@@ -240,8 +240,6 @@ var currentJudge = function(g) {
     // Sort the array of candidate judges
     var candidates = _.values(judges);
 
-    console.log(candidates);
-
     // Filter out disconnected candidates.
     // Then, sort first by votes ascending, then by userIndex ascending. In other words, the player who has voted
     // the least and connected the earliest will be the next judge.
@@ -703,7 +701,7 @@ Meteor.methods({
             // If the number of connected users has changed or the judge has changed, update the connected users and
             // compute a new judge
             if (game.judge !== correctJudge ||
-                _.difference(connectedUsers,game.connected).length + _.difference(game.connected,connectedUsers).length > 0) {
+                connectedUsers.length !== game.connected.length) {
                 return [{_id:game._id},{$set:{connected:connectedUsers,judge:currentJudge(game)}}];
             } else {
                 return undefined;
