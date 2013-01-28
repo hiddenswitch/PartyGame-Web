@@ -422,7 +422,14 @@ var registerTemplates = function() {
             return "Waiting for more players...";
     }
 
-	Template.judge.rendered = refreshListviews;
+	Template.judge.rendered = function () {
+        refreshListviews();
+        if (isJudge() && playersCount() > 1) {
+            $('#submissionsCollapsible h3 a').addClass('magic');
+        } else {
+            $('#submissionsCollapsible h3 a').removeClass('magic');
+        }
+    }
 	Template.judge.created = createListviews;
     Template.judge.preserve(defaultPreserve);
 
@@ -517,14 +524,7 @@ var registerTemplates = function() {
 		}
 	}
 
-	Template.submissions.rendered = function() {
-        refreshListviews();
-        if (isJudge() && playersCount() > 1) {
-            $('#submissionsCollapsible h3 a').addClass('magic');
-        } else {
-            $('#submissionsCollapsible h3 a').removeClass('magic');
-        }
-    };
+	Template.submissions.rendered = refreshListviews;
 
 	Template.submissions.created = createListviews;
     Template.submissions.preserve(defaultPreserve);

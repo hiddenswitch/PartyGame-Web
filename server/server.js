@@ -58,7 +58,6 @@ Meteor.publish("submissions", function(gameId,round) {
         changed: function(document,index,oldDocument) {
             game = document;
             updateSubmissions();
-            console.log("Game changed.");
         }
     });
 
@@ -85,14 +84,6 @@ Meteor.publish("usersInGame",function(gameId) {
 });
 
 Meteor.startup(function () {
-//    Games.remove({});
-//    Hands.remove({});
-//    Players.remove({});
-//    Votes.remove({});
-//    Cards.remove({});
-//    Submissions.remove({});
-//    Meteor.users.remove({});
-
     Accounts.onCreateUser(function(options, user) {
         if (options.profile)
             user.profile = options.profile;
@@ -164,8 +155,6 @@ Meteor.startup(function () {
         // Update the judges
         _.each(Games.find({open:true}).fetch(),function(g){
             var gameCurrentJudge = currentJudge(g._id);
-            console.log("Judge: " + g.judge);
-            console.log("Supposed to be: " + gameCurrentJudge);
             if (g.judge !== gameCurrentJudge) {
                 Games.update({_id:g._id},{$set:{judge:gameCurrentJudge}});
             }
@@ -173,3 +162,13 @@ Meteor.startup(function () {
 
     },2*K_HEARTBEAT);
 });
+
+var clearDatabase = function() {
+    Games.remove({});
+    Hands.remove({});
+    Players.remove({});
+    Votes.remove({});
+    Cards.remove({});
+    Submissions.remove({});
+    Meteor.users.remove({});
+};
