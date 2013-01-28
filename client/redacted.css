@@ -49,7 +49,8 @@
     margin-right: auto !important;
 }
 
-[data-role=content] > ul, [data-role=content] > p, [data-role=content] > div, [data-role=content] > a {
+[data-role=content] > ul, [data-role=content] > p, [data-role=content] > div, [data-role=content] > a,
+[data-role=content] > input {
     max-width: 320pt;
 }
 
