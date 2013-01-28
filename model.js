@@ -91,10 +91,8 @@ var Player = function () {
     this.userId = "";
     this.name = "";
     this.gameId = "";
-    this.firstRound = 0;
-    this.created = new Date().getTime();
+    this.voted = new Date().getTime();
     this.connected = false;
-    this.judge = false;
     this.location = "";
 }
 
@@ -163,19 +161,22 @@ var match = function(location,gameJoinedCallback) {
 var scores = function(gameId) {
 	var scores = {};
 
-    // get all the players
-    Players.find({gameId:gameId}).forEach(function (p) {
-        scores[p.userId] = {score:0,connected:p.connected};
-    });
+    try {
+        Players.find({gameId:gameId}).forEach(function (p) {
+            scores[p.userId] = {score:0,connected:p.connected};
+        });
 
-    // compute all the scores
-	Votes.find({gameId:gameId}).forEach(function(voteDoc) {
-	    scores[voteDoc.userId].score += 1;
-	});
+        // compute all the scores
+        Votes.find({gameId:gameId}).forEach(function(voteDoc) {
+            scores[voteDoc.userId].score += 1;
+        });
 
-	return _.map(scores,function (value,key){
-		return {userId:key,score:value.score,connected:value.connected};
-	});
+        return _.map(scores,function (value,key){
+            return {userId:key,score:value.score,connected:value.connected};
+        });
+    } catch(e) {
+        return false;
+    }
 };
 
 var createNewUserAndLogin = function(username,email,password,callback) {
@@ -200,38 +201,13 @@ var createNewAnonymousUser = function(nickname,callback) {
 // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
 // connects or disconnects.
 var currentJudge = function(gameId) {
-    // Get a list of all the players and whether or not they've judged and if they're connected
-    var votes = Votes.find({gameId:gameId}).fetch();
+    // Get all the connected players and sort by the time they last voted.
+    var players = Players.find({gameId:gameId,connected:true}).fetch();
 
-    // Get all the players and sort by the time they joined
-    var players = Players.find({gameId:gameId,connected:true}).fetch().superSort("created");
-
-    var judges = {};
-
-    // Initialize the judge calculation with the players. Votes is initialized with the first round the player played,
-    // i.e., when they joined, in order to make the judging more fair and better emulating sitting around a table.
-    for (var i = 0; i < players.length; i++) {
-        judges[players[i].userId] = {userId:players[i].userId, userIndex:i,votes:players[i].firstRound};
+    if (players && players.length > 0) {
+        players = players.superSort("voted");
+        return players[0].userId;
     }
-
-    // Count the number of times this user has voted
-    _.each(votes,function(vote){
-        judges[vote.judgeId].votes++;
-    });
-
-    // Find the player who has voted the greatest number of times, and use this as the starting vote for players
-    // who have votes more than one time fewer (i.e., who have joined the game late).
-    var maxVotes = _.max(judges,function(judge) {return judge.votes;}).votes;
-
-    // Get the array of candidate judges
-    var candidates = _.values(judges);
-
-    // Filter out disconnected candidates.
-    // Then, sort first by votes ascending, then by userIndex ascending. In other words, the player who has voted
-    // the least and connected the earliest will be the next judge.
-    candidates = candidates.superSort("votes","userIndex");
-
-    return candidates[0].userId;
 };
 
 /*
@@ -405,7 +381,7 @@ Meteor.methods({
 		if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
 			throw new Meteor.Error(500,"You are not a player in this game: Cannot judge card.","userId: " + this.userid +", gameId: " + game._id);
 			
-		var judgeId = getJudgeId(game);
+		var judgeId = game.judge;
 		var judge = Meteor.users.findOne({_id:judgeId});
 		
 		if (!judge)
@@ -433,7 +409,10 @@ Meteor.methods({
             throw new Meteor.Error(500,"You can't pick a hidden answer! Wait until everyone has put in a card.")
 
 		var winner = Votes.findOne({gameId:gameId,round:game.round});
-		
+
+        // Mark that this user just voted
+        Players.update({gameId:gameId,userId:judgeId},{$set:{voted:new Date().getTime()}});
+
 		if (winner) {
 			Votes.update({_id:winner._id},{$set:{userId:submission.userId,questionId:game.questionId,answerId:submission.answerId}});
 			return winner._id;
@@ -445,9 +424,6 @@ Meteor.methods({
 	// Remove submitted hands from the committed round and increment the round number.
 	// Close the game if there are no more question cards left.
 	finishRound: function(gameId) {
-        if (Meteor.isSimulation)
-            return gameId;
-
 		var game = Games.findOne({_id:gameId});
 
 		if (!game)
@@ -464,14 +440,15 @@ Meteor.methods({
 			throw new Meteor.Error(500,"The judge hasn't voted yet. Cannot finish round.");
 				
 		// remove the cards from the player's hands
-        Submissions.find({gameId:gameId,round:game.round}).forEach(function(submission) {
+        _.each(Submissions.find({gameId:gameId,round:game.round}).fetch(),function(submission) {
             if (!submission.answerId || submission.answerId == "")
                 throw new Meteor.Error(500,"Somebody submitted a redacted answer. Try again!");
 
             // does this player have this card in his hand?
-            var hand = Hands.find({userId:submission.userId,gameId:gameId,round:game.round,hand:submission.answerId}).count();
+            var hand = Hands.find({userId:submission.userId,gameId:gameId,round:game.round,
+                hand:submission.answerId}).count();
 
-            if (!hand)
+            if (hand === 0)
                 throw new Meteor.Error(500,"You can't submit a card you don't have!");
 
 			Hands.update({gameId:gameId,round:game.round,userId:submission.userId},{$pull:{hand:submission.answerId}});
@@ -565,8 +542,7 @@ Meteor.methods({
 
         p.userId = this.userId;
         p.gameId = gameId;
-        p.firstRound = g.round;
-        p.created = new Date().getTime();
+        p.voted = new Date().getTime();
         p.connected = true;
 
         Players.insert(p);
@@ -659,10 +635,6 @@ Meteor.methods({
             location: location
 		});
 	},
-
-    updateJudge: function(gameId) {
-        Games.update({_id:gameId},{$set:{judge:currentJudge(gameId)}});
-    },
 
     updateJudges: function(userId) {
         userId = userId || this.userId;

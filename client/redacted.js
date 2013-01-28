@@ -624,16 +624,15 @@ Meteor.startup(function() {
         };
     })
 	
-//	// clear error after 5 seconds
-//	Meteor.autorun(function () {
-//		var currentError = Session.get(SESSION_CURRENT_ERROR);
-//		if (currentError) {
-//			console.log(currentError);
-//			Meteor.setTimeout(function(){
-//				Session.set(SESSION_CURRENT_ERROR,null);
-//			},5000);
-//		}
-//	});
+	// clear error after 5 seconds
+	Meteor.autorun(function () {
+		var currentError = Session.get(SESSION_CURRENT_ERROR);
+		if (currentError !== null) {
+			Meteor.setTimeout(function(){
+				Session.set(SESSION_CURRENT_ERROR,null);
+			},5000);
+		}
+	});
 
 	// update last login time
 	Meteor.setInterval(function () {

@@ -11,7 +11,8 @@ Meteor.publish("myHands",function() {
 });
 
 Meteor.publish("myGames",function() {
-	return Games.find({users:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
+    var gamesImIn = _.pluck(Players.find({userId:this.userId}).fetch(),"gameId");
+    return Games.find({_id:{$in:gamesImIn}},{fields:{password:0,questionCards:0,answerCards:0}});
 });
 
 Meteor.publish("myOwnedGames",function() {
@@ -66,6 +67,7 @@ Meteor.publish("submissions", function(gameId,round) {
 
     recordset.onStop(function () {
         submissionHandle.stop();
+        gameHandle.stop();
     });
 });
 
@@ -94,6 +96,8 @@ Meteor.startup(function () {
     Accounts.onCreateUser(function(options, user) {
         if (options.profile)
             user.profile = options.profile;
+        else
+            user.profile = {};
         user.profile.heartbeat = new Date().getTime();
         return user;
     });
@@ -150,12 +154,22 @@ Meteor.startup(function () {
 
     // Update player connected status
     Meteor.setInterval(function () {
-        console.log(new Date().getTime() - K_HEARTBEAT);
         var disconnectedUsers = Meteor.users.find({'profile.heartbeat':{$lt:new Date().getTime() - K_HEARTBEAT}}).fetch();
-        console.log(JSON.stringify(disconnectedUsers));
+
+        // Set the connected attribute of the Players collection documents to false for disconnected users
         _.each(disconnectedUsers,function(disconnectedUser){
             Players.update({userId:disconnectedUser._id,connected:true},{$set:{connected:false}},{multi:true});
-            Meteor.call("updateJudges",disconnectedUser.userId);
         });
+
+        // Update the judges
+        _.each(Games.find({open:true}).fetch(),function(g){
+            var gameCurrentJudge = currentJudge(g._id);
+            console.log("Judge: " + g.judge);
+            console.log("Supposed to be: " + gameCurrentJudge);
+            if (g.judge !== gameCurrentJudge) {
+                Games.update({_id:g._id},{$set:{judge:gameCurrentJudge}});
+            }
+        });
+
     },2*K_HEARTBEAT);
 });
