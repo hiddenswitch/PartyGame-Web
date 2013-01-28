@@ -168,7 +168,7 @@ var currentJudge = function(gameId) {
 Meteor.methods({
 	// Draw hands for all players in the game.
 	drawHands: function(gameId,handSize) {
-        if (Meteor.isSimulation)
+        if (this.isSimulation)
             return "";
 
 		handSize = handSize || K_DEFAULT_HAND_SIZE;
@@ -290,7 +290,7 @@ Meteor.methods({
         // does this player have this card in his hand?
         var hand = Hands.find({userId:this.userId,gameId:gameId,round:game.round,hand:answerId}).count();
 
-        if (!hand)
+        if (!hand && !this.isSimulation)
             throw new Meteor.Error(500,"You can't submit a card you don't have!");
 
 		var submission = Submissions.findOne({gameId:gameId,userId:this.userId,round:game.round});
@@ -435,7 +435,7 @@ Meteor.methods({
 			throw new Meteor.Error(403,"You cannot kick yourself from your own game.");
 
         Players.remove({gameId:gameId,userId:kickId});
-		Games.update({_id:gameId},{$inc: {players:-1}, $set:{modified:new Date().getTime()}});
+		Games.update({_id:gameId},{$inc: {players:-1}, $pullAll:{userIds:kickId}, $set:{modified:new Date().getTime()}});
 		return gameId;
 	},
 
