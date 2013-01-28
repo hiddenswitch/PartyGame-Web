@@ -3,13 +3,14 @@
  * Copyright 2012
  */
 
-var SESSION_CURRENT_GAME = SESSION_CURRENT_GAME || "currentGame";
-var SESSION_CURRENT_ROUND = SESSION_CURRENT_ROUND || "currentRound";
-var SESSION_CURRENT_SUBMISSION = SESSION_CURRENT_SUBMISSION || "currentSubmission";
-var SESSION_CURRENT_ERROR = SESSION_CURRENT_ERROR || "currentError";
-var SESSION_CURRENT_PREVIEW_CARD = SESSION_CURRENT_PREVIEW_CARD || "currentPreviewCard";
-var SESSION_CURRENT_LOCATION = SESSION_CURRENT_LOCATION || "currentLocation";
+var GAME = "currentGame";
+var ROUND = "currentRound";
+var SUBMISSION = "currentSubmission";
+var ERROR = "currentError";
+var PREVIEW_CARD = "currentPreviewCard";
+var LOCATION = "currentLocation";
 var IS_LOGGED_IN = "isLoggedIn";
+var IS_CORDOVA = "isCordova";
 
 var previewYes = function () {};
 var previewNo = function () {};
@@ -27,7 +28,7 @@ var createListviews = function() {
 
 var setError = function(err,r) {
 	if (err) {
-		Session.set(SESSION_CURRENT_ERROR,err.reason);
+		Session.set(ERROR,err.reason);
 		console.log(err);
 	}
 };
@@ -46,7 +47,7 @@ var requestLocation = function(callback) {
     if (navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(r){
             var callbackR = [r.coords.latitude, r.coords.longitude];
-            Session.set(SESSION_CURRENT_LOCATION,callbackR);
+            Session.set(LOCATION,callbackR);
             if (callback)
                 callback(undefined,callbackR);
         }, function(e){
@@ -60,21 +61,21 @@ var requestLocation = function(callback) {
 };
 
 var closeThisGame = function() {
-	if (!Session.get(SESSION_CURRENT_GAME)) {
+	if (!Session.get(GAME)) {
 		console.log("Not in a game.");
 		return;
 	}
 	
-	Meteor.call("closeGame",Session.get(SESSION_CURRENT_GAME),setError);
+	Meteor.call("closeGame",Session.get(GAME),setError);
 };
 
 var kickThisPlayer = function(kickId) {
-	if (!Session.get(SESSION_CURRENT_GAME)) {
+	if (!Session.get(GAME)) {
 		console.log("Not in a game.");
 		return;
 	}
 	
-	Meteor.call("kickPlayer",Session.get(SESSION_CURRENT_GAME),kickId,function(err,r) {
+	Meteor.call("kickPlayer",Session.get(GAME),kickId,function(err,r) {
 		setError(err);
 		if (r)
 			setError({reason:"Player kicked."});
@@ -82,12 +83,12 @@ var kickThisPlayer = function(kickId) {
 };
 
 var quitThisGame = function() {
-	if (!Session.get(SESSION_CURRENT_GAME)) {
+	if (!Session.get(GAME)) {
 		console.log("Not in a game.");
 		return;
 	}
 	
-	Meteor.call("quitGame",Session.get(SESSION_CURRENT_GAME),setError);
+	Meteor.call("quitGame",Session.get(GAME),setError);
 };
 
 var login = function() {
@@ -112,7 +113,7 @@ var loginWithGoogle = function() {
 
 var signUp = function() {
 	if (Meteor.user()) {
-		Session.set(SESSION_CURRENT_ERROR,"You are already logged in!");
+		Session.set(ERROR,"You are already logged in!");
 		return;
 	}
 	
@@ -122,7 +123,7 @@ var signUp = function() {
 
 	createNewUserAndLogin(username,email,password,function(err){
 		if (err) {
-			Session.set(SESSION_CURRENT_ERROR,err.reason);
+			Session.set(ERROR,err.reason);
 			console.log(err);
 		} else {
 			$.mobile.changePage('#home');
@@ -134,7 +135,7 @@ var matchMake = function() {
     requestLocation(function (locationE,locationR){
         match(locationR,function (err,r){
             if (r) {
-                Session.set(SESSION_CURRENT_GAME,r);
+                Session.set(GAME,r);
             }
             setError(err);
         });
@@ -142,11 +143,11 @@ var matchMake = function() {
 };
 
 var submissionCount = function () {
-    return Submissions.find({gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)}).count();
+    return Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)}).count();
 };
 
 var maxSubmissionsCount = function () {
-    var gameId = Session.get(SESSION_CURRENT_GAME);
+    var gameId = Session.get(GAME);
     if (gameId)
         return Players.find({gameId:gameId,connected:true}).count()-1;
     else
@@ -154,7 +155,7 @@ var maxSubmissionsCount = function () {
 };
 
 var playersCount = function () {
-    var gameId = Session.get(SESSION_CURRENT_GAME);
+    var gameId = Session.get(GAME);
     if (gameId)
         return Players.find({gameId:gameId}).count();
     else
@@ -174,20 +175,20 @@ var createAndJoinGame = function() {
 	var gamePassword = $('#gamePassword').attr('value');
 	
 	if (!gameTitle || gameTitle == "") {
-		Session.set(SESSION_CURRENT_ERROR,"Cannot create a game with an empty title!");
+		Session.set(ERROR,"Cannot create a game with an empty title!");
 		return;
 	}
 	
 	// reenable password when there's a way to join a game with passwords
-	Meteor.call("createEmptyGame",gameTitle,"",Session.get(SESSION_CURRENT_LOCATION),function(e,r){
+	Meteor.call("createEmptyGame",gameTitle,"",Session.get(LOCATION),function(e,r){
 		if (r) { // new game id returned
 			Meteor.call("joinGame",r,function(e2,r2){
 				if (r2) {
-					Session.set(SESSION_CURRENT_GAME,r2);
+					Session.set(GAME,r2);
 					$.mobile.changePage('#game');
 				}
 				if (e2) {
-					Session.set(SESSION_CURRENT_ERROR,e2.reason || e.reason + ", " + e2.reason);
+					Session.set(ERROR,e2.reason || e.reason + ", " + e2.reason);
 					console.log(e2);
 				}
 			});
@@ -350,7 +351,7 @@ var joinGameOnClick = function(e) {
 	var gameId = $(e.target).attr('id');
 	Meteor.call("joinGame",gameId,function(e,r) {
 		if (r) {
-			Session.set(SESSION_CURRENT_GAME,r);
+			Session.set(GAME,r);
 		}
 		setError(e);
 	});
@@ -358,7 +359,7 @@ var joinGameOnClick = function(e) {
 
 var isJudge = function() {
     var theUserId = Meteor.userId();
-    var currentGameId = Session.get(SESSION_CURRENT_GAME);
+    var currentGameId = Session.get(GAME);
     return (theUserId == getJudgeIdForGameId(currentGameId));
 };
 
@@ -403,15 +404,15 @@ var registerTemplates = function() {
 	});
 	
 	Template.error.error = function() {
-		return Session.get(SESSION_CURRENT_ERROR);
+		return Session.get(ERROR);
 	};
 	
 	Template.game.game = function () {
-		return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+		return Games.findOne({_id:Session.get(GAME)});
 	};
 	
 	Template.game.title = function() {
-		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+		var g = Games.findOne({_id:Session.get(GAME)});
 		if (g)
 			return g.title;
 		else
@@ -419,7 +420,7 @@ var registerTemplates = function() {
 	};
 	
 	Template.game.round = function() {
-		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+		var g = Games.findOne({_id:Session.get(GAME)});
 		if (g)
 			return g.round+1;
 		else
@@ -427,7 +428,7 @@ var registerTemplates = function() {
 	};
 	
 	Template.game.isOpen = function() {
-		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+		var g = Games.findOne({_id:Session.get(GAME)});
 		if (g) {
 			return g.open || true;
 		} else {
@@ -436,7 +437,7 @@ var registerTemplates = function() {
 	};
 	
 	Template.game.isOwner = function() {
-		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+		var g = Games.findOne({_id:Session.get(GAME)});
 		if (g) {
 			if (g.ownerId) {
 				return g.ownerId == Meteor.userId();
@@ -449,7 +450,7 @@ var registerTemplates = function() {
 	};
 	
 	Template.game.lastVote = function() {
-		return Votes.findOne({gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)-1});
+		return Votes.findOne({gameId:Session.get(GAME),round:Session.get(ROUND)-1});
 	};
 	
 	Template.game.rendered = refreshListviews;
@@ -466,7 +467,7 @@ var registerTemplates = function() {
 	Template.judge.isJudge = isJudge;
 
 	Template.judge.judge = function() {
-		return Meteor.users.findOne({_id:getJudgeIdForGameId(Session.get(SESSION_CURRENT_GAME))});
+		return Meteor.users.findOne({_id:getJudgeIdForGameId(Session.get(GAME))});
 	}
 
 	Template.judge.judgeEmailAddress = function() {
@@ -474,7 +475,7 @@ var registerTemplates = function() {
             if (isJudge())
                 return "You are the judge!";
             else
-                return userIdToName(getJudgeIdForGameId(Session.get(SESSION_CURRENT_GAME)));
+                return userIdToName(getJudgeIdForGameId(Session.get(GAME)));
         } else
             return "Waiting for more players...";
     }
@@ -491,7 +492,7 @@ var registerTemplates = function() {
     Template.judge.preserve(defaultPreserve);
 
 	Template.question.question = function() {
-		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+		var gameDoc = Games.findOne({_id:Session.get(GAME)});
 		if (gameDoc) {
 			return cardIdToText(gameDoc.questionId);
 		} else {
@@ -512,10 +513,10 @@ var registerTemplates = function() {
     Template.players.preserve(defaultPreserve);
 
 	Template.scores.scores = function() {
-		if (!Session.get(SESSION_CURRENT_GAME))
+		if (!Session.get(GAME))
 			return [];
 
-		return scores(Session.get(SESSION_CURRENT_GAME));
+		return scores(Session.get(GAME));
 	};
 
 	Template.scores.rendered = refreshListviews;
@@ -548,7 +549,7 @@ var registerTemplates = function() {
 
     Template.submissions.isJudge = isJudge;
 	Template.submissions.submissions = function () {
-		var submissions = Submissions.find({gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)}).fetch();
+		var submissions = Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)}).fetch();
 		return _.map(submissions, function(o) {
             return _.extend({text:cardIdToText(o.answerId)},o)
         });
@@ -561,20 +562,20 @@ var registerTemplates = function() {
 	Template.submissions.events = {
 		'click .submission':function(e) {
 			var submissionId = $(e.target).attr('id');
-			Session.set(SESSION_CURRENT_PREVIEW_CARD,submissionIdToCardId(submissionId));
+			Session.set(PREVIEW_CARD,submissionIdToCardId(submissionId));
 			previewYes = function () {
-				Meteor.call("pickWinner",Session.get(SESSION_CURRENT_GAME),submissionId,function(e,r){
+				Meteor.call("pickWinner",Session.get(GAME),submissionId,function(e,r){
 					if (r) {
-						Meteor.call("finishRound",Session.get(SESSION_CURRENT_GAME),function (e,r){
+						Meteor.call("finishRound",Session.get(GAME),function (e,r){
 							if (e) {
 								console.log(e);
-								Session.set(SESSION_CURRENT_ERROR,e.reason);
+								Session.set(ERROR,e.reason);
 							}
 						});
 					}
 					if (e) {
 						console.log(e);
-						Session.set(SESSION_CURRENT_ERROR,e.reason);
+						Session.set(ERROR,e.reason);
 					}
 				});
 			};
@@ -589,26 +590,26 @@ var registerTemplates = function() {
     Template.hand.isJudge = isJudge;
 
 	Template.hand.hand = function () {
-		return Hands.findOne({userId:Meteor.userId(),gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)});
+		return Hands.findOne({userId:Meteor.userId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
 	};
 
 	Template.hand.cardsInHand = function() {
-		var handDoc = Hands.findOne({userId:Meteor.userId(),gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)});
+		var handDoc = Hands.findOne({userId:Meteor.userId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
 		return _.map(handDoc.hand, function (o) {return Cards.findOne({_id:o})});
 	};
 
 	Template.hand.events = {
 		'click .card':function(e) {
 			var answerId = $(e.target).attr('id');
-			Session.set(SESSION_CURRENT_PREVIEW_CARD,answerId);
+			Session.set(PREVIEW_CARD,answerId);
 			previewYes = function() {
-				Meteor.call("submitAnswerCard",Session.get(SESSION_CURRENT_GAME),answerId,function(e,r) {
+				Meteor.call("submitAnswerCard",Session.get(GAME),answerId,function(e,r) {
 					if (r) {
-						Session.set(SESSION_CURRENT_SUBMISSION,r);
+						Session.set(SUBMISSION,r);
 					}
 					if (e) {
 						console.log(e);
-						Session.set(SESSION_CURRENT_ERROR,e.reason);
+						Session.set(ERROR,e.reason);
 					}
 				});
 			};
@@ -630,15 +631,22 @@ var registerTemplates = function() {
     Template.hand.preserve(defaultPreserve);
 
 	Template.preview.text = function() {
-		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
+		var gameDoc = Games.findOne({_id:Session.get(GAME)});
 		if (gameDoc)
-			return questionAndAnswerText(gameDoc.questionId,Session.get(SESSION_CURRENT_PREVIEW_CARD));
+			return questionAndAnswerText(gameDoc.questionId,Session.get(PREVIEW_CARD));
 		else
 			return "REDACTED.";
 	};
 
     Template.menu.rendered = refreshListviews;
     Template.menu.created = createListviews;
+};
+
+var cordovaSetup = function() {
+    // Startup for Cordova
+    document.addEventListener('online', function(e) {
+        Session.set(IS_CORDOVA,true);
+    }, false);
 };
 
 Meteor.subscribe("openGames");
@@ -648,11 +656,11 @@ Meteor.subscribe("myOwnedGames");
 Meteor.subscribe("cards");
 
 Meteor.startup(function() {
-	Session.set(SESSION_CURRENT_ERROR,null);
+	Session.set(ERROR,null);
 	
 	Meteor.autosubscribe(function() {
-		var currentGameId = Session.get(SESSION_CURRENT_GAME);
-        var currentRound = Session.get(SESSION_CURRENT_ROUND);
+		var currentGameId = Session.get(GAME);
+        var currentRound = Session.get(ROUND);
 		if (currentGameId) {
 			Meteor.subscribe("submissions",currentGameId,currentRound);
 			Meteor.subscribe("votesInGame",currentGameId);
@@ -668,10 +676,10 @@ Meteor.startup(function() {
 		
 	// update current round
 	Meteor.autorun(function() {
-		var currentGameId = Session.get(SESSION_CURRENT_GAME);
+		var currentGameId = Session.get(GAME);
 		var currentGame = Games.findOne({_id:currentGameId});
 		if (currentGame)
-			Session.set(SESSION_CURRENT_ROUND,currentGame.round);
+			Session.set(ROUND,currentGame.round);
 	});
 
     // Update logged in status (workaround for constant menu refreshing
@@ -683,10 +691,10 @@ Meteor.startup(function() {
 	
 	// clear error after 5 seconds
 	Meteor.autorun(function () {
-		var currentError = Session.get(SESSION_CURRENT_ERROR);
+		var currentError = Session.get(ERROR);
 		if (currentError !== null) {
 			Meteor.setTimeout(function(){
-				Session.set(SESSION_CURRENT_ERROR,null);
+				Session.set(ERROR,null);
 			},5000);
 		}
 	});
@@ -694,11 +702,18 @@ Meteor.startup(function() {
 	// update last login time
 	Meteor.setInterval(function () {
         if (Meteor.userId()) {
-            Meteor.call("heartbeat",Session.get(SESSION_CURRENT_LOCATION) ? Session.get(SESSION_CURRENT_LOCATION) : null,function(err,r){
+            Meteor.call("heartbeat",Session.get(LOCATION) ? Session.get(LOCATION) : null,function(err,r){
                 setError(err);
             });
         }
     },K_HEARTBEAT);
+
+    // cordova setup
+    Meteor.autorun(function () {
+        if (Session.equals(IS_CORDOVA,true)) {
+            console.log("Redacted Cordova detected.");
+        }
+    });
 
     // refresh the listviews when appropriate
 	mutationObserver = new MutationSummary({
@@ -711,3 +726,4 @@ Meteor.startup(function() {
 
 registerTemplates();
 
+cordovaSetup();
