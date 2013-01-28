@@ -39,32 +39,20 @@ var K_PREFERRED_GAME_SIZE = 7; // the size of a game matchmaking prefers to make
 var E_NO_MORE_CARDS = "No more cards.";
 var E_GAME_OVER = "The game is over.";
 
-var Round = function() {
-	return {
-		gameId:"",
-		round:0,
-		submissions:[],
-		questionId:"",
-		winner:""
-	}
-};
-
 var Game = function() {
     this.title = ""; // game title
     this.password = ""; // game password if any
-    this.users = []; // players in the game; stored as userId's
-    this.connected = []; // players that have given heartbeats in the last 8 seconds
     this.round = -1; // round number
     this.questionId = 0; // id of current question
     this.questionCards = []; // question cards
     this.answerCards = []; // answer cards
-    this.submissions = []; // current submissions
     this.open = 1; // is the game open
     this.ownerId = 0; // owner of the game
-    this.created =  new Date(); // date created
-    this.modified =  new Date(); // date modified
+    this.judge = ""; // current judge
+    this.created =  new Date().getTime(); // date created
+    this.modified =  new Date().getTime(); // date modified
     this.location = null; // location of game
-    this.judge = ""; // userId of next judge
+    this.players = 0; // number of players
 };
 
 var CARD_TYPE_QUESTION = 1; // card of type question
@@ -99,6 +87,17 @@ var Submission = function () {
 	this.answerId = 0;
 };
 
+var Player = function () {
+    this.userId = "";
+    this.name = "";
+    this.gameId = "";
+    this.firstRound = 0;
+    this.created = new Date().getTime();
+    this.connected = false;
+    this.judge = false;
+    this.location = "";
+}
+
 var Chat = function () {
 	this.gameId = 0; 
 	this.userId = 0; 
@@ -112,12 +111,14 @@ var COLLECTIONS_HANDS = "hands";
 var COLLECTIONS_VOTES = "votes";
 var COLLECTIONS_CHATS = "chats";
 var COLLECTION_SUBMISSIONS = "submissions";
+var COLLECTION_PLAYERS = "players";
 
 var Cards = new Meteor.Collection(COLLECTIONS_CARDS);
 var Games = new Meteor.Collection(COLLECTIONS_GAMES);
 var Hands = new Meteor.Collection(COLLECTIONS_HANDS);
 var Votes = new Meteor.Collection(COLLECTIONS_VOTES);
 var Submissions = new Meteor.Collection(COLLECTION_SUBMISSIONS);
+var Players = new Meteor.Collection(COLLECTION_PLAYERS);
 var Chats = new Meteor.Collection(COLLECTIONS_CHATS);
 
 // get the distance between two points
@@ -128,15 +129,14 @@ var distance = function(p1,p2) {
 // TODO Make the current judge stable even when the connected user changes.
 // Get the current judge id
 var getJudgeId = function(g) {
-    if (g && g.connected.length > 0)
+    if (g && g.judge)
         return g.judge;
-    else
-        return "";
 };
 
 var getJudgeIdForGameId = function(id) {
     var g = Games.findOne({_id:id});
-    return getJudgeId(g);
+    if (g && g.judge)
+        return g.judge;
 };
 
 // Match into an existing game, or create a new one to join into
@@ -163,27 +163,18 @@ var match = function(location,gameJoinedCallback) {
 var scores = function(gameId) {
 	var scores = {};
 
-	// compute all the scores
-	Votes.find({gameId:gameId}).map(function(voteDoc) {
-		if (!scores[voteDoc.userId]) {
-			scores[voteDoc.userId] = 1;
-		} else {
-			scores[voteDoc.userId] += 1;
-		}
+    // get all the players
+    Players.find({gameId:gameId}).forEach(function (p) {
+        scores[p.userId] = {score:0,connected:p.connected};
+    });
+
+    // compute all the scores
+	Votes.find({gameId:gameId}).forEach(function(voteDoc) {
+	    scores[voteDoc.userId].score += 1;
 	});
-	
-	var g = Games.findOne({_id:gameId});
-	
-	if (!g)
-		return [];
-	
-	// Include players with scores of zero
-	_.forEach(_.difference(g.users,_.keys(scores)),function(user){
-		scores[user] = 0; 
-	});
-	
+
 	return _.map(scores,function (value,key){
-		return {userId:key,score:value,connected:_.contains(g.connected,key)};
+		return {userId:key,score:value.score,connected:value.connected};
 	});
 };
 
@@ -208,14 +199,19 @@ var createNewAnonymousUser = function(nickname,callback) {
 // Use the user's index in the game.users array to pick the user who connected earliest
 // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
 // connects or disconnects.
-var currentJudge = function(g) {
-    // Get a list of all the users and whether or not they've judged and if they're connected
-    var votes = Votes.find({gameId:g._id}).fetch();
+var currentJudge = function(gameId) {
+    // Get a list of all the players and whether or not they've judged and if they're connected
+    var votes = Votes.find({gameId:gameId}).fetch();
+
+    // Get all the players and sort by the time they joined
+    var players = Players.find({gameId:gameId,connected:true}).fetch().superSort("created");
+
     var judges = {};
 
-    // Get all the possible judges
-    for (var i = 0; i < g.users.length; i++) {
-        judges[g.users[i]] = {userId:g.users[i], userIndex:i, connected:_.contains(g.connected, g.users[i]), votes:0};
+    // Initialize the judge calculation with the players. Votes is initialized with the first round the player played,
+    // i.e., when they joined, in order to make the judging more fair and better emulating sitting around a table.
+    for (var i = 0; i < players.length; i++) {
+        judges[players[i].userId] = {userId:players[i].userId, userIndex:i,votes:players[i].firstRound};
     }
 
     // Count the number of times this user has voted
@@ -227,38 +223,15 @@ var currentJudge = function(g) {
     // who have votes more than one time fewer (i.e., who have joined the game late).
     var maxVotes = _.max(judges,function(judge) {return judge.votes;}).votes;
 
-    _.each(
-        _.filter(
-            _.keys(judges),function(judgeId) {
-                return (maxVotes - judges[judgeId].votes) > 1;
-            }),function(judgeId) {
-            judges[judgeId].votes = maxVotes - 1;
-        }
-    );
-
-
-    // Sort the array of candidate judges
+    // Get the array of candidate judges
     var candidates = _.values(judges);
 
     // Filter out disconnected candidates.
     // Then, sort first by votes ascending, then by userIndex ascending. In other words, the player who has voted
     // the least and connected the earliest will be the next judge.
-    candidates = _.filter(candidates,function (candidate) {return candidate.connected;})
-        .superSort("votes","userIndex");
+    candidates = candidates.superSort("votes","userIndex");
 
     return candidates[0].userId;
-};
-
-var currentJudgeForGameId = function(gameId) {
-    var g = Games.findOne({_id:gameId});
-
-    if (!g)
-        throw new Meteor.Error(404,"A game cannot be found. Cannot update the judge.");
-
-    if (!g.open)
-        throw new Meteor.Error(403,"This game is closed. Cannot update judge.");
-
-    return currentJudge(g);
 };
 
 /*
@@ -277,37 +250,43 @@ var currentJudgeForGameId = function(gameId) {
 Meteor.methods({
 	// Draw hands for all players in the game.
 	drawHands: function(gameId,handSize) {
+        if (Meteor.isSimulation)
+            return "";
+
 		handSize = handSize || K_DEFAULT_HAND_SIZE;
 		
-		var game = Games.findOne({_id:gameId, open:true, users:this.userId});
-		
-		if (Meteor.isSimulation)
-			return "";
-		
+		var game = Games.findOne({_id:gameId, open:true});
+
 		if (!game)
 			throw new Meteor.Error(404,"No game to draw hands from.");
+
+        if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
+            throw new Meteor.Error(403,"You are not in this game.");
+
+        if (!_.has(game,"answerCards"))
+            throw new Meteor.Error(500,"Why are there no answer cards?");
 		
 		// all answer cards exhausted, do not draw any more cards.
-		if (!game.answerCards || game.answerCards.length < 1)
-			return E_NO_MORE_CARDS;
+		if (game.answerCards.length < 1)
+			throw new Meteor.Error(403,"The game is over.");
 			
 		if (!game.open)
 			// the game is over. only score screen will display.
-			return E_GAME_OVER;
-		
+			throw new Meteor.Error(403,"This game is closed.");
+
+        var users = _.pluck(Players.find({gameId:gameId}).fetch(),'userId');
+
 		// storing all the ids of drawn cards to remove from the game database entry
 		var drawnCards = [];
 		
 		// a card drawing function
 		var drawCards = function(oldHand) {
-			oldHand = oldHand || [];
-			var newHand = [];
-			newHand = _.union(oldHand,newHand);
-			
-			while (newHand.length < handSize) {
-				if (game.answerCards.length > 0)
-					newHand.push(game.answerCards.pop());
-			}
+			var newHand = oldHand || [];
+
+            while (newHand.length < handSize) {
+                if (game.answerCards.length > 0)
+                    newHand.push(game.answerCards.pop());
+            }
 			
 			// add the drawn cards to the list of cards to remove later from the game's deck
 			drawnCards = _.union(drawnCards,newHand);
@@ -321,7 +300,7 @@ Meteor.methods({
 		var fulfilledUsers = [];
 		
 		// update any existing hands
-		Hands.find({gameId:gameId,round:game.round}).forEach(function (handDoc) {
+        _.each(Hands.find({gameId:gameId,round:game.round}).fetch(),function (handDoc) {
 			// fill out the hand
 			if (handDoc.hand.length < handSize) {
 				Hands.update({_id:handDoc._id,hand:drawCards(handDoc.hand)});
@@ -336,7 +315,7 @@ Meteor.methods({
 		var newlyFulfilledUsers = [];
 		
 		// insert new hands
-		_.each(_.difference(game.users,fulfilledUsers),function(userId) {
+		_.each(_.difference(users,fulfilledUsers),function(userId) {
 			var oldHand = [];
 			
 			if (game.round > 0) {
@@ -357,26 +336,22 @@ Meteor.methods({
 		
 		fulfilledUsers = _.union(fulfilledUsers,newlyFulfilledUsers);
 		
-		returns = _.without(returns,undefined);
+		returns = _.compact(returns);
 		
 		if (!returns)
 			throw new Meteor.Error(500,"No cards drawn.");
-		
-		var unfulfilledUsers = _.difference(game.users,fulfilledUsers);
-		
-		if (unfulfilledUsers.length>0)
-			throw new Meteor.Error(500,"Some users' hands were not fulfilled.");
+
 		
 		// update the game
-		Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$set:{modified:new Date()}});
-		
-		// return hands for this round and game
+		Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$set:{modified:new Date().getTime()}});
+
+		// return calling user's hand for this round and game
 		return Hands.findOne({gameId:gameId,round:game.round,userId:this.userId})._id;
 	},
 	
 	// Submit a card for voting
 	submitAnswerCard: function(gameId, answerId) {
-		var game = Games.findOne({_id:gameId, users:this.userId});
+		var game = Games.findOne({_id:gameId});
 
 		if (!game)
 			throw new Meteor.Error(404,"No game found to submit answer card to.");
@@ -385,10 +360,10 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return;
 		
-		if (!_.contains(game.users,this.userId))
+		if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
 			throw new Meteor.Error(500,"You are not a player in this game: Cannot submit card.","userId: " + this.userid +", gameId: " + game._id);
 		
-		if (game.users.length < 2)
+		if (Players.find({gameId:gameId}).count() < 2)
 			throw new Meteor.Error(500,"Too few players to submit answer.");
 			
 		if (this.userId == getJudgeId(game))
@@ -418,7 +393,7 @@ Meteor.methods({
 	
 	// Pick a winner
 	pickWinner: function(gameId,submissionId) {
-		var game = Games.findOne({_id:gameId, users:this.userId});
+		var game = Games.findOne({_id:gameId});
 		
 		if (!game)
 			throw new Meteor.Error(404,"No game found to submit answer card to.");
@@ -427,7 +402,7 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return E_GAME_OVER;
 
-		if (!_.contains(game.users,this.userId))
+		if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
 			throw new Meteor.Error(500,"You are not a player in this game: Cannot judge card.","userId: " + this.userid +", gameId: " + game._id);
 			
 		var judgeId = getJudgeId(game);
@@ -441,18 +416,21 @@ Meteor.methods({
 		
 		var submission = Submissions.findOne({_id:submissionId});
 		var submissionCount = Submissions.find({gameId:gameId,round:game.round}).count();
+        var connectedCount = Players.find({gameId:gameId,connected:true}).count();
 
-        if (submissionCount < game.connected.length-1)
+        if (submissionCount < connectedCount-1)
             throw new Meteor.Error(500,"Wait until everyone connected has submitted a card!");
 
 		if (!submission)
 			throw new Meteor.Error(404,"Submission not found.");
 		
-		if (submission.userId == judgeId)
-			throw new Meteor.Error(500,"You cannot pick your own card as the winning card.");
+		if (submission.userId == judgeId) {
+            Submissions.remove({_id:submission._id});
+            throw new Meteor.Error(500,"You cannot pick your own card as the winning card.");
+        }
 
         if (!submission.answerId || (submission.answerId == ""))
-            throw new Meteor.Error(500,"You can't pick a redacted answer! Wait until everyone has put in a card.")
+            throw new Meteor.Error(500,"You can't pick a hidden answer! Wait until everyone has put in a card.")
 
 		var winner = Votes.findOne({gameId:gameId,round:game.round});
 		
@@ -467,23 +445,26 @@ Meteor.methods({
 	// Remove submitted hands from the committed round and increment the round number.
 	// Close the game if there are no more question cards left.
 	finishRound: function(gameId) {
-		var game = Games.findOne({_id:gameId, users:this.userId});
-		
+        if (Meteor.isSimulation)
+            return gameId;
+
+		var game = Games.findOne({_id:gameId});
+
 		if (!game)
 			throw new Meteor.Error(404,"Game not found. Cannot finish round on nonexistent game.");
 		
 		if (!game.open)
 			// the game is over. only score screen will display.
 			return gameId;
-		
-		if (!_.contains(game.users,this.userId) && Meteor.isClient)
+
+		if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
 			throw new Meteor.Error(500,"You are not a player in this game: Cannot finish round.","userId: " + this.userid +", gameId: " + game._id);
 		
-		if (Votes.find({gameId:gameId,round:game.round}).count()<1 && Meteor.isServer)
+		if (Votes.find({gameId:gameId,round:game.round}).count() < 1 && Meteor.isServer)
 			throw new Meteor.Error(500,"The judge hasn't voted yet. Cannot finish round.");
 				
 		// remove the cards from the player's hands
-		Submissions.find({gameId:gameId,round:game.round}).forEach(function(submission) {
+        Submissions.find({gameId:gameId,round:game.round}).forEach(function(submission) {
             if (!submission.answerId || submission.answerId == "")
                 throw new Meteor.Error(500,"Somebody submitted a redacted answer. Try again!");
 
@@ -507,10 +488,10 @@ Meteor.methods({
 		}
 
         // The vote has been submitted, so get the next judge. Does not depend on round, only on votes.
-        var nextJudge = currentJudge(game);
+        var nextJudge = currentJudge(game._id);
 		
 		// increment round
-		Games.update({_id:gameId},{$set:{open:open,questionId:questionCardId,modified:new Date(),judge:nextJudge},$inc:{round:1},$pop:{questionCards:1}});
+		Games.update({_id:gameId},{$set:{open:open,questionId:questionCardId,modified:new Date().getTime(),judge:nextJudge},$inc:{round:1},$pop:{questionCards:1}});
 		
 		// draw new cards
 		Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
@@ -525,16 +506,17 @@ Meteor.methods({
 		if (!game)
 			throw new Meteor.Error(404,"No game found to kick from.");
 			
-		if (!_.contains(game.users,kickId))
+		if (Players.find({gameId:gameId,userId:kickId}).count() === 0)
 			throw new Meteor.Error(404,"Player is not in the game.","kickId: " + kickId +", gameId: " + gameId);
 		
-		if (game.ownerId != this.userId)
+		if (game.ownerId !== this.userId)
 			throw new Meteor.Error(403,"You are not the owner of this game. Cannot kick players.");
 			
-		if (this.userId == kickId)
+		if (this.userId === kickId)
 			throw new Meteor.Error(403,"You cannot kick yourself from your own game.");
-			
-		Games.update({_id:gameId},{$pull:{users:kickId},$set:{modified:new Date()}});
+
+        Players.remove({gameId:gameId,userId:kickId});
+		Games.update({_id:gameId},{$inc: {players:-1}, $set:{modified:new Date().getTime()}});
 		return gameId;
 	},
 
@@ -548,22 +530,50 @@ Meteor.methods({
 		
 		var open = game.open;
 		
-		if (game.users.length == 1) {
+		if (Players.find({gameId:gameId}).count() === 1) {
 			open = false;
 		}
 		
 		var ownerId = game.ownerId;
 		// If the owner is quitting his own game, assign a new player as the owner
-		if (game.ownerId == this.userId && game.users.length > 1) {
-			ownerId = _.difference(game.users,[this.userId])[0]
+		if (game.ownerId === this.userId && game.players > 1) {
+			ownerId = Players.findOne({gameId:gameId,userId:{$ne:game.ownerId}}).userId;
 		}
 		
-		return Games.update({_id:gameId},{$pull: {users:this.userId}, $set:{open:open,ownerId:ownerId,modified:new Date()}});
+		return Games.update({_id:gameId},{$inc: {players:-1}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
 	},
 	
 	// Join a game
 	joinGame: function(gameId) {
-		Games.update({_id:gameId},{$addToSet: {users:this.userId, connected:this.userId},$set:{modified:new Date()}});
+        var g = Games.findOne({_id:gameId});
+
+        if (!g)
+            throw new Meteor.Error(404,"Cannot join nonexistent game.");
+
+        if (!g.open)
+            throw new Meteor.Error(403,"The game is closed, cannot join.");
+
+        // If this user is already in the game, update the connected status and return.
+        if (Players.find({gameId:gameId,userId:this.userId}).count() > 0) {
+            Players.update({gameId:gameId,userId:this.userId},{$set:{connected:true}});
+            return gameId;
+        }
+
+        // Otherwise, join the game by adding to the players list, updating the heartbeat, and incrementing the players
+        // count.
+        var p = new Player();
+
+        p.userId = this.userId;
+        p.gameId = gameId;
+        p.firstRound = g.round;
+        p.created = new Date().getTime();
+        p.connected = true;
+
+        Players.insert(p);
+
+		Games.update({_id:gameId},{$inc: {players:1},$set:{modified:new Date().getTime()}});
+
+        Meteor.users.update({_id:this.userId},{$set:{heartbeat:new Date().getTime()}});
 		
 		Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
 		
@@ -572,7 +582,8 @@ Meteor.methods({
 
 	findGameWithFewPlayers: function() {
         // find the latest game with fewer than five players
-		var game = Games.find({open:true, $where: "this.users.length < " + K_PREFERRED_GAME_SIZE.toString()}).fetch()[0];
+
+		var game = Games.findOne({open:true, players:{$lt:K_PREFERRED_GAME_SIZE}});
 		
 		if (!game)
 			return false;
@@ -635,16 +646,15 @@ Meteor.methods({
 		return Games.insert({
 			title:title, // game title
 			password:password, // game password if any
-			users:[], // players in the game, stored as userId's
-            connected:[],
+            players:0, // number of players in the game
 			round:0, // round number
 			questionCards:shuffledQuestionCards,
 			answerCards:shuffledAnswerCards,
 			questionId:firstQuestionCardId,
 			open:true,
 			ownerId:this.userId,
-			created: new Date(),
-			modified: new Date(),
+			created: new Date().getTime(),
+			modified: new Date().getTime(),
             judge:this.userId,
             location: location
 		});
@@ -652,6 +662,15 @@ Meteor.methods({
 
     updateJudge: function(gameId) {
         Games.update({_id:gameId},{$set:{judge:currentJudge(gameId)}});
+    },
+
+    updateJudges: function(userId) {
+        userId = userId || this.userId;
+        _.each(Players.find({userId:userId}).fetch(),function(player){
+            var gameId = player.gameId;
+            var newJudge = currentJudge(gameId);
+            Games.update({gameId:gameId},{$set:{judge:newJudge}});
+        });
     },
 	
 	// Close the game
@@ -667,50 +686,21 @@ Meteor.methods({
 		if (!game.open)
 			throw new Meteor.Error(500,"This game is already closed.");
 			
-		Games.update({_id:gameId},{$set:{open:false,modified:new Date()}});
+		Games.update({_id:gameId},{$set:{open:false,modified:new Date().getTime()}});
 		return gameId;
 	},
 
     heartbeat: function(currentLocation) {
         if (!this.userId)
             return;
-        if (this.isSimulation)
-            return;
 
         currentLocation = currentLocation || null;
 
-        var d = new Date();
+        var d = new Date().getTime();
 
         // update heartbeat for the given user
-        Meteor.users.update({_id:this.userId},{$set:{heartbeat:d,location:currentLocation}});
-
-        // update game connected info
-        var games = Games.find({users:this.userId,open:true}).fetch();
-        var updates = _.compact(_.map(games,function(game){
-            // for each game and each user, check the last heartbeat time
-            var connectedUsers = _.compact(Meteor.users.find({_id:{$in:game.users}}).map(function(user){
-                // if it has been less than 2*K_HEARTBEAT seconds since the last heartbeat, the user should be in the connected table
-                if (d-user.heartbeat<2*K_HEARTBEAT)
-                    return user._id;
-                else
-                    return undefined;
-            }));
-
-            var correctJudge = currentJudge(game);
-
-            // If the number of connected users has changed or the judge has changed, update the connected users and
-            // compute a new judge
-            if (game.judge !== correctJudge ||
-                connectedUsers.length !== game.connected.length) {
-                return [{_id:game._id},{$set:{connected:connectedUsers,judge:currentJudge(game)}}];
-            } else {
-                return undefined;
-            }
-        }));
-
-        _.each(updates,function(args){
-            Games.update(args[0],args[1]);
-        });
+        Players.update({userId:this.userId,connected:false},{$set:{connected:true,location:currentLocation}},{multi:true});
+        Meteor.users.update({_id:this.userId},{$set:{'profile.heartbeat':new Date().getTime()}});
 
         return d;
     }

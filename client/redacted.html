@@ -42,7 +42,7 @@
 	</div>
 
 	<div data-role="page" id="game" data-theme="a">
-		<div data-role="header">
+		<div data-role="header" data-position="fixed">
 				<a href="#home" data-icon="arrow-l">Back</a>
 				<h1>
 				{{#isolate}}
@@ -70,16 +70,12 @@
 
             <ul id="judgeList" data-role="listview" data-inset="true" data-divider-theme="a">
                 <li data-role="list-divider">Judge</li>
-                {{#isolate}}
                 {{> judge}}
-                {{/isolate}}
             </ul>
 
 			<ul id="questionList" data-role="listview" data-inset="true" data-theme="b" data-divider-theme="b">
                 <li data-role="list-divider">Question</li>
-				{{#isolate}}
-					{{> question}}
-				{{/isolate}}
+			    {{> question}}
 			</ul>
 
             <div id="submissionsCollapsible" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="true" data-collapsed="false">
@@ -110,18 +106,14 @@
                         {{/if}}
                     {{/isolate}}</h3>
                 <ul id="handList" data-role="listview" data-inset="true" data-theme="d">
-                    {{#isolate}}
-                        {{> hand}}
-                    {{/isolate}}
+                    {{> hand}}
                 </ul>
             </div>
 
             <div id="scoresCollapsible" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="false">
                 <h3>Scores</h3>
                 <ul id="scoresList" data-role="listview" data-inset="true" data-split-icon="delete">
-                    {{#isolate}}
-                        {{> scores}}
-                    {{/isolate}}
+                    {{> scores}}
                 </ul>
             </div>
 
@@ -137,7 +129,7 @@
 	</div>
 	
 	<div data-role="page" id="browse" data-add-back-btn="true" data-theme="a">
-		<div  data-role="header">
+		<div  data-role="header" data-position="fixed">
 			<h1>Browse Games</h1>
 		</div>
 		<div data-role="content">
@@ -155,7 +147,7 @@
 	</div>
 	
 	<div data-role="page" id="myGames" data-add-back-btn="true" data-theme="a">
-		<div  data-role="header">
+		<div  data-role="header" data-position="fixed">
 			<h1>My Games</h1>
 		</div>
 		<div data-role="content">
@@ -172,7 +164,7 @@
 	</div>
 	
 	<div data-role="page" id="createGame" data-add-back-btn="true" data-theme="a">
-		<div data-role="header">
+		<div data-role="header" data-position="fixed">
 			<h1>Create New Game</h1>
 		</div>
 		<div data-role="content">
@@ -190,7 +182,7 @@
 	</div>
 
     <div data-role="page" id="anonymousLogin" data-add-back-btn="true" data-theme="a">
-        <div data-role="header">
+        <div data-role="header" data-position="fixed">
             <h1>Anonymous Play</h1>
         </div>
         <div data-role="content">
@@ -207,7 +199,7 @@
     </div>
 
     <div data-role="page" id="accountLogin" data-add-back-btn="true" data-theme="a">
-        <div data-role="header">
+        <div data-role="header" data-position="fixed">
             <h1>Create an Account or Login</h1>
         </div>
         <div data-role="content">
@@ -243,7 +235,7 @@
     </div>
 	
 	<div data-role="page" id="login" data-add-back-btn="true" data-theme="a">
-		<div data-role="header">
+		<div data-role="header" data-position="fixed">
 			<h1>Get Started</h1>
 		</div>
 		<div data-role="content">
@@ -254,15 +246,14 @@
             <h3>Other Options</h3>
             <a href="#anonymousLogin" data-role="button" data-icon="arrow-r">Login Anonymously</a>
             <a href="#accountLogin" data-role="button" data-icon="arrow-r">Login or Create an Account</a>
-			{{#isolate}}
-				{{> connection}}
-				{{> error}}
-			{{/isolate}}
 		</div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
+        </div>
 	</div>
 	
 	<div data-role="page" id="preview" data-add-back-btn="true" data-theme="a">
-		<div data-role="header">
+		<div data-role="header" data-position="fixed">
 			<h1>Preview</h1>
 		</div>
 		<div data-role="content">
@@ -276,19 +267,25 @@
 				<div class="ui-block-b"><a href="#game" data-theme="d" onclick="previewYes()" data-icon="check" data-role="button">Yep</a></div>
 			</div>
 		</div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
+        </div>
 	</div>
 
     <div data-role="page" id="invitation" data-theme="a">
-        <div data-role="header">
+        <div data-role="header" data-position="fixed">
             <h1>Invitation</h1>
         </div>
         <div data-role="content">
             {{> invitation}}
         </div>
+        <div data-role="footer" data-position="fixed" data-id="thefooter">
+            <h4>{{> connectionError}}</h4>
+        </div>
     </div>
 
     <div data-role="page" id="news" data-add-back-btn="true" data-theme="a">
-        <div data-role="header">
+        <div data-role="header" data-position="fixed">
             <h1>News</h1>
         </div>
         <div data-role="content">
@@ -346,7 +343,7 @@
     </div>
 
 	<div data-role="page" id="areYouSure" data-theme="a">
-		<div data-role="header">
+		<div data-role="header" data-position="fixed">
 			<h1>Does this look good?</h1>
 		</div>
 		<div data-role="content">
@@ -358,7 +355,7 @@
 	</div>
 
     <div data-role="page" id="contributors" data-theme="a">
-        <div data-role="header">
+        <div data-role="header" data-position="fixed">
             <h1>Contributors</h1>
         </div>
         <div data-role="content">
@@ -380,7 +377,7 @@
 	{{#if games}}
 		{{#each games}}
 		<li><a class="openGameLink" href="#game" id="{{_id}}">{{title}}
-            <span class="ui-li-count">{{users.length}}</span></a></li>
+            <span class="ui-li-count">{{players}}</span></a></li>
 		{{/each}}
     {{else}}
         <li>No open games.</li>
@@ -389,7 +386,7 @@
 
 <template name="invitation">
     <h3>You have been invited to a game!</h3>
-    {{#if currentUser}}
+    {{#if loggedIn}}
         <a href="#" data-role="button" data-icon="arrow-r" data-theme="b" onclick="acceptInvite()">Accept</a>
     {{else}}
         
@@ -404,7 +401,7 @@
 	{{#if games}}
 		{{#each games}}
 		<li><a class="openGameLink" href="#game" id="{{_id}}">{{title}}
-            <span class="ui-li-count">{{users.length}}</span></a></li>
+            <span class="ui-li-count">{{players}}</span></a></li>
 		{{/each}}
     {{else}}
         <li>Not in any games.</li>
@@ -428,7 +425,7 @@
 </template>
 
 <template name="menu">
-	{{#if currentUser}}
+	{{#if loggedIn}}
 		<li class="magic"><a id="matchButton" href="#game" onclick="matchMake()">Quick Match</a></li>
         <li class="ui-btn-up-c"><a href="#myGames">My Games</a></li>
         <li class="ui-btn-up-d"><a href="#news">News</a></li>

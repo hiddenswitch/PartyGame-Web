@@ -18,6 +18,10 @@ Meteor.publish("myOwnedGames",function() {
 	return Games.find({ownerId:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
 });
 
+Meteor.publish("players",function(gameId) {
+    return Players.find({gameId:gameId});
+})
+
 Meteor.publish("submissions", function(gameId,round) {
     var recordset = this;
     var game = Games.findOne({_id:gameId});
@@ -26,9 +30,9 @@ Meteor.publish("submissions", function(gameId,round) {
     var updateSubmissions = function () {
         // get all the submissions for a particular game and round
         submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
-
+        connectedPlayersCount = Players.find({gameId:gameId,connected:true}).count();
         // if we have sufficient submissions, reveal them
-        if (submissions.length >= game.connected.length-1) {
+        if (submissions.length >= connectedPlayersCount-1) {
             _.each(submissions,function(submission){
                 recordset.set("submissions",submission._id, _.omit(submission,'_id'));
             });
@@ -62,7 +66,6 @@ Meteor.publish("submissions", function(gameId,round) {
 
     recordset.onStop(function () {
         submissionHandle.stop();
-        gameHandle.stop();
     });
 });
 
@@ -80,6 +83,21 @@ Meteor.publish("usersInGame",function(gameId) {
 });
 
 Meteor.startup(function () {
+//    Games.remove({});
+//    Hands.remove({});
+//    Players.remove({});
+//    Votes.remove({});
+//    Cards.remove({});
+//    Submissions.remove({});
+//    Meteor.users.remove({});
+
+    Accounts.onCreateUser(function(options, user) {
+        if (options.profile)
+            user.profile = options.profile;
+        user.profile.heartbeat = new Date().getTime();
+        return user;
+    });
+
     // enable the geospatial index on games and users
     try {
         Games._ensureIndex({location:"2d",modified:-1});
@@ -87,8 +105,10 @@ Meteor.startup(function () {
         Hands._ensureIndex({gameId:1});
         Cards._ensureIndex({deck:1});
         Cards._ensureIndex({type:1});
+        Players._ensureIndex({gameId:1,userId:1,connected:1});
         Submissions._ensureIndex({gameId:1});
-        Meteor.users._ensureIndex({location:"2d"});
+        Meteor.users._ensureIndex({'profile.heartbeat':1});
+        Meteor.users._ensureIndex({'profile.location':"2d"});
     } catch (e) {
         console.log("Indexing failure. " + e);
     }
@@ -110,7 +130,7 @@ Meteor.startup(function () {
 
     // make sure users have full schema
     try {
-        Meteor.users.update({heartbeat:{$exists:false},location:{$exists:false}},{$set:{heartbeat:new Date(),location:null}},{multi:true});
+        Meteor.users.update({heartbeat:{$exists:false},location:{$exists:false}},{$set:{heartbeat:new Date().getTime(),location:null}},{multi:true});
     } catch (e) {
         console.log("User schema extension failure.");
     }
@@ -118,21 +138,24 @@ Meteor.startup(function () {
 
     // make sure games have full schema
     try {
-        Games.update({connected:{$exists:false},modified:{$exists:false}},{$set:{connected:[],modified:new Date()}},{multi:true});
+        Games.update({connected:{$exists:false},modified:{$exists:false}},{$set:{connected:[],modified:new Date().getTime()}},{multi:true});
     } catch (e) {
         console.log("Game schema extension failure.");
     }
 
-
-    // maintenance
+    // Close games that haven't seen any activity for a while
     Meteor.setInterval(function () {
-        var games = Games.find({open:true,$or:
-            [{$where:"new Date() - this.modified > 20*" + K_HEARTBEAT}, // close the game after 20 heartbeats
-                {connected:{$size:0}}]}).fetch();
-        _.each(games,function(game){ // close games with no connected users
-                Games.update({_id:game._id},
-                    {$set:{open:false}});
-                console.log("Closed game "+game._id);
-        });
+        Games.update({open:true,modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{$set:{closed:true}},{multi:true});
     },40*K_HEARTBEAT);
+
+    // Update player connected status
+    Meteor.setInterval(function () {
+        console.log(new Date().getTime() - K_HEARTBEAT);
+        var disconnectedUsers = Meteor.users.find({'profile.heartbeat':{$lt:new Date().getTime() - K_HEARTBEAT}}).fetch();
+        console.log(JSON.stringify(disconnectedUsers));
+        _.each(disconnectedUsers,function(disconnectedUser){
+            Players.update({userId:disconnectedUser._id,connected:true},{$set:{connected:false}},{multi:true});
+            Meteor.call("updateJudges",disconnectedUser.userId);
+        });
+    },2*K_HEARTBEAT);
 });

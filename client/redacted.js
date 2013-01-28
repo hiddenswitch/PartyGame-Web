@@ -5,11 +5,11 @@
 
 var SESSION_CURRENT_GAME = SESSION_CURRENT_GAME || "currentGame";
 var SESSION_CURRENT_ROUND = SESSION_CURRENT_ROUND || "currentRound";
-var SESSION_CURRENT_HAND = SESSION_CURRENT_HAND || "currentHand";
 var SESSION_CURRENT_SUBMISSION = SESSION_CURRENT_SUBMISSION || "currentSubmission";
 var SESSION_CURRENT_ERROR = SESSION_CURRENT_ERROR || "currentError";
 var SESSION_CURRENT_PREVIEW_CARD = SESSION_CURRENT_PREVIEW_CARD || "currentPreviewCard";
 var SESSION_CURRENT_LOCATION = SESSION_CURRENT_LOCATION || "currentLocation";
+var IS_LOGGED_IN = "isLoggedIn";
 
 var previewYes = function () {};
 var previewNo = function () {};
@@ -36,6 +36,10 @@ var setErrorAndGoHome = function (err,r) {
 	setError(err,r);
 	
 	$.mobile.changePage('#home');
+};
+
+var loggedIn = function() {
+    return Session.get(IS_LOGGED_IN) !== null;
 };
 
 var requestLocation = function(callback) {
@@ -142,17 +146,17 @@ var submissionCount = function () {
 };
 
 var maxSubmissionsCount = function () {
-    var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
-    if (g && g.connected)
-        return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)}).connected.length-1;
+    var gameId = Session.get(SESSION_CURRENT_GAME);
+    if (gameId)
+        return Players.find({gameId:gameId,connected:true}).count()-1;
     else
         return 0;
 };
 
 var playersCount = function () {
-    var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
-    if (g && g.users)
-        return Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)}).users.length;
+    var gameId = Session.get(SESSION_CURRENT_GAME);
+    if (gameId)
+        return Players.find({gameId:gameId}).count();
     else
         return 0;
 };
@@ -193,10 +197,12 @@ var createAndJoinGame = function() {
 };
 
 var userIdToName = function(id) {
-	var u = Meteor.users.findOne({_id:id});
-	
+	var u = Meteor.users.find({_id:id},{reactive:false}).fetch();
+
 	if (!u)
 		return "REDACTED.";
+
+    u = u[0];
 	
 	if (u.profile && u.profile.name)
 		return u.profile.name;
@@ -327,6 +333,7 @@ var registerTemplates = function() {
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
 	Handlebars.registerHelper("userIdToName",userIdToName);
 	Handlebars.registerHelper("refreshListviews",refreshListviews);
+    Handlebars.registerHelper("loggedIn",loggedIn);
 	Handlebars.registerHelper("connectionStatus",function () {
 		var status = Meteor.status().status;
 		if (status == "connected") {
@@ -348,12 +355,6 @@ var registerTemplates = function() {
 	
 	Template.game.title = function() {
 		var g = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
-        try {
-            document.title = g.title;
-        } catch (e) {
-            console.log(e);
-        }
-
 		if (g)
 			return g.title;
 		else
@@ -404,13 +405,13 @@ var registerTemplates = function() {
 	Handlebars.registerHelper("gameRound",Template.game.round);
 	Handlebars.registerHelper("gameIsOwner",Template.game.isOwner);
 	Handlebars.registerHelper("gameLastVote",Template.game.lastVote);
-	
+
 	Template.judge.isJudge = isJudge;
-	
+
 	Template.judge.judge = function() {
 		return Meteor.users.findOne({_id:getJudgeIdForGameId(Session.get(SESSION_CURRENT_GAME))});
 	}
-	
+
 	Template.judge.judgeEmailAddress = function() {
         if (playersCount() > 1) {
             if (isJudge())
@@ -420,11 +421,11 @@ var registerTemplates = function() {
         } else
             return "Waiting for more players...";
     }
-	
+
 	Template.judge.rendered = refreshListviews;
 	Template.judge.created = createListviews;
     Template.judge.preserve(defaultPreserve);
-	
+
 	Template.question.question = function() {
 		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
 		if (gameDoc) {
@@ -436,47 +437,47 @@ var registerTemplates = function() {
 
     Template.question.preserve(defaultPreserve);
     Template.question.rendered = refreshListviews;
-	
+
 	Template.players.players = function () {
-		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
-		return _.map(gameDoc.users, function (o) {return Meteor.users.findOne({_id:o})});
+		var players = _.pluck(Players.find({gameId:Session.get(CURRENT_GAME)}),"userId");
+		return _.map(players, function (o) {return Meteor.users.findOne({_id:o})});
 	};
-	
+
 	Template.players.rendered = refreshListviews;
 	Template.players.created = createListviews;
     Template.players.preserve(defaultPreserve);
-	
+
 	Template.scores.scores = function() {
 		if (!Session.get(SESSION_CURRENT_GAME))
 			return [];
-		
+
 		return scores(Session.get(SESSION_CURRENT_GAME));
 	};
-	
+
 	Template.scores.rendered = refreshListviews;
 	Template.scores.created = createListviews;
     Template.scores.preserve(defaultPreserve);
-	
+
 	Template.browse.games = function() {
 		return Games.find({open:true}).fetch();
 	};
-	
+
 	Template.browse.events = {
 		'click a': joinGameOnClick
 	};
-	
+
 	Template.browse.rendered = refreshListviews;
 	Template.browse.created = createListviews;
     Template.browse.preserve(defaultPreserve);
-	
+
 	Template.myGames.games = function() {
 		return Games.find({open:true,users:Meteor.userId()}).fetch();
 	};
-	
+
 	Template.myGames.events = {
 		'click a': joinGameOnClick
 	};
-	
+
 	Template.myGames.rendered = refreshListviews;
 	Template.myGames.created = createListviews;
     Template.myGames.preserve(defaultPreserve);
@@ -492,7 +493,7 @@ var registerTemplates = function() {
     Template.submissions.count = function () {
         return "(" + submissionCount().toString() + "/" + maxSubmissionsCount().toString() + ")";
     };
-	
+
 	Template.submissions.events = {
 		'click .submission':function(e) {
 			var submissionId = $(e.target).attr('id');
@@ -515,7 +516,7 @@ var registerTemplates = function() {
 			};
 		}
 	}
-	
+
 	Template.submissions.rendered = function() {
         refreshListviews();
         if (isJudge() && playersCount() > 1) {
@@ -529,16 +530,16 @@ var registerTemplates = function() {
     Template.submissions.preserve(defaultPreserve);
 
     Template.hand.isJudge = isJudge;
-	
+
 	Template.hand.hand = function () {
-		return Hands.findOne({_id:Session.get(SESSION_CURRENT_HAND)});
+		return Hands.findOne({userId:Meteor.userId(),gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)});
 	};
-	  
+
 	Template.hand.cardsInHand = function() {
-		var handDoc = Hands.findOne({_id:Session.get(SESSION_CURRENT_HAND)});
+		var handDoc = Hands.findOne({userId:Meteor.userId(),gameId:Session.get(SESSION_CURRENT_GAME),round:Session.get(SESSION_CURRENT_ROUND)});
 		return _.map(handDoc.hand, function (o) {return Cards.findOne({_id:o})});
 	};
-	
+
 	Template.hand.events = {
 		'click .card':function(e) {
 			var answerId = $(e.target).attr('id');
@@ -556,7 +557,7 @@ var registerTemplates = function() {
 			};
 		}
 	};
-	
+
 	Template.hand.rendered = function() {
         refreshListviews();
         if (isJudge()) {
@@ -570,7 +571,7 @@ var registerTemplates = function() {
 
 	Template.hand.created = createListviews;
     Template.hand.preserve(defaultPreserve);
-	
+
 	Template.preview.text = function() {
 		var gameDoc = Games.findOne({_id:Session.get(SESSION_CURRENT_GAME)});
 		if (gameDoc)
@@ -599,6 +600,7 @@ Meteor.startup(function() {
 			Meteor.subscribe("submissions",currentGameId,currentRound);
 			Meteor.subscribe("votesInGame",currentGameId);
 			Meteor.subscribe("usersInGame",currentGameId);
+            Meteor.subscribe("players",currentGameId);
 		}
 	});
 
@@ -614,26 +616,24 @@ Meteor.startup(function() {
 		if (currentGame)
 			Session.set(SESSION_CURRENT_ROUND,currentGame.round);
 	});
+
+    // Update logged in status (workaround for constant menu refreshing
+    Meteor.autorun(function () {
+        if (Session.get(IS_LOGGED_IN) !== Meteor.userId()) {
+            Session.set(IS_LOGGED_IN,Meteor.userId())
+        };
+    })
 	
-	// update current hand
-	Meteor.autorun(function () {
-		var currentGameId = Session.get(SESSION_CURRENT_GAME);
-		var currentRound = Session.get(SESSION_CURRENT_ROUND);
-		var currentHand = Hands.findOne({userId:Meteor.userId(),gameId:currentGameId,round:currentRound});
-		if (currentHand)
-			Session.set(SESSION_CURRENT_HAND,currentHand._id);
-	});
-	
-	// clear error after 5 seconds
-	Meteor.autorun(function () {
-		var currentError = Session.get(SESSION_CURRENT_ERROR);
-		if (currentError) {
-			console.log(currentError);
-			Meteor.setTimeout(function(){
-				Session.set(SESSION_CURRENT_ERROR,null);
-			},5000);
-		}
-	});
+//	// clear error after 5 seconds
+//	Meteor.autorun(function () {
+//		var currentError = Session.get(SESSION_CURRENT_ERROR);
+//		if (currentError) {
+//			console.log(currentError);
+//			Meteor.setTimeout(function(){
+//				Session.set(SESSION_CURRENT_ERROR,null);
+//			},5000);
+//		}
+//	});
 
 	// update last login time
 	Meteor.setInterval(function () {
@@ -644,10 +644,11 @@ Meteor.startup(function() {
         }
     },K_HEARTBEAT);
 
+    // refresh the listviews when appropriate
 	mutationObserver = new MutationSummary({
-		queries: [{element:'[data-role="page"]',elementAttributes:'class'},{element:'[data-role="listview"]'},{element:'li'},{element:'[data-role="button"]'}],
+		queries: [{element:'li'},{element:'[data-role="button"]'}],
 		callback: function(summaries) {
-			refreshListviews();
+            refreshListviews();
 		}
 	});
 });
