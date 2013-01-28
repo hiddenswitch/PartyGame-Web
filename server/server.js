@@ -140,7 +140,7 @@ Meteor.startup(function () {
 
     // Close games that haven't seen any activity for a while
     Meteor.setInterval(function () {
-        Games.update({open:true,modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{$set:{closed:true}},{multi:true});
+        Games.update({open:true,modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{$set:{open:false}},{multi:true});
     },40*K_HEARTBEAT);
 
     // Update player connected status
