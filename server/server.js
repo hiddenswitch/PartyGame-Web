@@ -11,8 +11,7 @@ Meteor.publish("myHands",function() {
 });
 
 Meteor.publish("myGames",function() {
-    var gamesImIn = _.pluck(Players.find({userId:this.userId}).fetch(),"gameId");
-    return Games.find({_id:{$in:gamesImIn}},{fields:{password:0,questionCards:0,answerCards:0}});
+    return Games.find({userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
 });
 
 Meteor.publish("myOwnedGames",function() {

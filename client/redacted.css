@@ -50,7 +50,7 @@
 }
 
 [data-role=content] > ul, [data-role=content] > p, [data-role=content] > div, [data-role=content] > a,
-[data-role=content] > h3, [data-role=content] > input {
+[data-role=content] > h3, [data-role=content] > input, [data-role=content] > select, [data-role=content] > label {
     max-width: 320pt;
 }
 

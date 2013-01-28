@@ -53,6 +53,7 @@ var Game = function() {
     this.modified =  new Date().getTime(); // date modified
     this.location = null; // location of game
     this.players = 0; // number of players
+    this.userIds = []; // user Ids of players (to identify games you're in)
 };
 
 var CARD_TYPE_QUESTION = 1; // card of type question
@@ -67,8 +68,8 @@ var Card = function() {
 var Hand = function() {
 	this.gameId = 0; 
 	this.userId = 0; 
-	this.round = 0; 
-	this.hand = [];
+	this.round = 0; // round number of this hand
+	this.hand = []; // Array of card Ids
 };
 
 var Vote = function() {
@@ -124,7 +125,6 @@ var distance = function(p1,p2) {
     return Math.sqrt(Math.pow(p1[0]-p2[0],2)+Math.pow(p1[1]-p2[1],2));
 };
 
-// TODO Make the current judge stable even when the connected user changes.
 // Get the current judge id
 var getJudgeId = function(g) {
     if (g && g.judge)
@@ -136,64 +136,6 @@ var getJudgeIdForGameId = function(id) {
     if (g && g.judge)
         return g.judge;
 };
-
-// Match into an existing game, or create a new one to join into
-var match = function(location,gameJoinedCallback) {
-	Meteor.call("findLocalGame",location,function(e,r) {
-		if (r)
-			Meteor.call("joinGame",r,gameJoinedCallback);
-		else
-			Meteor.call("findGameWithFewPlayers",function(e,r){
-				if (r)
-					Meteor.call("joinGame",r,gameJoinedCallback);
-				else
-					Meteor.call("createEmptyGame","","",location,function (e,r){
-						if (r)
-							Meteor.call("joinGame",r,gameJoinedCallback);
-						else
-							console.log(e);
-					});
-			});
-	});
-};
-
-	// get a {userId, score} dictionary containing the current scores
-var scores = function(gameId) {
-	var scores = {};
-
-    try {
-        Players.find({gameId:gameId}).forEach(function (p) {
-            scores[p.userId] = {score:0,connected:p.connected};
-        });
-
-        // compute all the scores
-        Votes.find({gameId:gameId}).forEach(function(voteDoc) {
-            scores[voteDoc.userId].score += 1;
-        });
-
-        return _.map(scores,function (value,key){
-            return {userId:key,score:value.score,connected:value.connected};
-        });
-    } catch(e) {
-        return false;
-    }
-};
-
-var createNewUserAndLogin = function(username,email,password,callback) {
-	if (username && email && password) {
-		Accounts.createUser({username:username,email:email,password:password},callback);
-	} else {
-		throw new Meteor.Error(403,"Please fill out: " + (username ? "" : " username") + (email ? "" : " email") + (password ? "" : " password")+".");
-	}
-};
-
-var createNewAnonymousUser = function(nickname,callback) {
-    var userIdPadding = Math.random().toString(36).slice(-8);
-    var password = Math.random().toString(36).slice(-8);
-    nickname = nickname || "REDACTED (" + userIdPadding + ")";
-    Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname}},callback)
-};
-
 
 // Gets the current judge
 // Use the user's number of times voted to fairly pick the next judge
@@ -517,7 +459,7 @@ Meteor.methods({
 			ownerId = Players.findOne({gameId:gameId,userId:{$ne:game.ownerId}}).userId;
 		}
 		
-		return Games.update({_id:gameId},{$inc: {players:-1}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
+		return Games.update({_id:gameId},{$inc: {players:-1}, $pullAll:{userIds:this.userId}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
 	},
 	
 	// Join a game
@@ -547,7 +489,7 @@ Meteor.methods({
 
         Players.insert(p);
 
-		Games.update({_id:gameId},{$inc: {players:1},$set:{modified:new Date().getTime()}});
+		Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:this.userId}, $set:{modified:new Date().getTime()}});
 
         Meteor.users.update({_id:this.userId},{$set:{heartbeat:new Date().getTime()}});
 		
@@ -602,10 +544,10 @@ Meteor.methods({
 		location = location || null;
 
 		if (title=="")
-			title = "Game #" + Games.find({}).count().toString() + 1;
+			title = "Game #" + (Games.find({}).count() + 1).toString();
 		
-		if (Games.find({title:title,open:true}).count() > 0)
-			throw new Meteor.Error(500,"A game by that name already exists!");
+//		if (Games.find({title:title,open:true}).count() > 0)
+//			throw new Meteor.Error(500,"A open game by that name already exists!");
 		
 		var shuffledAnswerCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_ANSWER},{fields:{_id:1}}).fetch(),'_id'));
 		
@@ -632,6 +574,7 @@ Meteor.methods({
 			created: new Date().getTime(),
 			modified: new Date().getTime(),
             judge:this.userId,
+            userIds:[],
             location: location
 		});
 	},

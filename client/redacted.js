@@ -232,6 +232,63 @@ var submissionIdToCardId = function(id) {
         return "";
 };
 
+// Match into an existing game, or create a new one to join into
+var match = function(location,gameJoinedCallback) {
+    Meteor.call("findLocalGame",location,function(e,r) {
+        if (r)
+            Meteor.call("joinGame",r,gameJoinedCallback);
+        else
+            Meteor.call("findGameWithFewPlayers",function(e,r){
+                if (r)
+                    Meteor.call("joinGame",r,gameJoinedCallback);
+                else
+                    Meteor.call("createEmptyGame","","",location,function (e,r){
+                        if (r)
+                            Meteor.call("joinGame",r,gameJoinedCallback);
+                        else
+                            console.log(e);
+                    });
+            });
+    });
+};
+
+// get a {userId, score} dictionary containing the current scores
+var scores = function(gameId) {
+    var scores = {};
+
+    try {
+        Players.find({gameId:gameId}).forEach(function (p) {
+            scores[p.userId] = {score:0,connected:p.connected};
+        });
+
+        // compute all the scores
+        Votes.find({gameId:gameId}).forEach(function(voteDoc) {
+            scores[voteDoc.userId].score += 1;
+        });
+
+        return _.map(scores,function (value,key){
+            return {userId:key,score:value.score,connected:value.connected};
+        });
+    } catch(e) {
+        return false;
+    }
+};
+
+var createNewUserAndLogin = function(username,email,password,callback) {
+    if (username && email && password) {
+        Accounts.createUser({username:username,email:email,password:password},callback);
+    } else {
+        throw new Meteor.Error(403,"Please fill out: " + (username ? "" : " username") + (email ? "" : " email") + (password ? "" : " password")+".");
+    }
+};
+
+var createNewAnonymousUser = function(nickname,callback) {
+    var userIdPadding = Math.random().toString(36).slice(-8);
+    var password = Math.random().toString(36).slice(-8);
+    nickname = nickname || "REDACTED (" + userIdPadding + ")";
+    Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname}},callback)
+};
+
 var questionAndAnswerText = function(questionCardId,answerCardId) {
     var q = cardIdToText(questionCardId);
     var c = cardIdToText(answerCardId);
@@ -478,7 +535,7 @@ var registerTemplates = function() {
     Template.browse.preserve(defaultPreserve);
 
 	Template.myGames.games = function() {
-		return Games.find({open:true,users:Meteor.userId()}).fetch();
+		return Games.find({open:true,userIds:Meteor.userId()}).fetch();
 	};
 
 	Template.myGames.events = {
