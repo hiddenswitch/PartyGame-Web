@@ -83,6 +83,7 @@ Meteor.publish("usersInGame",function(gameId) {
 });
 
 Meteor.startup(function () {
+    // Add the heartbeat field to the user profile
     Accounts.onCreateUser(function(options, user) {
         if (options.profile)
             user.profile = options.profile;
@@ -94,14 +95,14 @@ Meteor.startup(function () {
 
     // enable the geospatial index on games and users
     try {
-        Games._ensureIndex({location:"2d",modified:-1});
+        Games._ensureIndex({players:1,location:"2d",modified:-1});
         Votes._ensureIndex({gameId:1});
         Hands._ensureIndex({gameId:1});
         Cards._ensureIndex({deck:1});
         Cards._ensureIndex({type:1});
         Players._ensureIndex({gameId:1,userId:1,connected:1});
         Submissions._ensureIndex({gameId:1});
-        Meteor.users._ensureIndex({'profile.heartbeat':1});
+        Meteor.users._ensureIndex({'profile.heartbeat':-1});
         Meteor.users._ensureIndex({'profile.location':"2d"});
     } catch (e) {
         console.log("Indexing failure. " + e);
