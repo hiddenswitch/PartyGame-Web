@@ -95,10 +95,12 @@ Meteor.startup(function () {
 
     // enable the geospatial index on games and users
     try {
-        Games._ensureIndex({players:1,location:"2d",modified:-1});
+        Games._ensureIndex({location:"2d"});
+        Games._ensureIndex({players:1,modified:-1});
         Votes._ensureIndex({gameId:1});
         Hands._ensureIndex({gameId:1});
-        Cards._ensureIndex({deck:1});
+        Cards._ensureIndex({deckId:1});
+        Decks._ensureIndex({title:1});
         Cards._ensureIndex({type:1});
         Players._ensureIndex({gameId:1,userId:1,connected:1});
         Submissions._ensureIndex({gameId:1});
@@ -110,12 +112,22 @@ Meteor.startup(function () {
 
     try {
         if (Cards.find({}).count() < 1) {
+            // Cards Against Humanity cards
+            var CAHDeck = new Deck();
+            CAHDeck.title = "Cards Against Humanity";
+            CAHDeck.ownerId = "";
+            CAHDeck.description = "The complete Cards Against Humanity questions and answers, licensed Creative Commons" +
+                "2.0 BY-NC-SA.";
+            CAHDeck.price = 0;
+
+            var CAHId = Decks.insert(CAHDeck);
+
             _.forEach(CAH_QUESTION_CARDS,function(c){
-                Cards.insert({text:c,type:CARD_TYPE_QUESTION,deck:"Cards Against Humanity"});
+                Cards.insert({text:c,type:CARD_TYPE_QUESTION,deckId:CAHId});
             });
 
             _.forEach(CAH_ANSWER_CARDS,function(c){
-                Cards.insert({text:c,type:CARD_TYPE_ANSWER,deck:"Cards Against Humanity"});
+                Cards.insert({text:c,type:CARD_TYPE_ANSWER,deckId:CAHId});
             });
         }
     } catch (e) {
@@ -154,9 +166,9 @@ Meteor.startup(function () {
 
         // Update the judges
         _.each(Games.find({open:true}).fetch(),function(g){
-            var gameCurrentJudge = currentJudge(g._id);
+            var gameCurrentJudge = Meteor.call("currentJudge",g._id);
             if (g.judge !== gameCurrentJudge) {
-                Games.update({_id:g._id},{$set:{judge:gameCurrentJudge}});
+                Games.update({_id:g._id},{$set:{judgeId:gameCurrentJudge}});
             }
         });
 

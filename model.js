@@ -40,20 +40,21 @@ var E_NO_MORE_CARDS = "No more cards.";
 var E_GAME_OVER = "The game is over.";
 
 var Game = function() {
-    this.title = ""; // game title
-    this.password = ""; // game password if any
-    this.round = -1; // round number
-    this.questionId = 0; // id of current question
-    this.questionCards = []; // question cards
-    this.answerCards = []; // answer cards
-    this.open = 1; // is the game open
-    this.ownerId = 0; // owner of the game
-    this.judge = ""; // current judge
-    this.created =  new Date().getTime(); // date created
-    this.modified =  new Date().getTime(); // date modified
-    this.location = null; // location of game
-    this.players = 0; // number of players
-    this.userIds = []; // user Ids of players (to identify games you're in)
+    this.title = ""; // game title.
+    this.password = ""; // game password if any.
+    this.round = -1; // round number.
+    this.questionId = 0; // id of current question.
+    this.questionCards = []; // question cards.
+    this.answerCards = []; // answer cards.
+    this.open = 1; // is the game open.
+    this.ownerId = 0; // owner of the game.
+    this.judgeId = ""; // current judge.
+    this.created =  new Date().getTime(); // date created.
+    this.modified =  new Date().getTime(); // date modified.
+    this.location = null; // location of game.
+    this.players = 0; // number of players.
+    this.userIds = []; // user Ids of players (to identify games you're in).
+    this.deckIds = []; // List of decks used in this game.
 };
 
 var CARD_TYPE_QUESTION = 1; // card of type question
@@ -61,9 +62,17 @@ var CARD_TYPE_ANSWER = 2; // card of type answer
 
 var Card = function() {
 	this.type = CARD_TYPE_QUESTION;  // question or answer card
-    this.deck = ""; // The name of the deck
+    this.deckId = ""; // The id of the deck
 	this.text = ""; // text of the card
 };
+
+var Deck = function() {
+    this.title = "";
+    this.ownerId = "";
+    this.description = "";
+    this.price = 0;
+    this.storeData = {};
+}
 
 var Hand = function() {
 	this.gameId = 0; 
@@ -104,53 +113,15 @@ var Chat = function () {
 	this.text = "";
 };
 
-var COLLECTIONS_CARDS = "cards";
-var COLLECTIONS_GAMES = "games";
-var COLLECTIONS_HANDS = "hands";
-var COLLECTIONS_VOTES = "votes";
-var COLLECTIONS_CHATS = "chats";
-var COLLECTION_SUBMISSIONS = "submissions";
-var COLLECTION_PLAYERS = "players";
+var Decks = new Meteor.Collection("decks");
+var Cards = new Meteor.Collection("cards");
+var Games = new Meteor.Collection("games");
+var Hands = new Meteor.Collection("hands");
+var Votes = new Meteor.Collection("votes");
+var Submissions = new Meteor.Collection("submissions");
+var Players = new Meteor.Collection("players");
+var Chats = new Meteor.Collection("chats");
 
-var Cards = new Meteor.Collection(COLLECTIONS_CARDS);
-var Games = new Meteor.Collection(COLLECTIONS_GAMES);
-var Hands = new Meteor.Collection(COLLECTIONS_HANDS);
-var Votes = new Meteor.Collection(COLLECTIONS_VOTES);
-var Submissions = new Meteor.Collection(COLLECTION_SUBMISSIONS);
-var Players = new Meteor.Collection(COLLECTION_PLAYERS);
-var Chats = new Meteor.Collection(COLLECTIONS_CHATS);
-
-// get the distance between two points
-var distance = function(p1,p2) {
-    return Math.sqrt(Math.pow(p1[0]-p2[0],2)+Math.pow(p1[1]-p2[1],2));
-};
-
-// Get the current judge id
-var getJudgeId = function(g) {
-    if (g && g.judge)
-        return g.judge;
-};
-
-var getJudgeIdForGameId = function(id) {
-    var g = Games.findOne({_id:id});
-    if (g && g.judge)
-        return g.judge;
-};
-
-// Gets the current judge
-// Use the user's number of times voted to fairly pick the next judge
-// Use the user's index in the game.users array to pick the user who connected earliest
-// Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
-// connects or disconnects.
-var currentJudge = function(gameId) {
-    // Get all the connected players and sort by the time they last voted.
-    var players = Players.find({gameId:gameId,connected:true}).fetch();
-
-    if (players && players.length > 0) {
-        players = players.superSort("voted");
-        return players[0].userId;
-    }
-};
 
 /*
  * Game flow:
@@ -284,7 +255,7 @@ Meteor.methods({
 		if (Players.find({gameId:gameId}).count() < 2)
 			throw new Meteor.Error(500,"Too few players to submit answer.");
 			
-		if (this.userId == getJudgeId(game))
+		if (this.userId === game.judgeId)
 			throw new Meteor.Error(500,"You cannot submit a card. You're the judge!");
 
         // does this player have this card in his hand?
@@ -323,7 +294,7 @@ Meteor.methods({
 		if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
 			throw new Meteor.Error(500,"You are not a player in this game: Cannot judge card.","userId: " + this.userid +", gameId: " + game._id);
 			
-		var judgeId = game.judge;
+		var judgeId = game.judgeId;
 		var judge = Meteor.users.findOne({_id:judgeId});
 		
 		if (!judge)
@@ -407,10 +378,10 @@ Meteor.methods({
 		}
 
         // The vote has been submitted, so get the next judge. Does not depend on round, only on votes.
-        var nextJudge = currentJudge(game._id);
+        var nextJudge = Meteor.call("currentJudge",game._id);
 		
 		// increment round
-		Games.update({_id:gameId},{$set:{open:open,questionId:questionCardId,modified:new Date().getTime(),judge:nextJudge},$inc:{round:1},$pop:{questionCards:1}});
+		Games.update({_id:gameId},{$set:{open:open,questionId:questionCardId,modified:new Date().getTime(),judgeId:nextJudge},$inc:{round:1},$pop:{questionCards:1}});
 		
 		// draw new cards
 		Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
@@ -573,19 +544,26 @@ Meteor.methods({
 			ownerId:this.userId,
 			created: new Date().getTime(),
 			modified: new Date().getTime(),
-            judge:this.userId,
+            judgeId:this.userId,
             userIds:[],
             location: location
 		});
 	},
 
-    updateJudges: function(userId) {
-        userId = userId || this.userId;
-        _.each(Players.find({userId:userId}).fetch(),function(player){
-            var gameId = player.gameId;
-            var newJudge = currentJudge(gameId);
-            Games.update({gameId:gameId},{$set:{judge:newJudge}});
-        });
+    // Gets the current judge
+    // Use the user's number of times voted to fairly pick the next judge
+    // Use the user's index in the game.users array to pick the user who connected earliest
+    // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
+    // connects or disconnects.
+    currentJudge: function(gameId) {
+        var players = Players.find({gameId:gameId,connected:true}).fetch();
+
+        if (players && players.length > 0) {
+            players = players.superSort("voted");
+            return players[0].userId;
+        } else {
+            return "";
+        }
     },
 	
 	// Close the game

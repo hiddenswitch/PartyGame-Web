@@ -360,7 +360,12 @@ var joinGameOnClick = function(e) {
 var isJudge = function() {
     var theUserId = Meteor.userId();
     var currentGameId = Session.get(GAME);
-    return (theUserId == getJudgeIdForGameId(currentGameId));
+    var g = Games.findOne({_id:currentGameId});
+
+    if (g)
+        return (theUserId === g.judgeId);
+    else
+        return false;
 };
 
 var defaultPreserve = {
@@ -467,15 +472,24 @@ var registerTemplates = function() {
 	Template.judge.isJudge = isJudge;
 
 	Template.judge.judge = function() {
-		return Meteor.users.findOne({_id:getJudgeIdForGameId(Session.get(GAME))});
+        var g = Games.findOne({_id:Session.get(GAME)});
+        if (g)
+		    return Meteor.users.findOne({_id:g.judgeId});
+        else
+            return null;
 	}
 
 	Template.judge.judgeEmailAddress = function() {
         if (playersCount() > 1) {
             if (isJudge())
                 return "You are the judge!";
-            else
-                return userIdToName(getJudgeIdForGameId(Session.get(GAME)));
+            else {
+                var g = Games.findOne({_id:Session.get(GAME)});
+                if (g)
+                    return userIdToName(g.judgeId);
+                else
+                    return "";
+            }
         } else
             return "Waiting for more players...";
     }
