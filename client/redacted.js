@@ -407,7 +407,13 @@ var registerTemplates = function() {
 			return "Failed to connect. Retrying connection...";
 		}
 	});
-	
+	Handlebars.registerHelper("isCordova",function () {
+        if (Session.get(IS_CORDOVA))
+            return true;
+        else
+            return false;
+    });
+
 	Template.error.error = function() {
 		return Session.get(ERROR);
 	};
