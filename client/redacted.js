@@ -674,7 +674,6 @@ var cordovaSetup = function() {
 
 Meteor.subscribe("openGames");
 Meteor.subscribe("myHands");
-Meteor.subscribe("myGames");
 Meteor.subscribe("myOwnedGames");
 Meteor.subscribe("cards");
 
@@ -689,6 +688,7 @@ Meteor.startup(function() {
 			Meteor.subscribe("votesInGame",currentGameId);
 			Meteor.subscribe("usersInGame",currentGameId);
             Meteor.subscribe("players",currentGameId);
+            Meteor.subscribe("myGames",Meteor.userId());
 		}
 	});
 
