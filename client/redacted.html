@@ -240,13 +240,15 @@
 			<h1>Get Started</h1>
 		</div>
 		<div data-role="content">
+            {{#unless isCordova}}
             <h3>Login with Facebook or Google</h3>
             <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
             <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
             <p>Login with Facebook or Google for the best experience. We won't post anything, we won't steal your information, and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with the Besties XOXO.</p>
             <h3>Other Options</h3>
-            <a href="#anonymousLogin" data-role="button" data-icon="arrow-r">Login Anonymously</a>
-            <a href="#accountLogin" data-role="button" data-icon="arrow-r">Login or Create an Account</a>
+            {{/unless}}
+            <a href="#anonymousLogin" data-role="button" data-icon="arrow-r">Quick Login</a>
+            <a href="#accountLogin" data-role="button" data-icon="arrow-r">Create an Account</a>
 		</div>
         <div data-role="footer" data-position="fixed" data-id="thefooter">
             <h4>{{> connectionError}}</h4>
