@@ -204,7 +204,10 @@ var userIdToName = function(id) {
 		return "REDACTED.";
 
     u = u[0];
-	
+
+    if (!u)
+        return "REDACTED.";
+
 	if (u.profile && u.profile.name)
 		return u.profile.name;
 	
