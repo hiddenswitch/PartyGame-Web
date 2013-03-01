@@ -132,13 +132,11 @@ var signUp = function() {
 };
 
 var matchMake = function() {
-    requestLocation(function (locationE,locationR){
-        match(locationR,function (err,r){
-            if (r) {
-                Session.set(GAME,r);
-            }
-            setError(err);
-        });
+    match(Session.get(LOCATION),function (err,r){
+        if (r) {
+            Session.set(GAME,r);
+        }
+        setError(err);
     });
 };
 
@@ -745,6 +743,8 @@ Meteor.startup(function() {
             refreshListviews();
 		}
 	});
+
+    requestLocation(setError);
 });
 
 registerTemplates();
