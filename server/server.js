@@ -20,7 +20,7 @@ Meteor.publish("myOwnedGames",function() {
 
 Meteor.publish("players",function(gameId) {
     return Players.find({gameId:gameId});
-})
+});
 
 Meteor.publish("submissions", function(gameId,round) {
     var recordset = this;
