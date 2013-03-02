@@ -76,7 +76,7 @@ var Deck = function() {
 
 var Hand = function() {
 	this.gameId = 0; 
-	this.userId = 0; 
+	this.playerId = 0;
 	this.round = 0; // round number of this hand
 	this.hand = []; // Array of card Ids
 };
@@ -85,7 +85,7 @@ var Vote = function() {
 	this.gameId = 0; 
 	this.round = 0; 
 	this.judgeId = 0; 
-	this.userId = 0; 
+	this.playerId = 0;
 	this.questionId = 0; 
 	this.answerId = 0;
 };
@@ -93,12 +93,12 @@ var Vote = function() {
 var Submission = function () {
 	this.gameId = 0; 
 	this.round = 0; 
-	this.userId = 0; 
+	this.playerId = 0;
 	this.answerId = 0;
 };
 
 var Player = function () {
-    this.userId = "";
+    this.playerId = "";
     this.name = "";
     this.gameId = "";
     this.voted = new Date().getTime();
@@ -108,7 +108,7 @@ var Player = function () {
 
 var Chat = function () {
 	this.gameId = 0; 
-	this.userId = 0; 
+	this.playerId = 0;
 	this.dateTime = 0; 
 	this.text = "";
 };
@@ -122,6 +122,17 @@ var Submissions = new Meteor.Collection("submissions");
 var Players = new Meteor.Collection("players");
 var Chats = new Meteor.Collection("chats");
 
+
+var getPlayerId = function(gameId,userId) {
+    var player = Players.findOne({gameId:gameId,userId:this.userId});
+
+    if (!player)
+        throw new Meteor.Error(500,"You are not a player in this game: Cannot submit card.","userId: " + userId.toString() +", gameId: " + gameId.toString());
+
+    var playerId = player._id;
+
+    return playerId;
+}
 
 /*
  * Game flow:
@@ -147,23 +158,22 @@ Meteor.methods({
 		if (!game.open)
 			// the game is over. only score screen will display.
 			return;
-		
-		if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
-			throw new Meteor.Error(500,"You are not a player in this game: Cannot submit card.","userId: " + this.userid +", gameId: " + game._id);
-		
+
+        var playerId = getPlayerId(gameId,this.userId);
+
 		if (Players.find({gameId:gameId}).count() < 2)
 			throw new Meteor.Error(500,"Too few players to submit answer.");
 			
-		if (this.userId === game.judgeId)
+		if (EJSON.equals(playerId,game.judgeId))
 			throw new Meteor.Error(500,"You cannot submit a card. You're the judge!");
 
         // does this player have this card in his hand?
-        var hand = Hands.find({userId:this.userId,gameId:gameId,round:game.round,hand:answerId}).count();
+        var hand = Hands.find({playerId:this.playerId,gameId:gameId,round:game.round,hand:answerId}).count();
 
         if (!hand && !this.isSimulation)
             throw new Meteor.Error(500,"You can't submit a card you don't have!");
 
-		var submission = Submissions.findOne({gameId:gameId,userId:this.userId,round:game.round});
+		var submission = Submissions.findOne({gameId:gameId,playerId:playerId,round:game.round});
 		
 		if (submission) {
 			Submissions.update({_id:submission._id},{$set:{answerId:answerId}});
@@ -172,7 +182,7 @@ Meteor.methods({
 			return Submissions.insert({
 				gameId:gameId,
 				round:game.round,
-				userId:this.userId,
+				playerId:playerId,
 				answerId:answerId
 			});
 		}
@@ -190,16 +200,15 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return E_GAME_OVER;
 
-		if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
-			throw new Meteor.Error(500,"You are not a player in this game: Cannot judge card.","userId: " + this.userid +", gameId: " + game._id);
-			
+        var playerId = getPlayerId(gameId,this.userId);
+
 		var judgeId = game.judgeId;
-		var judge = Meteor.users.findOne({_id:judgeId});
+		var judge = Players.findOne({_id:judgeId});
 		
 		if (!judge)
 			throw new Meteor.Error(404,"Judge with id "+judgeId.toString()+" not found.")
 		
-		if (this.userId != judgeId)
+		if (playerId != judgeId)
 			throw new Meteor.Error(500,"It's not your turn to judge!");
 		
 		var submission = Submissions.findOne({_id:submissionId});
@@ -212,24 +221,24 @@ Meteor.methods({
 		if (!submission)
 			throw new Meteor.Error(404,"Submission not found.");
 		
-		if (submission.userId == judgeId) {
+		if (EJSON.equals(submission.playerId,judgeId)) {
             Submissions.remove({_id:submission._id});
             throw new Meteor.Error(500,"You cannot pick your own card as the winning card.");
         }
 
-        if (!submission.answerId || (submission.answerId == ""))
+        if (!submission.answerId || (EJSON.equals(submission.answerId,""))
             throw new Meteor.Error(500,"You can't pick a hidden answer! Wait until everyone has put in a card.")
 
 		var winner = Votes.findOne({gameId:gameId,round:game.round});
 
         // Mark that this user just voted
-        Players.update({gameId:gameId,userId:judgeId},{$set:{voted:new Date().getTime()}});
+        Players.update({_id:playerId},{$set:{voted:new Date().getTime()}});
 
 		if (winner) {
-			Votes.update({_id:winner._id},{$set:{userId:submission.userId,questionId:game.questionId,answerId:submission.answerId}});
+			Votes.update({_id:winner._id},{$set:{playerId:submission.playerId,questionId:game.questionId,answerId:submission.answerId}});
 			return winner._id;
 		} else {
-			return Votes.insert({gameId:gameId,round:game.round,judgeId:judgeId,userId:submission.userId,questionId:game.questionId,answerId:submission.answerId})
+			return Votes.insert({gameId:gameId,round:game.round,judgeId:judgeId,playerId:submission.playerId,questionId:game.questionId,answerId:submission.answerId})
 		}
 	},
 
@@ -245,25 +254,24 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return gameId;
 
-		if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
-			throw new Meteor.Error(500,"You are not a player in this game: Cannot finish round.","userId: " + this.userid +", gameId: " + game._id);
-		
+        var playerId = getPlayerId(gameId,this.userId);
+
 		if (Votes.find({gameId:gameId,round:game.round}).count() < 1 && Meteor.isServer)
 			throw new Meteor.Error(500,"The judge hasn't voted yet. Cannot finish round.");
 				
 		// remove the cards from the player's hands
         _.each(Submissions.find({gameId:gameId,round:game.round}).fetch(),function(submission) {
-            if (!submission.answerId || submission.answerId == "")
+            if (!submission.answerId || EJSON.equals(submission.answerId,""))
                 throw new Meteor.Error(500,"Somebody submitted a redacted answer. Try again!");
 
             // does this player have this card in his hand?
-            var hand = Hands.find({userId:submission.userId,gameId:gameId,round:game.round,
+            var hand = Hands.find({playerId:submission.playerId,gameId:gameId,round:game.round,
                 hand:submission.answerId}).count();
 
             if (hand === 0)
                 throw new Meteor.Error(500,"You can't submit a card you don't have!");
 
-			Hands.update({gameId:gameId,round:game.round,userId:submission.userId},{$pull:{hand:submission.answerId}});
+			Hands.update({gameId:gameId,round:game.round,playerId:submission.playerId},{$pull:{hand:submission.answerId}});
 		});
 		
 		// put in a new question card
@@ -294,18 +302,20 @@ Meteor.methods({
 		
 		if (!game)
 			throw new Meteor.Error(404,"No game found to kick from.");
-			
-		if (Players.find({gameId:gameId,userId:kickId}).count() === 0)
-			throw new Meteor.Error(404,"Player is not in the game.","kickId: " + kickId +", gameId: " + gameId);
-		
-		if (game.ownerId !== this.userId)
+
+        var kickId = getPlayerId(gameId,kickId);
+        var playerId = getPlayerId(gameId,this.userId);
+
+        var userIdOfKickedPlayer = Players.findOne({_id:kickId}).userId;
+
+		if (!EJSON.equals(game.ownerId,playerId))
 			throw new Meteor.Error(403,"You are not the owner of this game. Cannot kick players.");
 			
-		if (this.userId === kickId)
+		if (EJSON.equals(playerId,kickId))
 			throw new Meteor.Error(403,"You cannot kick yourself from your own game.");
 
-        Players.remove({gameId:gameId,userId:kickId});
-		Games.update({_id:gameId},{$inc: {players:-1}, $pullAll:{userIds:kickId}, $set:{modified:new Date().getTime()}});
+        Players.remove({_id:kickId});
+		Games.update({_id:gameId},{$inc: {players:-1}, $pullAll:{userIds:userIdOfKickedPlayer}, $set:{modified:new Date().getTime()}});
 		return gameId;
 	},
 
@@ -324,9 +334,12 @@ Meteor.methods({
 		}
 		
 		var ownerId = game.ownerId;
+
+        var playerId = getPlayerId(gameId,this.userId);
+
 		// If the owner is quitting his own game, assign a new player as the owner
-		if (game.ownerId === this.userId && game.players > 1) {
-			ownerId = Players.findOne({gameId:gameId,userId:{$ne:game.ownerId}}).userId;
+		if (EJSON.equals(game.ownerId,this.userId) && game.players > 1) {
+			ownerId = Players.findOne({gameId:gameId,_id:{$ne:game.ownerId}})._id;
 		}
 		
 		return Games.update({_id:gameId},{$inc: {players:-1}, $pullAll:{userIds:this.userId}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
@@ -342,9 +355,9 @@ Meteor.methods({
 
         if (players && players.length > 0) {
             players = players.superSort("voted");
-            return players[0].userId;
+            return players[0]._id;
         } else {
-            return "";
+            return null;
         }
     },
 	
@@ -354,8 +367,10 @@ Meteor.methods({
 		
 		if (!game)
 			throw new Meteor.Error(404,"Cannot find game to end.");
-		
-		if (game.ownerId != this.userId)
+
+        var playerId = getPlayerId(gameId,this.userId);
+
+		if (!EJSON.equals(game.ownerId,playerId))
 			throw new Meteor.Error(403,"You aren't the owner of the game. You can't close it.");
 		
 		if (!game.open)

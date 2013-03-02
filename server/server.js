@@ -186,8 +186,7 @@ Meteor.methods({
         if (!game)
             throw new Meteor.Error(404,"No game to draw hands from.");
 
-        if (Players.find({gameId:gameId,userId:this.userId}).count() === 0)
-            throw new Meteor.Error(403,"You are not in this game.");
+        var playerId = getPlayerId(gameId,this.userId);
 
         if (!_.has(game,"answerCards"))
             throw new Meteor.Error(500,"Why are there no answer cards?");
@@ -200,7 +199,7 @@ Meteor.methods({
         // the game is over. only score screen will display.
             throw new Meteor.Error(403,"This game is closed.");
 
-        var users = _.pluck(Players.find({gameId:gameId}).fetch(),'userId');
+        var players = _.pluck(Players.find({gameId:gameId}).fetch(),'_id');
 
         // storing all the ids of drawn cards to remove from the game database entry
         var drawnCards = [];
@@ -223,7 +222,7 @@ Meteor.methods({
         // all the hands associated with this game and the game's current round.
         var returns = [];
         // a list of users who have full hands.
-        var fulfilledUsers = [];
+        var fulfilledPlayers = [];
 
         // update any existing hands
         _.each(Hands.find({gameId:gameId,round:game.round}).fetch(),function (handDoc) {
@@ -235,32 +234,32 @@ Meteor.methods({
             // add the hand to the hands associated with this game
             returns.push(handDoc._id);
             // add this user to the fulfilled users
-            fulfilledUsers.push(handDoc.userId);
+            fulfilledPlayers.push(handDoc.playerId);
         });
 
-        var newlyFulfilledUsers = [];
+        var newlyFulfilledPlayers = [];
 
         // insert new hands
-        _.each(_.difference(users,fulfilledUsers),function(userId) {
+        _.each(_.difference(players,fulfilledPlayers),function(playerId) {
             var oldHand = [];
 
             if (game.round > 0) {
                 // get the old hand
-                var oldHandDoc = Hands.findOne({gameId:gameId,round:game.round-1,userId:userId});
+                var oldHandDoc = Hands.findOne({gameId:gameId,round:game.round-1,playerId:playerId});
                 if (oldHandDoc)
                     oldHand = _.union(oldHand,oldHandDoc.hand);
             }
 
             // add the new hand
             returns.push(
-                Hands.insert({gameId:gameId,round:game.round,userId:userId,hand:drawCards(oldHand)})
+                Hands.insert({gameId:gameId,round:game.round,playerId:playerId,hand:drawCards(oldHand)})
             );
 
             // this user is now fulfilled
-            newlyFulfilledUsers.push(userId);
+            newlyFulfilledPlayers.push(playerId);
         });
 
-        fulfilledUsers = _.union(fulfilledUsers,newlyFulfilledUsers);
+        fulfilledPlayers = _.union(fulfilledPlayers,newlyFulfilledPlayers);
 
         returns = _.compact(returns);
 
@@ -272,7 +271,12 @@ Meteor.methods({
         Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$set:{modified:new Date().getTime()}});
 
         // return calling user's hand for this round and game
-        return Hands.findOne({gameId:gameId,round:game.round,userId:this.userId})._id;
+        return Hands.findOne({gameId:gameId,round:game.round,playerId:playerId})._id;
+    },
+
+    // Find the latest game a given played joined
+    findGameWithPlayer: function(playerId) {
+
     },
 
     // Join a game
@@ -300,12 +304,18 @@ Meteor.methods({
         p.voted = new Date().getTime();
         p.connected = true;
 
-        Players.insert(p);
+        var playerId = Players.insert(p);
 
+        // If there is no owner, this first user is now the owner.
+        Games.update({_id:gameId,creatorUserId:this.userId,$or:[{judgeId:null},{ownerId:null}]},{$set:{ownerId:playerId,judgeId:playerId}});
+
+        // Increment the player count and join the game.
         Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:this.userId}, $set:{modified:new Date().getTime()}});
 
+        // Update the heartbeat
         Meteor.users.update({_id:this.userId},{$set:{heartbeat:new Date().getTime()}});
 
+        // Draw hands for all users
         Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
 
         return gameId;
@@ -383,10 +393,11 @@ Meteor.methods({
             answerCards:shuffledAnswerCards,
             questionId:firstQuestionCardId,
             open:true,
-            ownerId:this.userId,
+            creatorUserId:this.userid,
+            ownerId:null,
             created: new Date().getTime(),
             modified: new Date().getTime(),
-            judgeId:this.userId,
+            judgeId:null,
             userIds:[],
             location: location
         });
