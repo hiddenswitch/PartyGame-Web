@@ -7,65 +7,82 @@ Meteor.publish("openGames",function() {
 });
 
 Meteor.publish("myHands",function() {
-	return Hands.find({userId:this.userId});
+    var myPlayerIds = _.pluck(Players.find({userId:this.userId},{fields:{_id:1}}).fetch(),'_id');
+
+	return Hands.find({playerId:{$in:myPlayerIds}});
 });
 
-Meteor.publish("myGames",function(userId) {
-    return Games.find({userIds:userId},{fields:{password:0,questionCards:0,answerCards:0}});
+Meteor.publish("myGames",function() {
+    return Games.find({userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
 });
 
-Meteor.publish("myOwnedGames",function() {
-	return Games.find({ownerId:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
-});
+//Meteor.publish("myOwnedGames",function() {
+//    var gamesWhereIAmPlayer = _.pluck(Players.find({userId:this.userId},{fields:{gameId:1}}).fetch(),'gameId');
+//
+//	return Games.find({ownerId:playerId},{fields:{password:0,questionCards:0,answerCards:0}});
+//});
 
 Meteor.publish("players",function(gameId) {
     return Players.find({gameId:gameId});
-})
+});
 
-Meteor.publish("submissions", function(gameId,round) {
+var SUBMISSIONS = "submissions";
+
+Meteor.publish(SUBMISSIONS, function(gameId,round) {
     var recordset = this;
-    var game = Games.findOne({_id:gameId});
-    var submissions = [];
 
-    var updateSubmissions = function () {
-        // get all the submissions for a particular game and round
-        submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
-        connectedPlayersCount = Players.find({gameId:gameId,connected:true}).count();
-        // if we have sufficient submissions, reveal them
-        if (submissions.length >= connectedPlayersCount-1) {
-            _.each(submissions,function(submission){
-                recordset.set("submissions",submission._id, _.omit(submission,'_id'));
-            });
-
-        // otherwise, keep them hidden
-        } else {
-            _.each(submissions,function(submission){
-                recordset.set("submissions",submission._id, _.omit(submission,['_id','answerId']));
-            });
-        }
-
-        recordset.flush();
-    };
+    recordset.Redacted = {};
+    recordset.Redacted.connectedPlayersCount = 0;
+    recordset.Redacted.submissionsCount = 0;
 
     var submissionHandle = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).observe({
-        added: updateSubmissions,
-        removed: updateSubmissions,
-        changed: updateSubmissions
-    });
+        added: function (newSubmission) {
+            recordset.Redacted.submissionsCount++;
+            // get all the submissions for a particular game and round
+//            var submissionsCursor = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}});
+//            var connectedPlayersCount = Players.find({gameId:gameId,connected:true}).count();
+            // if we have sufficient submissions, reveal them
+            if (recordset.Redacted.submissionsCount >= recordset.Redacted.connectedPlayersCount-1) {
+                var submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
 
-    var gameHandle = Games.find({_id:gameId}).observe({
-        changed: function(document,index,oldDocument) {
-            game = document;
-            updateSubmissions();
+                _.each(submissions,function(existingSubmission){
+                    recordset.changed(SUBMISSIONS,existingSubmission._id, existingSubmission);
+                });
+
+                recordset.added(SUBMISSIONS,newSubmission._id,newSubmission);
+
+                // otherwise, keep them hidden
+            } else {
+                recordset.added(SUBMISSIONS,newSubmission._id, _.omit(newSubmission,'answerId'));
+            }
+        },
+        removed: function (removedSubmission) {
+            recordset.removed(SUBMISSIONS,removedSubmission._id);
+            recordset.Redacted.submissionsCount--;
+        },
+        changed: function (changedSubmission) {
+            if (recordset.Redacted.submissionsCount >= recordset.Redacted.connectedPlayersCount) {
+                recordset.changed(SUBMISSIONS,changedSubmission._id,changedSubmission);
+            } else {
+                recordset.changed(SUBMISSIONS,changedSubmission._id, _.omit(changedSubmission,'answerId'));
+            }
         }
     });
 
-    recordset.complete();
-    recordset.flush();
+    var playersHandle = Players.find({gameId:gameId,connected:true}).observe({
+        added: function() {
+            recordset.Redacted.connectedPlayersCount++;
+        },
+        removed: function() {
+            recordset.Redacted.connectedPlayersCount--;
+        }
+    });
+
+    recordset.ready();
 
     recordset.onStop(function () {
         submissionHandle.stop();
-        gameHandle.stop();
+        playersHandle.stop();
     });
 });
 
@@ -83,6 +100,8 @@ Meteor.publish("usersInGame",function(gameId) {
 });
 
 Meteor.startup(function () {
+    // Clear the database
+    clearDatabase();
     // Add the heartbeat field to the user profile
     Accounts.onCreateUser(function(options, user) {
         if (options.profile)
@@ -186,7 +205,7 @@ Meteor.methods({
         if (!game)
             throw new Meteor.Error(404,"No game to draw hands from.");
 
-        var playerId = getPlayerId(gameId,this.userId);
+        var thisPlayerId = getPlayerId(gameId,this.userId);
 
         if (!_.has(game,"answerCards"))
             throw new Meteor.Error(500,"Why are there no answer cards?");
@@ -228,7 +247,7 @@ Meteor.methods({
         _.each(Hands.find({gameId:gameId,round:game.round}).fetch(),function (handDoc) {
             // fill out the hand
             if (handDoc.hand.length < handSize) {
-                Hands.update({_id:handDoc._id,hand:drawCards(handDoc.hand)});
+                Hands.update({_id:handDoc._id},{$set:{hand:drawCards(handDoc.hand)}});
             }
 
             // add the hand to the hands associated with this game
@@ -271,7 +290,7 @@ Meteor.methods({
         Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$set:{modified:new Date().getTime()}});
 
         // return calling user's hand for this round and game
-        return Hands.findOne({gameId:gameId,round:game.round,playerId:playerId})._id;
+        return Hands.findOne({gameId:gameId,round:game.round,playerId:thisPlayerId})._id;
     },
 
     // Find the latest game a given played joined

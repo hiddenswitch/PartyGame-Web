@@ -124,14 +124,13 @@ var Chats = new Meteor.Collection("chats");
 
 
 var getPlayerId = function(gameId,userId) {
-    var player = Players.findOne({gameId:gameId,userId:this.userId});
+    var p = Players.find({gameId:gameId,userId:userId},{reactive:false}).fetch();
 
-    if (!player)
-        throw new Meteor.Error(500,"You are not a player in this game: Cannot submit card.","userId: " + userId.toString() +", gameId: " + gameId.toString());
-
-    var playerId = player._id;
-
-    return playerId;
+    if (p && p[0]) {
+        return p[0]._id;
+    } else {
+        throw new Meteor.Error(404,"Player not found for given userId " + userId.toString() + " and gameId " + gameId.toString());
+    }
 }
 
 /*
@@ -226,8 +225,8 @@ Meteor.methods({
             throw new Meteor.Error(500,"You cannot pick your own card as the winning card.");
         }
 
-        if (!submission.answerId || (EJSON.equals(submission.answerId,""))
-            throw new Meteor.Error(500,"You can't pick a hidden answer! Wait until everyone has put in a card.")
+        if (!submission.answerId || (EJSON.equals(submission.answerId,"")))
+            throw new Meteor.Error(500,"You can't pick a hidden answer! Wait until everyone has put in a card.");
 
 		var winner = Votes.findOne({gameId:gameId,round:game.round});
 

@@ -195,6 +195,35 @@ var createAndJoinGame = function() {
 	});
 };
 
+var playerIdForUserId = function(userId,gameId) {
+    userId = userId || Meteor.userId();
+    gameId = gameId || Session.get(GAME);
+    var p = Players.find({gameId:gameId,userId:userId},{reactive:false}).fetch();
+
+    if (p && p[0]) {
+        return p[0]._id;
+    } else {
+        throw new Meteor.Error(404,"Player not found for given userId " + userId.toString() + " and gameId " + gameId.toString());
+    }
+};
+
+var playerIdToName = function(id) {
+    var p = Players.find({_id:id},{reactive:false}).fetch();
+
+    if (!p)
+        return "REDACTED.";
+
+    p = p[0];
+
+    if (!p)
+        return "REDCATED.";
+
+    if (!p.userId)
+        throw new Meteor.Error(500,"This player has no userId: " + id.toString());
+
+    return userIdToName(p.userId);
+};
+
 var userIdToName = function(id) {
 	var u = Meteor.users.find({_id:id},{reactive:false}).fetch();
 
@@ -254,22 +283,22 @@ var match = function(location,gameJoinedCallback) {
     });
 };
 
-// get a {userId, score} dictionary containing the current scores
+// get a {playerId, score} dictionary containing the current scores
 var scores = function(gameId) {
     var scores = {};
 
     try {
         Players.find({gameId:gameId}).forEach(function (p) {
-            scores[p.userId] = {score:0,connected:p.connected};
+            scores[p.playerId] = {score:0,connected:p.connected};
         });
 
         // compute all the scores
         Votes.find({gameId:gameId}).forEach(function(voteDoc) {
-            scores[voteDoc.userId].score += 1;
+            scores[voteDoc.playerId].score += 1;
         });
 
         return _.map(scores,function (value,key){
-            return {userId:key,score:value.score,connected:value.connected};
+            return {playerId:key,score:value.score,connected:value.connected};
         });
     } catch(e) {
         return false;
@@ -395,7 +424,7 @@ var joinGameFromHash = function() {
 
 var registerTemplates = function() {	
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
-	Handlebars.registerHelper("userIdToName",userIdToName);
+	Handlebars.registerHelper("playerIdToName",playerIdToName);
 	Handlebars.registerHelper("refreshListviews",refreshListviews);
     Handlebars.registerHelper("loggedIn",loggedIn);
 	Handlebars.registerHelper("connectionStatus",function () {
@@ -493,7 +522,7 @@ var registerTemplates = function() {
             else {
                 var g = Games.findOne({_id:Session.get(GAME)});
                 if (g)
-                    return userIdToName(g.judgeId);
+                    return playerIdToName(g.judgeId);
                 else
                     return "";
             }
@@ -672,13 +701,13 @@ var cordovaSetup = function() {
 
 Meteor.subscribe("openGames");
 Meteor.subscribe("myHands");
-Meteor.subscribe("myOwnedGames");
+//Meteor.subscribe("myOwnedGames");
 Meteor.subscribe("cards");
 
 Meteor.startup(function() {
 	Session.set(ERROR,null);
 	
-	Meteor.autosubscribe(function() {
+	Meteor.autorun(function() {
 		var currentGameId = Session.get(GAME);
         var currentRound = Session.get(ROUND);
 		if (currentGameId) {
