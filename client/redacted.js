@@ -640,12 +640,15 @@ var registerTemplates = function() {
     Template.hand.isJudge = isJudge;
 
 	Template.hand.hand = function () {
-		return Hands.findOne({userId:Meteor.userId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
+		return Hands.findOne({playerId:playerIdForUserId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
 	};
 
 	Template.hand.cardsInHand = function() {
 		var handDoc = Hands.findOne({userId:Meteor.userId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
-		return _.map(handDoc.hand, function (o) {return Cards.findOne({_id:o})});
+        if (handDoc)
+		    return _.map(handDoc.hand, function (o) {return Cards.findOne({_id:o})});
+        else
+            return null;
 	};
 
 	Template.hand.events = {
@@ -699,8 +702,7 @@ var cordovaSetup = function() {
     }, false);
 };
 
-Meteor.subscribe("openGames");
-Meteor.subscribe("myHands");
+
 //Meteor.subscribe("myOwnedGames");
 Meteor.subscribe("cards");
 
@@ -716,6 +718,8 @@ Meteor.startup(function() {
 			Meteor.subscribe("usersInGame",currentGameId);
             Meteor.subscribe("players",currentGameId);
             Meteor.subscribe("myGames",Meteor.userId());
+            Meteor.subscribe("openGames");
+            Meteor.subscribe("myHands");
 		}
 	});
 

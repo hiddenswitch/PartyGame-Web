@@ -198,6 +198,7 @@ Meteor.methods({
         if (Meteor.isSimulation)
             return "";
 
+        // TODO: Add userId back in for visibility purposes
         handSize = handSize || K_DEFAULT_HAND_SIZE;
 
         var game = Games.findOne({_id:gameId, open:true});
