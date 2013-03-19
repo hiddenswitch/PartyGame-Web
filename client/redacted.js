@@ -713,7 +713,7 @@ Meteor.startup(function() {
                 setError(err);
             });
         }
-    },K_HEARTBEAT);
+    },K_HEARTBEAT/2);
 
     // cordova setup
     Meteor.autorun(function () {
