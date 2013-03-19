@@ -144,7 +144,7 @@ Meteor.startup(function () {
 
     // Update player connected status
     Meteor.setInterval(function () {
-        var disconnectedUsers = Meteor.users.find({'profile.heartbeat':{$lt:new Date().getTime() - K_HEARTBEAT}}).fetch();
+        var disconnectedUsers = Meteor.users.find({'profile.heartbeat':{$lt:new Date().getTime() - K_HEARTBEAT*2}}).fetch();
 
         // Set the connected attribute of the Players collection documents to false for disconnected users
         _.each(disconnectedUsers,function(disconnectedUser){
