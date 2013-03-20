@@ -640,7 +640,7 @@ var registerTemplates = function() {
     Template.hand.isJudge = isJudge;
 
 	Template.hand.hand = function () {
-		return Hands.findOne({playerId:playerIdForUserId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
+		return Hands.findOne({userId:Meteor.userId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
 	};
 
 	Template.hand.cardsInHand = function() {
