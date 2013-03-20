@@ -126,12 +126,16 @@ var Chats = new Meteor.Collection("chats");
 
 
 var getPlayerId = function(gameId,userId) {
+    if (!gameId || !userId)
+        return null;
+
     var p = Players.find({gameId:gameId,userId:userId},{reactive:false}).fetch();
 
     if (p && p[0]) {
         return p[0]._id;
     } else {
-        throw new Meteor.Error(404,"Player not found for given userId " + userId.toString() + " and gameId " + gameId.toString());
+        return null;
+//        throw new Meteor.Error(404,"Player not found for given userId " + userId.toString() + " and gameId " + gameId.toString());
     }
 }
 

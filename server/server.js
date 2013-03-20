@@ -101,7 +101,7 @@ Meteor.publish("usersInGame",function(gameId) {
 
 Meteor.startup(function () {
     // Clear the database
-    clearDatabase();
+//    clearDatabase();
     // Add the heartbeat field to the user profile
     Accounts.onCreateUser(function(options, user) {
         if (options.profile)

@@ -388,12 +388,12 @@ var joinGameOnClick = function(e) {
 };
 
 var isJudge = function() {
-    var theUserId = Meteor.userId();
     var currentGameId = Session.get(GAME);
+    var playerId = getPlayerId(currentGameId,Meteor.userId());
     var g = Games.findOne({_id:currentGameId});
 
-    if (g)
-        return (theUserId === g.judgeId);
+    if (g && playerId)
+        return (EJSON.equals(playerId, g.judgeId));
     else
         return false;
 };
@@ -481,7 +481,7 @@ var registerTemplates = function() {
 		var g = Games.findOne({_id:Session.get(GAME)});
 		if (g) {
 			if (g.ownerId) {
-				return g.ownerId == Meteor.userId();
+				return EJSON.equals(g.ownerId, playerIdForUserId(Session.get(GAME),Meteor.userId()));
 			} else {
 				return false;
 			}
