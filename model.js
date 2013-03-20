@@ -75,8 +75,9 @@ var Deck = function() {
 }
 
 var Hand = function() {
-	this.gameId = 0; 
+	this.gameId = null;
 	this.playerId = 0;
+    this.userId = null;
 	this.round = 0; // round number of this hand
 	this.hand = []; // Array of card Ids
 };
@@ -98,9 +99,10 @@ var Submission = function () {
 };
 
 var Player = function () {
-    this.playerId = "";
+    this.playerId = null;
     this.name = "";
-    this.gameId = "";
+    this.gameId = null;
+    this.userId = null;
     this.voted = new Date().getTime();
     this.connected = false;
     this.location = "";

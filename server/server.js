@@ -7,9 +7,7 @@ Meteor.publish("openGames",function() {
 });
 
 Meteor.publish("myHands",function() {
-    var myPlayerIds = _.pluck(Players.find({userId:this.userId},{fields:{_id:1}}).fetch(),'_id');
-
-	return Hands.find({playerId:{$in:myPlayerIds}});
+	return Hands.find({userId:this.userId});
 });
 
 Meteor.publish("myGames",function() {
@@ -101,7 +99,7 @@ Meteor.publish("usersInGame",function(gameId) {
 
 Meteor.startup(function () {
     // Clear the database
-    clearDatabase();
+//    clearDatabase();
     // Add the heartbeat field to the user profile
     Accounts.onCreateUser(function(options, user) {
         if (options.profile)
@@ -116,11 +114,14 @@ Meteor.startup(function () {
     try {
         Games._ensureIndex({location:"2d"});
         Games._ensureIndex({players:1,modified:-1});
+        Games._ensureIndex({userIds:1});
         Votes._ensureIndex({gameId:1});
         Hands._ensureIndex({gameId:1});
+        Hands._ensureIndex({userId:1});
         Cards._ensureIndex({deckId:1});
         Decks._ensureIndex({title:1});
         Cards._ensureIndex({type:1});
+        Players._ensureIndex({userId:1});
         Players._ensureIndex({gameId:1,userId:1,connected:1});
         Submissions._ensureIndex({gameId:1});
         Meteor.users._ensureIndex({'profile.heartbeat':-1});
@@ -219,7 +220,12 @@ Meteor.methods({
         // the game is over. only score screen will display.
             throw new Meteor.Error(403,"This game is closed.");
 
-        var players = _.pluck(Players.find({gameId:gameId}).fetch(),'_id');
+        var players = Players.find({gameId:gameId}).fetch();
+        var playerIds = _.pluck(players,'_id');
+        var playerIdToUserId = {};
+        _.each(players,function(player){
+            playerIdToUserId[player._id.toString()] = player.userId;
+        });
 
         // storing all the ids of drawn cards to remove from the game database entry
         var drawnCards = [];
@@ -242,7 +248,7 @@ Meteor.methods({
         // all the hands associated with this game and the game's current round.
         var returns = [];
         // a list of users who have full hands.
-        var fulfilledPlayers = [];
+        var fulfilledPlayerIds = [];
 
         // update any existing hands
         _.each(Hands.find({gameId:gameId,round:game.round}).fetch(),function (handDoc) {
@@ -254,13 +260,14 @@ Meteor.methods({
             // add the hand to the hands associated with this game
             returns.push(handDoc._id);
             // add this user to the fulfilled users
-            fulfilledPlayers.push(handDoc.playerId);
+            fulfilledPlayerIds.push(handDoc.playerId);
         });
 
         var newlyFulfilledPlayers = [];
 
         // insert new hands
-        _.each(_.difference(players,fulfilledPlayers),function(playerId) {
+        _.each(_.difference(playerIds,fulfilledPlayerIds),function(playerId) {
+            var player = _.first()
             var oldHand = [];
 
             if (game.round > 0) {
@@ -272,14 +279,20 @@ Meteor.methods({
 
             // add the new hand
             returns.push(
-                Hands.insert({gameId:gameId,round:game.round,playerId:playerId,hand:drawCards(oldHand)})
+                Hands.insert({
+                    gameId:gameId,
+                    round:game.round,
+                    playerId:playerId,
+                    userId:playerIdToUserId[playerId.toString()],
+                    hand:drawCards(oldHand)
+                })
             );
 
             // this user is now fulfilled
             newlyFulfilledPlayers.push(playerId);
         });
 
-        fulfilledPlayers = _.union(fulfilledPlayers,newlyFulfilledPlayers);
+        fulfilledPlayerIds = _.union(fulfilledPlayerIds,newlyFulfilledPlayers);
 
         returns = _.compact(returns);
 
@@ -360,7 +373,7 @@ Meteor.methods({
 
         if (!location)
             return false;
-
+k
         var game = Games.findOne({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}});
 
         if (!game)
