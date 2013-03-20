@@ -289,7 +289,7 @@ var scores = function(gameId) {
 
     try {
         Players.find({gameId:gameId}).forEach(function (p) {
-            scores[p.playerId] = {score:0,connected:p.connected};
+            scores[p._id] = {score:0,connected:p.connected};
         });
 
         // compute all the scores
