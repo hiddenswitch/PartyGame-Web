@@ -150,7 +150,7 @@ var getPlayerId = function(gameId,userId) {
 
 Meteor.methods({
 	// Submit a card for voting
-	submitAnswerCard: function(gameId, answerId) {
+	submitAnswerCard: function(gameId, answerId, playerId) {
 		var game = Games.findOne({_id:gameId});
 
 		if (!game)
@@ -160,7 +160,7 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return;
 
-        var playerId = getPlayerId(gameId,this.userId);
+        var playerId = playerId || getPlayerId(gameId,this.userId);
 
 		if (Players.find({gameId:gameId}).count() < 2)
 			throw new Meteor.Error(500,"Too few players to submit answer.");
@@ -169,7 +169,7 @@ Meteor.methods({
 			throw new Meteor.Error(500,"You cannot submit a card. You're the judge!");
 
         // does this player have this card in his hand?
-        var hand = Hands.find({playerId:this.playerId,gameId:gameId,round:game.round,hand:answerId}).count();
+        var hand = Hands.find({playerId:playerId,gameId:gameId,round:game.round,hand:answerId}).count();
 
         if (!hand && !this.isSimulation)
             throw new Meteor.Error(500,"You can't submit a card you don't have!");

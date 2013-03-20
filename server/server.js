@@ -43,16 +43,18 @@ Meteor.publish(SUBMISSIONS, function(gameId,round) {
             if (recordset.Redacted.submissionsCount >= recordset.Redacted.connectedPlayersCount-1) {
                 var submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
 
+                recordset.added(SUBMISSIONS,newSubmission._id,newSubmission);
+
                 _.each(submissions,function(existingSubmission){
                     recordset.changed(SUBMISSIONS,existingSubmission._id, existingSubmission);
                 });
-
-                recordset.added(SUBMISSIONS,newSubmission._id,newSubmission);
 
                 // otherwise, keep them hidden
             } else {
                 recordset.added(SUBMISSIONS,newSubmission._id, _.omit(newSubmission,'answerId'));
             }
+
+
         },
         removed: function (removedSubmission) {
             recordset.removed(SUBMISSIONS,removedSubmission._id);
@@ -99,7 +101,7 @@ Meteor.publish("usersInGame",function(gameId) {
 
 Meteor.startup(function () {
     // Clear the database
-//    clearDatabase();
+    clearDatabase();
     // Add the heartbeat field to the user profile
     Accounts.onCreateUser(function(options, user) {
         if (options.profile)
@@ -199,7 +201,6 @@ Meteor.methods({
         if (Meteor.isSimulation)
             return "";
 
-        // TODO: Add userId back in for visibility purposes
         handSize = handSize || K_DEFAULT_HAND_SIZE;
 
         var game = Games.findOne({_id:gameId, open:true});
@@ -267,7 +268,6 @@ Meteor.methods({
 
         // insert new hands
         _.each(_.difference(playerIds,fulfilledPlayerIds),function(playerId) {
-            var player = _.first()
             var oldHand = [];
 
             if (game.round > 0) {
