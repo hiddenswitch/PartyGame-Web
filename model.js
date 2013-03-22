@@ -139,6 +139,10 @@ var getPlayerId = function(gameId,userId) {
     }
 }
 
+var isBot = function(playerId) {
+
+}
+
 /*
  * Game flow:
  * 
