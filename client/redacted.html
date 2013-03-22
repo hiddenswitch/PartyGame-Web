@@ -460,11 +460,11 @@
 		{{#each scores}}
 			{{#if gameIsOwner}}
 				<li>
-					<a href="#">{{playerIdToName playerId}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></a>
+					<a href="#">{{name}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></a>
 					<a onclick="kickThisPlayer('{{playerId}}')" class="userKick" href="#" id="{{playerId}}">Kick</a>
 				</li>
 			{{else}}
-				<li>{{playerIdToName playerId}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></li>
+				<li>{{name}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></li>
 			{{/if}}
 		{{/each}}
 	{{/if}}

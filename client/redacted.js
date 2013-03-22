@@ -259,7 +259,7 @@ var scores = function(gameId) {
 
     try {
         Players.find({gameId:gameId}).forEach(function (p) {
-            scores[p._id] = {score:0,connected:p.connected};
+            scores[p._id] = {score:0,connected:p.connected,name: p.name};
         });
 
         // compute all the scores
@@ -268,7 +268,7 @@ var scores = function(gameId) {
         });
 
         return _.map(scores,function (value,key){
-            return {playerId:key,score:value.score,connected:value.connected};
+            return {playerId:key,score:value.score,connected:value.connected,name:value.name};
         });
     } catch(e) {
         return false;
