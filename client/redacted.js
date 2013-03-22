@@ -213,38 +213,7 @@ var playerIdToName = function(id) {
     if (!p)
         return "REDACTED.";
 
-    p = p[0];
-
-    if (!p)
-        return "REDCATED.";
-
-    if (!p.userId)
-        throw new Meteor.Error(500,"This player has no userId: " + id.toString());
-
-    return userIdToName(p.userId);
-};
-
-var userIdToName = function(id) {
-	var u = Meteor.users.find({_id:id},{reactive:false}).fetch();
-
-	if (!u)
-		return "REDACTED.";
-
-    u = u[0];
-
-    if (!u)
-        return "REDACTED.";
-
-	if (u.profile && u.profile.name)
-		return u.profile.name;
-	
-	if (u.username)
-		return u.username;
-	
-	if (u.emails && u.emails[0] && u.emails[0].address)
-		return u.emails[0].address;
-
-    return "REDACTED.";
+    return p.name;
 };
 
 var cardIdToText = function(cardId) {
