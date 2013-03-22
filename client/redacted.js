@@ -146,10 +146,11 @@ var submissionCount = function () {
 
 var maxSubmissionsCount = function () {
     var gameId = Session.get(GAME);
-    if (gameId)
+    if (gameId) {
         return Players.find({gameId:gameId,connected:true}).count()-1;
-    else
+    } else {
         return 0;
+    }
 };
 
 var playersCount = function () {
@@ -208,10 +209,10 @@ var playerIdForUserId = function(userId,gameId) {
 };
 
 var playerIdToName = function(id) {
-    var p = Players.find({_id:id},{reactive:false}).fetch();
+    var p = Players.findOne({_id:id},{reactive:false});
 
     if (!p)
-        return "REDACTED.";
+        return "(Anonymous)";
 
     return p.name;
 };
