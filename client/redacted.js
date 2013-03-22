@@ -17,9 +17,20 @@ var previewNo = function () {};
 
 var mutationObserver = {};
 
-var refreshListviews = function() {
-	$('.ui-listview[data-role="listview"]').listview("refresh");
-	$('[data-role="button"]:visible').button();
+var refreshLists = function (changed) {
+    $('.ui-listview[data-role="listview"]').listview("refresh");
+}
+
+var createListviews = function(changed) {
+    $('ul[data-role="listview"]:visible:not(.ui-listview)').listview();
+}
+
+var createAndRefreshButtons = function (changed) {
+    $('[data-role="button"]:visible').button();
+}
+
+var refreshListviewsAndCreateButtons = function() {
+//	$('.ui-listview[data-role="listview"]').listview("refresh");
 };
 
 var createListviews = function() {
@@ -395,7 +406,7 @@ var joinGameFromHash = function() {
 var registerTemplates = function() {	
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
 	Handlebars.registerHelper("playerIdToName",playerIdToName);
-	Handlebars.registerHelper("refreshListviews",refreshListviews);
+	Handlebars.registerHelper("refreshListviewsAndCreateButtons",refreshListviewsAndCreateButtons);
     Handlebars.registerHelper("loggedIn",loggedIn);
 	Handlebars.registerHelper("connectionStatus",function () {
 		var status = Meteor.status().status;
@@ -464,7 +475,7 @@ var registerTemplates = function() {
 		return Votes.findOne({gameId:Session.get(GAME),round:Session.get(ROUND)-1});
 	};
 	
-	Template.game.rendered = refreshListviews;
+	Template.game.rendered = refreshListviewsAndCreateButtons;
 	Template.game.created = createListviews;
     Template.game.preserve(defaultPreserve);
 
@@ -501,7 +512,7 @@ var registerTemplates = function() {
     }
 
 	Template.judge.rendered = function () {
-        refreshListviews();
+        refreshListviewsAndCreateButtons();
         if (isJudge() && playersCount() > 1) {
             $('#submissionsCollapsible h3 a').addClass('magic');
         } else {
@@ -521,14 +532,14 @@ var registerTemplates = function() {
 	};
 
     Template.question.preserve(defaultPreserve);
-    Template.question.rendered = refreshListviews;
+    Template.question.rendered = refreshListviewsAndCreateButtons;
 
 	Template.players.players = function () {
 		var players = _.pluck(Players.find({gameId:Session.get(CURRENT_GAME)}),"userId");
 		return _.map(players, function (o) {return Meteor.users.findOne({_id:o})});
 	};
 
-	Template.players.rendered = refreshListviews;
+	Template.players.rendered = refreshListviewsAndCreateButtons;
 	Template.players.created = createListviews;
     Template.players.preserve(defaultPreserve);
 
@@ -539,7 +550,7 @@ var registerTemplates = function() {
 		return scores(Session.get(GAME));
 	};
 
-	Template.scores.rendered = refreshListviews;
+	Template.scores.rendered = refreshListviewsAndCreateButtons;
 	Template.scores.created = createListviews;
     Template.scores.preserve(defaultPreserve);
 
@@ -551,7 +562,7 @@ var registerTemplates = function() {
 		'click a': joinGameOnClick
 	};
 
-	Template.browse.rendered = refreshListviews;
+	Template.browse.rendered = refreshListviewsAndCreateButtons;
 	Template.browse.created = createListviews;
     Template.browse.preserve(defaultPreserve);
 
@@ -563,7 +574,7 @@ var registerTemplates = function() {
 		'click a': joinGameOnClick
 	};
 
-	Template.myGames.rendered = refreshListviews;
+	Template.myGames.rendered = refreshListviewsAndCreateButtons;
 	Template.myGames.created = createListviews;
     Template.myGames.preserve(defaultPreserve);
 
@@ -602,7 +613,7 @@ var registerTemplates = function() {
 		}
 	}
 
-	Template.submissions.rendered = refreshListviews;
+	Template.submissions.rendered = refreshListviewsAndCreateButtons;
 
 	Template.submissions.created = createListviews;
     Template.submissions.preserve(defaultPreserve);
@@ -640,7 +651,7 @@ var registerTemplates = function() {
 	};
 
 	Template.hand.rendered = function() {
-        refreshListviews();
+        refreshListviewsAndCreateButtons();
         if (isJudge()) {
             $('#handHeader').text("Your Hand");
             $('#handCollapsible h3 a').removeClass('magic');
@@ -661,7 +672,7 @@ var registerTemplates = function() {
 			return "REDACTED.";
 	};
 
-    Template.menu.rendered = refreshListviews;
+    Template.menu.rendered = refreshListviewsAndCreateButtons;
     Template.menu.created = createListviews;
 };
 
@@ -741,9 +752,17 @@ Meteor.startup(function() {
 
     // refresh the listviews when appropriate
 	mutationObserver = new MutationSummary({
-		queries: [{element:'li'},{element:'[data-role="button"]'}],
+		queries: [{element:'li'},{element:'[data-role="button"]'},{element:'ul[data-role="listview"]'}],
 		callback: function(summaries) {
-            refreshListviews();
+            if (summaries[0]) {
+                refreshLists();
+            }
+            if (summaries[1]) {
+                createAndRefreshButtons();
+            }
+            if (summaries[2]) {
+                createListviews();
+            }
 		}
 	});
 

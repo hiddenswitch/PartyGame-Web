@@ -3,11 +3,12 @@
 
     <script type="text/javascript" src="/cordova-2.3.0.js"></script>
     <script type="text/javascript" src="/FacebookConnect.js"></script>
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
 
 	<link rel="stylesheet" href="/themes/redacted-dark.min.css" />
 	<link rel="stylesheet" href="/themes/jquery.mobile.structure-1.3.0.min.css" />
 
-	<script src="jquery-1.8.2.min.js"></script>
+
 	<script type="text/javascript">
 	$(document).bind("mobileinit",function(event,data){
 		$.mobile.autoInitializePage=true;
@@ -35,9 +36,7 @@
             <p>A Card Against Humanity clone. Which is itself an Apples to Apples clone. Except more disgusting, angry, humiliating, possessive, and mom-like. This is a beta.</p>
             <p>Read the question. Pick the funniest answer from your hand. When you judge, pick the funniest submission.</p>
 
-            <ul id="menuList" data-role="listview" data-inset="true" class="rounded">
-                {{> menu}}
-            </ul>
+            {{> menu}}
 		</div>
         <div data-role="footer" data-position="fixed" data-id="thefooter">
             <h4>{{> connectionError}}</h4>
@@ -238,16 +237,16 @@
 	
 	<div data-role="page" id="login" data-add-back-btn="true" data-theme="a">
 		<div data-role="header" data-position="fixed">
-			<h1>Get Started</h1>
+			<h1>Create An Account</h1>
 		</div>
 		<div data-role="content">
+            <h3>Play Now</h3>
+            <a href="#anonymousLogin" data-role="button" data-icon="arrow-r">Play As Guest</a>
+            <a href="#accountLogin" data-role="button" data-icon="arrow-r">Create an Account</a>
             <h3>Login with Facebook or Google</h3>
             <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
             <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
             <p>Login with Facebook or Google for the best experience. We won't post anything, we won't steal your information, and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with the Besties XOXO.</p>
-            <h3>Other Options</h3>
-            <a href="#anonymousLogin" data-role="button" data-icon="arrow-r">Quick Login</a>
-            <a href="#accountLogin" data-role="button" data-icon="arrow-r">Create an Account</a>
 		</div>
         <div data-role="footer" data-position="fixed" data-id="thefooter">
             <h4>{{> connectionError}}</h4>
@@ -427,18 +426,24 @@
 </template>
 
 <template name="menu">
-	{{#if loggedIn}}
-		<li class="ui-btn-up-b magic"><a id="matchButton" href="#game" onclick="matchMake()">Play Now</a></li>
-        <li class="ui-btn-up-c"><a href="#myGames">My Games</a></li>
-        <li class="ui-btn-up-d"><a href="#news">News</a></li>
-        <li><a href="#browse">Join Game</a></li>
-		<li><a href="#createGame">Create Custom Game</a></li>
-		<li><a href="#" onclick="Meteor.logout()">Logout</a></li>
-	{{else}}
-        <li class="magic"><a href="#anonymousLogin">Start Playing</a></li>
-        <li><a href="#login">Login</a></li>
-        <li><a href="#news">News</a></li>
-	{{/if}}
+    {{#if loggedIn}}
+        <ul id="menuList" data-role="listview" data-inset="true" class="rounded">
+            <li class="ui-btn-up-b magic"><a id="matchButton" href="#game" onclick="matchMake()">Play Now</a></li>
+            <li class="ui-btn-up-c"><a href="#myGames">My Games</a></li>
+            <li class="ui-btn-up-d"><a href="#news">News</a></li>
+            <li><a href="#browse">Join Game</a></li>
+            <li><a href="#createGame">Create Custom Game</a></li>
+            <li><a href="#" onclick="Meteor.logout()">Logout</a></li>
+        </ul>
+    {{else}}
+        <h3>Play Now</h3>
+        <a class="ui-btn-up-b magic" href="#accountLogin" data-role="button" data-icon="arrow-r">Create an Account</a>
+        <a href="#anonymousLogin" data-role="button" data-icon="arrow-r">Play As Guest</a>
+        <h3>Login with Facebook or Google</h3>
+        <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
+        <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
+        <p>Login with Facebook or Google for the best experience. We won't post anything, we won't steal your information, and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with the Besties XOXO.</p>
+    {{/if}}
 </template>
 
 <template name="submissions">
