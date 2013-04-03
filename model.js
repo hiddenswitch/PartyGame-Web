@@ -158,7 +158,13 @@ var isBot = function(playerId) {
 
 Meteor.methods({
 	// Submit a card for voting
-	submitAnswerCard: function(gameId, answerId, playerId) {
+	submitAnswerCard: function(gameId, answerId, playerId, _userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
+        } else if (this.userId && _userId) {
+            _userId = this.userId
+        }
+
 		var game = Games.findOne({_id:gameId});
 
 		if (!game)
@@ -168,7 +174,7 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return;
 
-        var playerId = playerId || getPlayerId(gameId,this.userId);
+        var playerId = playerId || getPlayerId(gameId,_userId);
 
 		if (Players.find({gameId:gameId}).count() < 2)
 			throw new Meteor.Error(500,"Too few players to submit answer.");
@@ -199,7 +205,13 @@ Meteor.methods({
 	
 	
 	// Pick a winner
-	pickWinner: function(gameId,submissionId) {
+	pickWinner: function(gameId,submissionId,_userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
+        } else if (this.userId && _userId) {
+            _userId = this.userId
+        }
+
 		var game = Games.findOne({_id:gameId});
 		
 		if (!game)
@@ -209,7 +221,7 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return E_GAME_OVER;
 
-        var playerId = getPlayerId(gameId,this.userId);
+        var playerId = getPlayerId(gameId,_userId);
 
 		var judgeId = game.judgeId;
 		var judge = Players.findOne({_id:judgeId});
@@ -265,7 +277,11 @@ Meteor.methods({
 
 		if (Votes.find({gameId:gameId,round:game.round}).count() < 1 && Meteor.isServer)
 			throw new Meteor.Error(500,"The judge hasn't voted yet. Cannot finish round.");
-				
+
+        if (Submissions.find({gameId:gameId,round:game.round}).count() < Players.find({gameId:gameId,connected:true}).count()-1) {
+            throw new Meteor.Error(500,"Not enough players have submitted cards in order to finish a round.");
+        }
+
 		// remove the cards from the player's hands
         _.each(Submissions.find({gameId:gameId,round:game.round}).fetch(),function(submission) {
             if (!submission.answerId || EJSON.equals(submission.answerId,""))
@@ -302,14 +318,20 @@ Meteor.methods({
 	},
 	
 	// Kick a player
-	kickPlayer: function(gameId,kickId) {
+	kickPlayer: function(gameId,kickId,_userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
+        } else if (this.userId && _userId) {
+            _userId = this.userId
+        }
+
 		var game = Games.findOne({_id:gameId});
 		
 		if (!game)
 			throw new Meteor.Error(404,"No game found to kick from.");
 
         var kickId = getPlayerId(gameId,kickId);
-        var playerId = getPlayerId(gameId,this.userId);
+        var playerId = getPlayerId(gameId,_userId);
 
         var userIdOfKickedPlayer = Players.findOne({_id:kickId}).userId;
 
@@ -326,7 +348,13 @@ Meteor.methods({
 
 
 	// Quit a game
-	quitGame: function(gameId) {
+	quitGame: function(gameId,_userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
+        } else if (this.userId && _userId) {
+            _userId = this.userId
+        }
+
 		var game = Games.findOne({_id:gameId});
 		
 		if (!game)
@@ -340,14 +368,14 @@ Meteor.methods({
 		
 		var ownerId = game.ownerId;
 
-        var playerId = getPlayerId(gameId,this.userId);
+        var playerId = getPlayerId(gameId,_userId);
 
 		// If the owner is quitting his own game, assign a new player as the owner
-		if (EJSON.equals(game.ownerId,this.userId) && game.players > 1) {
+		if (EJSON.equals(game.ownerId,_userId) && game.players > 1) {
 			ownerId = Players.findOne({gameId:gameId,_id:{$ne:game.ownerId}})._id;
 		}
 		
-		return Games.update({_id:gameId},{$inc: {players:-1}, $pullAll:{userIds:this.userId}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
+		return Games.update({_id:gameId},{$inc: {players:-1}, $pullAll:{userIds:_userId}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
 	},
 
     // Gets the current judge
@@ -367,13 +395,19 @@ Meteor.methods({
     },
 	
 	// Close the game
-	closeGame: function(gameId) {
+	closeGame: function(gameId,_userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
+        } else if (this.userId && _userId) {
+            _userId = this.userId
+        }
+
 		var game = Games.findOne({_id:gameId});
 		
 		if (!game)
 			throw new Meteor.Error(404,"Cannot find game to end.");
 
-        var playerId = getPlayerId(gameId,this.userId);
+        var playerId = getPlayerId(gameId,_userId);
 
 		if (!EJSON.equals(game.ownerId,playerId))
 			throw new Meteor.Error(403,"You aren't the owner of the game. You can't close it.");

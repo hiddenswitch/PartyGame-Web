@@ -205,8 +205,6 @@ Meteor.methods({
         if (!game)
             throw new Meteor.Error(404,"No game to draw hands from.");
 
-        var thisPlayerId = getPlayerId(gameId,this.userId);
-
         if (!_.has(game,"answerCards"))
             throw new Meteor.Error(500,"Why are there no answer cards?");
 
@@ -307,7 +305,13 @@ Meteor.methods({
     },
 
     // Join a game
-    joinGame: function(gameId) {
+    joinGame: function(gameId,_userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
+        } else if (this.userId && _userId) {
+            _userId = this.userId
+        }
+
         var g = Games.findOne({_id:gameId});
 
         if (!g)
@@ -317,8 +321,8 @@ Meteor.methods({
             throw new Meteor.Error(403,"The game is closed, cannot join.");
 
         // If this user is already in the game, update the connected status and return.
-        if (Players.find({gameId:gameId,userId:this.userId}).count() > 0) {
-            Players.update({gameId:gameId,userId:this.userId},{$set:{connected:true}});
+        if (Players.find({gameId:gameId,userId:_userId}).count() > 0) {
+            Players.update({gameId:gameId,userId:_userId},{$set:{connected:true}});
             return gameId;
         }
 
@@ -326,7 +330,7 @@ Meteor.methods({
         // count.
         var p = new Player();
 
-        p.userId = this.userId;
+        p.userId = _userId;
         p.gameId = gameId;
         p.voted = new Date().getTime();
         p.connected = true;
@@ -354,18 +358,18 @@ Meteor.methods({
             return "REDACTED.";
         };
 
-        p.name = getUserName(this.userId);
+        p.name = getUserName(_userId);
 
         var playerId = Players.insert(p);
 
         // If there is no owner, this first user is now the owner.
-        Games.update({_id:gameId,creatorUserId:this.userId,$or:[{judgeId:null},{ownerId:null}]},{$set:{ownerId:playerId,judgeId:playerId}});
+        Games.update({_id:gameId,creatorUserId:_userId,$or:[{judgeId:null},{ownerId:null}]},{$set:{ownerId:playerId,judgeId:playerId}});
 
         // Increment the player count and join the game.
-        Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:this.userId}, $set:{modified:new Date().getTime()}});
+        Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId}, $set:{modified:new Date().getTime()}});
 
         // Update the heartbeat
-        Meteor.users.update({_id:this.userId},{$set:{heartbeat:new Date().getTime()}});
+        Meteor.users.update({_id:_userId},{$set:{heartbeat:new Date().getTime()}});
 
         // Draw hands for all users
         Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
@@ -413,7 +417,13 @@ Meteor.methods({
     // Create a new, empty game
     // required title
     // optional password
-    createEmptyGame: function(title,password,location) {
+    createEmptyGame: function(title,password,location,_userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
+        } else if (this.userId && _userId) {
+            _userId = this.userId
+        }
+
         console.log("Creating " + JSON.stringify([title,password,location]));
         password = password || "";
         location = location || null;
@@ -445,7 +455,7 @@ Meteor.methods({
             answerCards:shuffledAnswerCards,
             questionId:firstQuestionCardId,
             open:true,
-            creatorUserId:this.userid,
+            creatorUserId:_userId,
             ownerId:null,
             created: new Date().getTime(),
             modified: new Date().getTime(),

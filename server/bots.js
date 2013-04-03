@@ -53,7 +53,7 @@ Meteor.methods({
     createEmptyBotGameAndJoin:function(botId) {
         botId = botId || Meteor.call("getBot");
         this.setUserId(botId);
-        Meteor.call("createEmptyGame","","",null,function (e,r){
+        Meteor.call("createEmptyGame","","",null,botId,function (e,r){
             if (r) {
                 Meteor.call("botJoinGame",botId,r);
             } else {
@@ -88,7 +88,7 @@ Meteor.methods({
         // Join the specified game.
         this.setUserId(botId);
 
-        if (Meteor.call("joinGame",gameId)) {
+        if (Meteor.call("joinGame",gameId,botId)) {
             // Update the bot's quantity of inGames
             Meteor.users.update({_id:botId},{$inc:{"profile.inGames":1}});
         } else {
@@ -134,7 +134,7 @@ Meteor.methods({
                                 // Judge a random card
                                 submissionsCursor.rewind();
 
-                                Meteor.call("pickWinner",game._id, _.first(_.shuffle(submissionsCursor.fetch()))._id,function (e,r){
+                                Meteor.call("pickWinner",game._id, _.first(_.shuffle(submissionsCursor.fetch()))._id,bot._id,function (e,r){
                                     if (r) {
                                         Meteor.call("finishRound",game._id);
                                     }
@@ -144,7 +144,7 @@ Meteor.methods({
                         } else
                         // Otherwise, if the bot hasn't submitted an answer, submit an answer.
                         if (game && Submissions.find({playerId:player._id,gameId:game._id,round:game.round}).count() == 0) {
-                            Meteor.call("submitAnswerCard",game._id, _.first(_.shuffle(Hands.findOne({playerId:player._id,gameId:game._id,round:game.round}).hand)));
+                            Meteor.call("submitAnswerCard",game._id, _.first(_.shuffle(Hands.findOne({playerId:player._id,gameId:game._id,round:game.round}).hand)),bot._id);
                             botActions++;
                         }
 
