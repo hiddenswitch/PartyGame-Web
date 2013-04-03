@@ -36,9 +36,6 @@ Meteor.publish(SUBMISSIONS, function(gameId,round) {
     var submissionHandle = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).observe({
         added: function (newSubmission) {
             recordset.Redacted.submissionsCount++;
-            // get all the submissions for a particular game and round
-//            var submissionsCursor = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}});
-//            var connectedPlayersCount = Players.find({gameId:gameId,connected:true}).count();
             // if we have sufficient submissions, reveal them
             if (recordset.Redacted.submissionsCount >= recordset.Redacted.connectedPlayersCount-1) {
                 var submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
@@ -177,9 +174,9 @@ Meteor.startup(function () {
         Games.update({open:true,modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{$set:{open:false}},{multi:true});
     },40*K_HEARTBEAT);
 
-    // Update player connected status
+    // Update player connected status. Bots are always connected
     Meteor.setInterval(function () {
-        var disconnectedUsers = Meteor.users.find({'profile.heartbeat':{$lt:new Date().getTime() - K_HEARTBEAT*2}}).fetch();
+        var disconnectedUsers = Meteor.users.find({'profile.bot':false,'profile.heartbeat':{$lt:new Date().getTime() - K_HEARTBEAT*2}}).fetch();
 
         // Set the connected attribute of the Players collection documents to false for disconnected users
         Players.update({userId:{$in:_.pluck(disconnectedUsers,'_id')},connected:true},{$set:{connected:false}},{multi:true});
@@ -302,12 +299,9 @@ Meteor.methods({
 
         // update the game
         Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$set:{modified:new Date().getTime()}});
-
-        // return calling user's hand for this round and game
-        return Hands.findOne({gameId:gameId,round:game.round,playerId:thisPlayerId})._id;
     },
 
-    // Find the latest game a given played joined
+    // Find the latest game a given player joined
     findGameWithPlayer: function(playerId) {
 
     },
@@ -337,7 +331,7 @@ Meteor.methods({
         p.voted = new Date().getTime();
         p.connected = true;
 
-        p.name = (function () {
+        var getUserName = function(id) {
             var u = Meteor.users.find({_id:id},{reactive:false}).fetch();
 
             if (!u)
@@ -358,7 +352,9 @@ Meteor.methods({
                 return u.emails[0].address;
 
             return "REDACTED.";
-        })();
+        };
+
+        p.name = getUserName(this.userId);
 
         var playerId = Players.insert(p);
 
@@ -396,7 +392,7 @@ Meteor.methods({
 
         if (!location)
             return false;
-k
+
         var game = Games.findOne({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}});
 
         if (!game)

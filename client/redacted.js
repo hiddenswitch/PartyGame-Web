@@ -17,12 +17,12 @@ var previewNo = function () {};
 
 var mutationObserver = {};
 
-var refreshLists = function (changed) {
+var refreshListviews = function (changed) {
     $('.ui-listview[data-role="listview"]').listview("refresh");
 }
 
 var createListviews = function(changed) {
-    $('ul[data-role="listview"]:visible:not(.ui-listview)').listview();
+    $('ul[data-role="listview"]:not(.ui-listview)').listview();
 }
 
 var createAndRefreshButtons = function (changed) {
@@ -31,10 +31,6 @@ var createAndRefreshButtons = function (changed) {
 
 var refreshListviewsAndCreateButtons = function() {
 //	$('.ui-listview[data-role="listview"]').listview("refresh");
-};
-
-var createListviews = function() {
-	$('[data-role="listview"]').listview();
 };
 
 var setError = function(err,r) {
@@ -297,7 +293,7 @@ var createNewUserAndLogin = function(username,email,password,callback) {
 var createNewAnonymousUser = function(nickname,callback) {
     var userIdPadding = Math.random().toString(36).slice(-8);
     var password = Math.random().toString(36).slice(-8);
-    nickname = nickname || "REDACTED (" + userIdPadding + ")";
+    nickname = nickname || "Anonymous (" + userIdPadding + ")";
     Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname}},callback)
 };
 
@@ -754,14 +750,14 @@ Meteor.startup(function() {
 	mutationObserver = new MutationSummary({
 		queries: [{element:'li'},{element:'[data-role="button"]'},{element:'ul[data-role="listview"]'}],
 		callback: function(summaries) {
+            if (summaries[2]) {
+                createListviews();
+            }
             if (summaries[0]) {
-                refreshLists();
+                refreshListviews();
             }
             if (summaries[1]) {
                 createAndRefreshButtons();
-            }
-            if (summaries[2]) {
-                createListviews();
             }
 		}
 	});

@@ -263,8 +263,6 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return gameId;
 
-        var playerId = getPlayerId(gameId,this.userId);
-
 		if (Votes.find({gameId:gameId,round:game.round}).count() < 1 && Meteor.isServer)
 			throw new Meteor.Error(500,"The judge hasn't voted yet. Cannot finish round.");
 				
@@ -284,24 +282,22 @@ Meteor.methods({
 		});
 		
 		// put in a new question card
-		var questionCardId = null;
-		var open = true;
+
 		
 		if (game.questionCards && game.questionCards.length > 0) {
-			questionCardId = game.questionCards.pop();
+            var questionCardId = game.questionCards.pop();
+
+            var nextJudge = Meteor.call("currentJudge",game._id);
+
+            // increment round
+            Games.update({_id:gameId},{$set:{questionId:questionCardId,modified:new Date().getTime(),judgeId:nextJudge},$inc:{round:1},$pop:{questionCards:1}});
+
+            // draw new cards
+            Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
 		} else {
-			open = false;
+            Games.update({_id:gameId},{$set:{open:false}})
 		}
 
-        // The vote has been submitted, so get the next judge. Does not depend on round, only on votes.
-        var nextJudge = Meteor.call("currentJudge",game._id);
-		
-		// increment round
-		Games.update({_id:gameId},{$set:{open:open,questionId:questionCardId,modified:new Date().getTime(),judgeId:nextJudge},$inc:{round:1},$pop:{questionCards:1}});
-		
-		// draw new cards
-		Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
-		
 		return gameId;
 	},
 	
