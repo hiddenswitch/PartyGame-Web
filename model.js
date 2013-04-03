@@ -160,8 +160,8 @@ Meteor.methods({
 	// Submit a card for voting
 	submitAnswerCard: function(gameId, answerId, playerId, _userId) {
         if (!this.userId && !_userId) {
-            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
-        } else if (this.userId && _userId) {
+            throw new Meteor.Error(500,"When server calls" + " submitAnswerCard"+ ", you must impersonate a user. userId: " + (this.userId ? this.userId.toString() : "none") + ", _userId: " + (_userId ? _userId.toString() : "none"));
+        } else if (this.userId) {
             _userId = this.userId
         }
 
@@ -207,8 +207,8 @@ Meteor.methods({
 	// Pick a winner
 	pickWinner: function(gameId,submissionId,_userId) {
         if (!this.userId && !_userId) {
-            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
-        } else if (this.userId && _userId) {
+            throw new Meteor.Error(500,"When server calls" + " pickWinner"+ ", you must impersonate a user.");
+        } else if (this.userId) {
             _userId = this.userId
         }
 
@@ -223,7 +223,7 @@ Meteor.methods({
 
         var playerId = getPlayerId(gameId,_userId);
 
-		var judgeId = game.judgeId;
+		var judgeId = Meteor.call("currentJudge",game._id);
 		var judge = Players.findOne({_id:judgeId});
 		
 		if (!judge)
@@ -320,8 +320,8 @@ Meteor.methods({
 	// Kick a player
 	kickPlayer: function(gameId,kickId,_userId) {
         if (!this.userId && !_userId) {
-            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
-        } else if (this.userId && _userId) {
+            throw new Meteor.Error(500,"When server calls" + " kickPlayer" + ", you must impersonate a user.");
+        } else if (this.userId) {
             _userId = this.userId
         }
 
@@ -350,8 +350,8 @@ Meteor.methods({
 	// Quit a game
 	quitGame: function(gameId,_userId) {
         if (!this.userId && !_userId) {
-            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
-        } else if (this.userId && _userId) {
+            throw new Meteor.Error(500,"When server calls" + " quitGame" + ", you must impersonate a user.");
+        } else if (this.userId) {
             _userId = this.userId
         }
 
@@ -397,8 +397,8 @@ Meteor.methods({
 	// Close the game
 	closeGame: function(gameId,_userId) {
         if (!this.userId && !_userId) {
-            throw new Meteor.Error(500,"When server calls" + arguments.callee.name + ", you must impersonate a user.");
-        } else if (this.userId && _userId) {
+            throw new Meteor.Error(500,"When server calls" + " closeGame" + ", you must impersonate a user.");
+        } else if (this.userId) {
             _userId = this.userId
         }
 
