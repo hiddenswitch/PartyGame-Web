@@ -139,10 +139,6 @@ var getPlayerId = function(gameId,userId) {
     }
 }
 
-var isBot = function(playerId) {
-
-}
-
 /*
  * Game flow:
  * 
@@ -160,7 +156,8 @@ Meteor.methods({
 	// Submit a card for voting
 	submitAnswerCard: function(gameId, answerId, playerId, _userId) {
         if (!this.userId && !_userId) {
-            throw new Meteor.Error(500,"When server calls" + " submitAnswerCard"+ ", you must impersonate a user. userId: " + (this.userId ? this.userId.toString() : "none") + ", _userId: " + (_userId ? _userId.toString() : "none"));
+            throw new Meteor.Error(500,"When server calls" + " submitAnswerCard"+ ", you must impersonate a user. userId: "
+                + (this.userId ? this.userId.toString() : "none") + ", _userId: " + (_userId ? _userId.toString() : "none"));
         } else if (this.userId) {
             _userId = this.userId
         }
@@ -311,7 +308,10 @@ Meteor.methods({
             // draw new cards
             Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
 		} else {
+            // Close the game
             Games.update({_id:gameId},{$set:{open:false}})
+            // Close the players
+            Players.update({gameId:gameId},{$set:{open:false}});
 		}
 
 		return gameId;
@@ -367,8 +367,6 @@ Meteor.methods({
 		}
 		
 		var ownerId = game.ownerId;
-
-        var playerId = getPlayerId(gameId,_userId);
 
 		// If the owner is quitting his own game, assign a new player as the owner
 		if (EJSON.equals(game.ownerId,_userId) && game.players > 1) {

@@ -218,8 +218,6 @@ Meteor.methods({
         if (Meteor.isSimulation)
             return "";
 
-
-
         handSize = handSize || K_DEFAULT_HAND_SIZE;
 
         var game = Games.findOne({_id:gameId, open:true});
@@ -237,22 +235,14 @@ Meteor.methods({
             throw new Meteor.Error(403,"The game is over.");
         }
 
-
-
-
-
         if (!game.open)
         // the game is over. only score screen will display.
             throw new Meteor.Error(403,"This game is closed.");
-
-
 
         var players = Players.find({gameId:gameId}).fetch();
 
         // storing all the ids of drawn cards to remove from the game database entry
         var drawnCards = [];
-
-
 
         // a card drawing function
         var drawCards = function(oldHand) {
@@ -269,9 +259,6 @@ Meteor.methods({
             return newHand;
         }
         // update any existing hands
-
-
-
         _.each(players,function(player){
             var handDoc = Hands.findOne({gameId:gameId,round:game.round,playerId:player._id});
 
@@ -299,16 +286,13 @@ Meteor.methods({
                 });
             }
         });
-
-
-
         // update the game
         Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$set:{modified:new Date().getTime()}});
     },
 
     // Find the latest game a given player joined
-    findGameWithPlayer: function(playerId) {
-
+    findGameWithUser: function(userId) {
+//        Players.findOne({userId:userId});
     },
 
     // Join a game
@@ -369,15 +353,11 @@ Meteor.methods({
 
         var playerId = Players.insert(p);
 
-
-
         // If there is no owner, this first user is now the owner.
         Games.update({_id:gameId,creatorUserId:_userId,$or:[{judgeId:null},{ownerId:null}]},{$set:{ownerId:playerId,judgeId:playerId}});
 
         // Increment the player count and join the game.
         Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId}, $set:{modified:new Date().getTime()}});
-
-
 
         // Update the heartbeat
         Meteor.users.update({_id:_userId},{$set:{heartbeat:new Date().getTime()}});
@@ -385,15 +365,13 @@ Meteor.methods({
         // Draw hands for all users
         Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
 
-
-
         return gameId;
     },
 
-    findGameWithFewPlayers: function() {
+    findGameWithFewPlayers: function(gameSize) {
         // find the latest game with fewer than five players
-
-        var game = Games.findOne({open:true, players:{$lt:K_PREFERRED_GAME_SIZE}});
+        gameSize = gameSize || K_PREFERRED_GAME_SIZE;
+        var game = Games.findOne({open:true, players:{$lt:gameSize}});
 
         if (!game)
             return false;
@@ -443,11 +421,6 @@ Meteor.methods({
 
         if (title=="")
             title = "Game #" + (Games.find({}).count() + 1).toString();
-
-//		if (Games.find({title:title,open:true}).count() > 0)
-//			throw new Meteor.Error(500,"A open game by that name already exists!");
-
-
 
         var shuffledAnswerCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_ANSWER},{fields:{_id:1}}).fetch(),'_id'));
 
