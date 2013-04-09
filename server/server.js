@@ -327,15 +327,15 @@ Meteor.methods({
         p.connected = true;
 
         var getUserName = function(id) {
-            var u = Meteor.users.find({_id:id},{reactive:false}).fetch();
+            var u = Meteor.users.find({_id:id}).fetch();
 
             if (!u)
-                return "REDACTED.";
+                return "Anomyous (" + id +")";
 
             u = u[0];
 
             if (!u)
-                return "REDACTED.";
+                return "Anomyous (" + id +")";
 
             if (u.profile && u.profile.name)
                 return u.profile.name;
@@ -346,7 +346,7 @@ Meteor.methods({
             if (u.emails && u.emails[0] && u.emails[0].address)
                 return u.emails[0].address;
 
-            return "REDACTED.";
+            return  "Anomyous (" + id +")";
         };
 
         p.name = getUserName(_userId);
