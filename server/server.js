@@ -175,9 +175,6 @@ Meteor.startup(function () {
         console.log("Game schema extension failure.");
     }
 
-    // Evaluate bots every second.
-
-
     // TODO: Seasonalize the games, keep the number of games random.
 
     if (Games.find({open:true}).count() < 760) {
@@ -346,7 +343,7 @@ Meteor.methods({
             if (u.emails && u.emails[0] && u.emails[0].address)
                 return u.emails[0].address;
 
-            return  "Anomyous (" + id +")";
+            return "Anomyous (" + id +")";
         };
 
         p.name = getUserName(_userId);

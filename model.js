@@ -29,15 +29,15 @@ Array.prototype.superSort = function() {
 };
 
 
-var THEME_URL = "http://jquerymobile.com/themeroller/?ver=1.2.0&style_id=20121211-131";
+THEME_URL = "http://jquerymobile.com/themeroller/?ver=1.2.0&style_id=20121211-131";
 
-var K_DEFAULT_HAND_SIZE = 8; // default hand size
-var K_HEARTBEAT = 30 * 1000; // default heartbeat length
-var K_LOCAL_DISTANCE = 0.0003; // distance in lat-lon units, approximately 150 ft (?)
-var K_PREFERRED_GAME_SIZE = 7; // the size of a game matchmaking prefers to make
+K_DEFAULT_HAND_SIZE = 8; // default hand size
+K_HEARTBEAT = 30 * 1000; // default heartbeat length
+K_LOCAL_DISTANCE = 0.0003; // distance in lat-lon units, approximately 150 ft (?)
+K_PREFERRED_GAME_SIZE = 7; // the size of a game matchmaking prefers to make
 
-var E_NO_MORE_CARDS = "No more cards.";
-var E_GAME_OVER = "The game is over.";
+E_NO_MORE_CARDS = "No more cards.";
+E_GAME_OVER = "The game is over.";
 
 var Game = function() {
     this.title = ""; // game title.
@@ -57,16 +57,16 @@ var Game = function() {
     this.deckIds = []; // List of decks used in this game.
 };
 
-var CARD_TYPE_QUESTION = 1; // card of type question
-var CARD_TYPE_ANSWER = 2; // card of type answer
+CARD_TYPE_QUESTION = 1; // card of type question
+CARD_TYPE_ANSWER = 2; // card of type answer
 
-var Card = function() {
+Card = function() {
 	this.type = CARD_TYPE_QUESTION;  // question or answer card
     this.deckId = ""; // The id of the deck
 	this.text = ""; // text of the card
 };
 
-var Deck = function() {
+Deck = function() {
     this.title = "";
     this.ownerId = "";
     this.description = "";
@@ -74,7 +74,7 @@ var Deck = function() {
     this.storeData = {};
 }
 
-var Hand = function() {
+Hand = function() {
 	this.gameId = null;
 	this.playerId = 0;
     this.userId = null;
@@ -82,7 +82,7 @@ var Hand = function() {
 	this.hand = []; // Array of card Ids
 };
 
-var Vote = function() {
+Vote = function() {
 	this.gameId = 0; 
 	this.round = 0; 
 	this.judgeId = 0; 
@@ -91,14 +91,14 @@ var Vote = function() {
 	this.answerId = 0;
 };
 
-var Submission = function () {
+Submission = function () {
 	this.gameId = 0; 
 	this.round = 0; 
 	this.playerId = 0;
 	this.answerId = 0;
 };
 
-var Player = function () {
+Player = function () {
     this.playerId = null;
     this.name = "";
     this.gameId = null;
@@ -108,24 +108,24 @@ var Player = function () {
     this.location = "";
 }
 
-var Chat = function () {
+Chat = function () {
 	this.gameId = 0; 
 	this.playerId = 0;
 	this.dateTime = 0; 
 	this.text = "";
 };
 
-var Decks = new Meteor.Collection("decks");
-var Cards = new Meteor.Collection("cards");
-var Games = new Meteor.Collection("games");
-var Hands = new Meteor.Collection("hands");
-var Votes = new Meteor.Collection("votes");
-var Submissions = new Meteor.Collection("submissions");
-var Players = new Meteor.Collection("players");
-var Chats = new Meteor.Collection("chats");
+Decks = new Meteor.Collection("decks");
+Cards = new Meteor.Collection("cards");
+Games = new Meteor.Collection("games");
+Hands = new Meteor.Collection("hands");
+Votes = new Meteor.Collection("votes");
+Submissions = new Meteor.Collection("submissions");
+Players = new Meteor.Collection("players");
+Chats = new Meteor.Collection("chats");
 
 
-var getPlayerId = function(gameId,userId) {
+getPlayerId = function(gameId,userId) {
     if (!gameId || !userId)
         return null;
 

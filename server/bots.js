@@ -27,8 +27,8 @@ Meteor.methods({
     },
 
     createBot:function() {
-        var userIdPadding = Math.random().toString(36).slice(-8);
-        var password = Math.random().toString(36).slice(-8);
+        var userIdPadding = Random.id();
+        var password = Random.id();
         var nickname = "Anonymous (" + userIdPadding + ")";
         var botId = Accounts.createUser({
             username:"Anonymous "+userIdPadding,
@@ -39,7 +39,7 @@ Meteor.methods({
                 bot:true,
                 inGames:0,
                 // Perform actions 4-20 seconds from being able to
-                period:Math.floor(4+Math.random()*16)
+                period:Math.floor(4+Random.fraction()*16)
             }
         });
 
@@ -138,7 +138,7 @@ Meteor.methods({
                             // Otherwise, if the bot hasn't submitted an answer, submit an answer.
                             if (game && Submissions.find({playerId:player._id,gameId:game._id,round:game.round}).count() == 0) {
                                 var handDoc = Hands.findOne({playerId:player._id,gameId:game._id,round:game.round});
-                                if (!handDoc) {
+                                if (!handDoc || handDoc.length == 0) {
                                     Meteor.call("drawHands",game._id);
                                 } else {
                                     Meteor.call("submitAnswerCard",
