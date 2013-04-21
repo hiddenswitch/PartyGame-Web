@@ -161,15 +161,18 @@ Meteor.startup(function () {
     }
 
     // TODO: Seasonalize the games, keep the number of games random.
-    var countOfGames = Games.find({open:true}).count();
-    if (countOfGames < 350) {
-        Meteor.call("populate",350-countOfGames);
+    var countOfBots = Meteor.users.find({'profile.bot':true}).count();
+    if (countOfBots < 100) {
+        Meteor.call("populate",100-countOfGames);
     }
 
-    Meteor.setInterval(function() {
+    var botEvaluateFunction = function () {
         var botActions = Meteor.call("botsEvaluate");
         console.log("Bot action summary: " + JSON.stringify(botActions));
-    },2000);
+        Meteor.setTimeout(botEvaluateFunction,1000);
+    }
+
+    Meteor.setTimeout(botEvaluateFunction,1000);
 
     // Close games that haven't seen any activity for a while, delete games that have been closed for a while
     Meteor.setInterval(function () {
