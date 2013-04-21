@@ -3,7 +3,7 @@
  */
 
 Meteor.publish("openGames",function() {
-	return Games.find({open:true},{fields:{password:0,questionCards:0,answerCards:0}});
+	return Games.find({open:true},{fields:{password:0,questionCards:0,answerCards:0},limit:50,sort:{players:1,modified:-1}});
 });
 
 Meteor.publish("hand",function(gameId) {
@@ -11,7 +11,7 @@ Meteor.publish("hand",function(gameId) {
 });
 
 Meteor.publish("myGames",function() {
-    return Games.find({userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
+    return Games.find({userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0},limit:50,sort:{players:1,modified:-1}});
 });
 
 Meteor.publish("players",function(gameId) {
@@ -198,9 +198,6 @@ Meteor.startup(function () {
 Meteor.methods({
     // Draw hands for all players in the game.
     drawHands: function(gameId,handSize) {
-        if (this.isSimulation)
-            return;
-
         handSize = handSize || K_DEFAULT_HAND_SIZE;
 
         var game = Games.findOne({_id:gameId, open:true});
@@ -208,17 +205,14 @@ Meteor.methods({
         if (!game)
             throw new Meteor.Error(404,"No game to draw hands from.");
 
-        if (!_.has(game,"answerCards"))
-            throw new Meteor.Error(500,"Why are there no answer cards?");
+        if (game.open === false) {
+            // the game is over. only score screen will display.
+            throw new Meteor.Error(403,"This game is closed.");
+        }
 
         // all answer cards exhausted, do not draw any more cards.
         if (game.answerCards.length < 1) {
             throw new Meteor.Error(403,"The game is over.");
-        }
-
-        if (game.open === false) {
-            // the game is over. only score screen will display.
-            throw new Meteor.Error(403,"This game is closed.");
         }
 
         var drawnCards = [];
@@ -237,7 +231,7 @@ Meteor.methods({
             }
 
             for (var i = 0; i < handSize - cards.length; i++) {
-                var cardId = game.answerCards.pop();
+                var cardId = this.isSimulation ? null : game.answerCards.pop();
                 Hands.insert({userId:player.userId,gameId:gameId,playerId:player._id,cardId:cardId});
                 drawnCards.push(cardId);
             }
