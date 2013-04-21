@@ -7,7 +7,6 @@
  * Creative Commons NC-BY-SA 2.0
  */
 
-var CAH_QUESTION_CARDS;
 CAH_QUESTION_CARDS = ["A romantic, candlelit dinner would be incomplete without __.",
     "After the earthquake, Sean Penn brought __ to the people of Haiti.",
     "Alternative medicine is now embracing the curative powers of __.",
@@ -151,7 +150,6 @@ CAH_QUESTION_CARDS = ["A romantic, candlelit dinner would be incomplete without 
 
     "Tonight on 20/20: What you don't know about __ could kill you."];
 
-var CAH_ANSWER_CARDS;
 CAH_ANSWER_CARDS = ["(I am doing kegels right now).",
     "2 Girls 1 Cup.",
     "72 virgins.",

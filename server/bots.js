@@ -104,7 +104,6 @@ Meteor.methods({
             // Determine the state of the game, and perform the relevant action
             _.each(bots,function(bot){
                 // Perform method calls as this bot by using the impersonation capabilities in the methods.
-
                 var players = Players.find({userId:bot._id}).fetch();
                 if (players && players.length > 0) {
                     _.each(players,function(player) {
@@ -136,14 +135,14 @@ Meteor.methods({
                                 botActions++;
                             } else
                             // Otherwise, if the bot hasn't submitted an answer, submit an answer.
-                            if (game && Submissions.find({playerId:player._id,gameId:game._id,round:game.round}).count() == 0) {
-                                var handDoc = Hands.findOne({playerId:player._id,gameId:game._id,round:game.round});
-                                if (!handDoc || handDoc.length == 0) {
+                            if (game && Submissions.find({playerId:player._id,gameId:game._id,round:game.round}).count() === 0) {
+                                var hand = Hands.find({playerId:player._id,gameId:game._id}).fetch();
+                                if (hand == null || hand.length < K_DEFAULT_HAND_SIZE) {
                                     Meteor.call("drawHands",game._id);
                                 } else {
                                     Meteor.call("submitAnswerCard",
                                         game._id,
-                                        _.first(_.shuffle(handDoc.hand)),
+                                        _.first(_.shuffle(hand)).cardId,
                                         null,
                                         bot._id);
                                 }

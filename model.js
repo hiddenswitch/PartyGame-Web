@@ -99,7 +99,6 @@ Submission = function () {
 };
 
 Player = function () {
-    this.playerId = null;
     this.name = "";
     this.gameId = null;
     this.userId = null;
@@ -135,9 +134,16 @@ getPlayerId = function(gameId,userId) {
         return p[0]._id;
     } else {
         return null;
-//        throw new Meteor.Error(404,"Player not found for given userId " + userId.toString() + " and gameId " + gameId.toString());
     }
 }
+
+cardIdToText = function(cardId) {
+    var c = Cards.findOne({_id:cardId});
+    if (c)
+        return c.text;
+    else
+        return "(Waiting for players to submit...)";
+};
 
 /*
  * Game flow:
@@ -159,7 +165,7 @@ Meteor.methods({
             throw new Meteor.Error(500,"When server calls" + " submitAnswerCard"+ ", you must impersonate a user. userId: "
                 + (this.userId ? this.userId.toString() : "none") + ", _userId: " + (_userId ? _userId.toString() : "none"));
         } else if (this.userId) {
-            _userId = this.userId
+            _userId = this.userId;
         }
 
 		var game = Games.findOne({_id:gameId});
@@ -171,7 +177,9 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return;
 
-        var playerId = playerId || getPlayerId(gameId,_userId);
+        playerId = playerId || getPlayerId(gameId,_userId);
+
+        console.log("playerId computed: " + playerId);
 
 		if (Players.find({gameId:gameId}).count() < 2)
 			throw new Meteor.Error(500,"Too few players to submit answer.");
@@ -180,10 +188,11 @@ Meteor.methods({
 			throw new Meteor.Error(500,"You cannot submit a card. You're the judge!");
 
         // does this player have this card in his hand?
-        var hand = Hands.find({playerId:playerId,gameId:gameId,round:game.round,hand:answerId}).count();
+        var hasInHand = Hands.find({playerId:playerId,gameId:gameId,cardId:answerId}).count();
 
-        if (!hand && !this.isSimulation)
+        if (!hasInHand) {
             throw new Meteor.Error(500,"You can't submit a card you don't have!");
+        }
 
 		var submission = Submissions.findOne({gameId:gameId,playerId:playerId,round:game.round});
 		
@@ -206,7 +215,7 @@ Meteor.methods({
         if (!this.userId && !_userId) {
             throw new Meteor.Error(500,"When server calls" + " pickWinner"+ ", you must impersonate a user.");
         } else if (this.userId) {
-            _userId = this.userId
+            _userId = this.userId;
         }
 
 		var game = Games.findOne({_id:gameId});
@@ -285,13 +294,12 @@ Meteor.methods({
                 throw new Meteor.Error(500,"Somebody submitted a redacted answer. Try again!");
 
             // does this player have this card in his hand?
-            var hand = Hands.find({playerId:submission.playerId,gameId:gameId,round:game.round,
-                hand:submission.answerId}).count();
+            var hand = Hands.find({playerId:submission.playerId,gameId:gameId,cardId:submission.answerId}).count();
 
             if (hand === 0)
                 throw new Meteor.Error(500,"You can't submit a card you don't have!");
 
-			Hands.update({gameId:gameId,round:game.round,playerId:submission.playerId},{$pull:{hand:submission.answerId}});
+			Hands.remove({gameId:gameId,playerId:submission.playerId,cardId:submission.answerId});
 		});
 		
 		// put in a new question card
@@ -322,7 +330,7 @@ Meteor.methods({
         if (!this.userId && !_userId) {
             throw new Meteor.Error(500,"When server calls" + " kickPlayer" + ", you must impersonate a user.");
         } else if (this.userId) {
-            _userId = this.userId
+            _userId = this.userId;
         }
 
 		var game = Games.findOne({_id:gameId});
@@ -352,7 +360,7 @@ Meteor.methods({
         if (!this.userId && !_userId) {
             throw new Meteor.Error(500,"When server calls" + " quitGame" + ", you must impersonate a user.");
         } else if (this.userId) {
-            _userId = this.userId
+            _userId = this.userId;
         }
 
 		var game = Games.findOne({_id:gameId});
@@ -397,7 +405,7 @@ Meteor.methods({
         if (!this.userId && !_userId) {
             throw new Meteor.Error(500,"When server calls" + " closeGame" + ", you must impersonate a user.");
         } else if (this.userId) {
-            _userId = this.userId
+            _userId = this.userId;
         }
 
 		var game = Games.findOne({_id:gameId});

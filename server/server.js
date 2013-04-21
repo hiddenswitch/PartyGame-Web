@@ -6,19 +6,13 @@ Meteor.publish("openGames",function() {
 	return Games.find({open:true},{fields:{password:0,questionCards:0,answerCards:0}});
 });
 
-Meteor.publish("myHands",function() {
-	return Hands.find({userId:this.userId});
+Meteor.publish("hand",function(gameId) {
+	return Hands.find({userId:this.userId,gameId:gameId});
 });
 
 Meteor.publish("myGames",function() {
     return Games.find({userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
 });
-
-//Meteor.publish("myOwnedGames",function() {
-//    var gamesWhereIAmPlayer = _.pluck(Players.find({userId:this.userId},{fields:{gameId:1}}).fetch(),'gameId');
-//
-//	return Games.find({ownerId:playerId},{fields:{password:0,questionCards:0,answerCards:0}});
-//});
 
 Meteor.publish("players",function(gameId) {
     return Players.find({gameId:gameId});
@@ -32,30 +26,28 @@ Meteor.publish(SUBMISSIONS, function(gameId,round) {
     recordset.Redacted = {};
     recordset.Redacted.connectedPlayersCount = 0;
     recordset.Redacted.submissionsCount = 0;
+    recordset.Redacted.updateSubmissions = function(newSubmission) {
+        var submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
+
+        _.each(submissions,function(submission){
+            try {
+                if (recordset.Redacted.submissionsCount >= recordset.Redacted.connectedPlayersCount-1) {
+                    recordset.changed(SUBMISSIONS,submission._id, submission);
+                } else {
+                    recordset.changed(SUBMISSIONS,submission._id, _.omit(submission,'answerId'));
+                }
+            } catch (e) {
+                console.log(e);
+            }
+
+        });
+    };
 
     var submissionHandle = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).observe({
         added: function (newSubmission) {
             recordset.Redacted.submissionsCount++;
-            // if we have sufficient submissions, reveal them
-            if (recordset.Redacted.submissionsCount >= recordset.Redacted.connectedPlayersCount-1) {
-                var submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
-
-                recordset.added(SUBMISSIONS,newSubmission._id,newSubmission);
-
-                _.each(submissions,function(existingSubmission){
-                    try {
-                        recordset.changed(SUBMISSIONS,existingSubmission._id, existingSubmission);
-                    } catch (e) {
-                        console.log(e);
-                    }
-
-                });
-
-                // otherwise, keep them hidden
-            } else {
-                recordset.added(SUBMISSIONS,newSubmission._id, _.omit(newSubmission,'answerId'));
-            }
-
+            recordset.added(SUBMISSIONS,newSubmission._id, _.omit(newSubmission,'answerId'));
+            recordset.Redacted.updateSubmissions();
 
         },
         removed: function (removedSubmission) {
@@ -63,24 +55,21 @@ Meteor.publish(SUBMISSIONS, function(gameId,round) {
             recordset.Redacted.submissionsCount--;
         },
         changed: function (changedSubmission) {
-            if (recordset.Redacted.submissionsCount >= recordset.Redacted.connectedPlayersCount) {
-                recordset.changed(SUBMISSIONS,changedSubmission._id,changedSubmission);
-
-            } else {
-                recordset.changed(SUBMISSIONS,changedSubmission._id, _.omit(changedSubmission,'answerId'));
-            }
+            recordset.changed(SUBMISSIONS,changedSubmission._id,changedSubmission);
+            recordset.Redacted.updateSubmissions();
         }
     });
 
     var playersHandle = Players.find({gameId:gameId,connected:true}).observe({
         added: function() {
             recordset.Redacted.connectedPlayersCount++;
+            recordset.Redacted.updateSubmissions();
         },
         removed: function() {
             recordset.Redacted.connectedPlayersCount--;
+            recordset.Redacted.updateSubmissions();
         }
     });
-
     recordset.ready();
 
     recordset.onStop(function () {
@@ -135,29 +124,26 @@ Meteor.startup(function () {
         console.log("Indexing failure. " + e);
     }
 
-    try {
-        if (Cards.find({}).count() < 1) {
-            // Cards Against Humanity cards
-            var CAHDeck = new Deck();
-            CAHDeck.title = "Cards Against Humanity";
-            CAHDeck.ownerId = "";
-            CAHDeck.description = "The complete Cards Against Humanity questions and answers, licensed Creative Commons" +
-                "2.0 BY-NC-SA.";
-            CAHDeck.price = 0;
+    if (Cards.find({}).count() === 0) {
+        // Cards Against Humanity cards
+        var CAHDeck = new Deck();
+        CAHDeck.title = "Cards Against Humanity";
+        CAHDeck.ownerId = "";
+        CAHDeck.description = "The complete Cards Against Humanity questions and answers, licensed Creative Commons" +
+            "2.0 BY-NC-SA.";
+        CAHDeck.price = 0;
 
-            var CAHId = Decks.insert(CAHDeck);
+        var CAHId = Decks.insert(CAHDeck);
 
-            _.each(CAH_QUESTION_CARDS,function(c){
-                Cards.insert({text:c,type:CARD_TYPE_QUESTION,deckId:CAHId});
-            });
+        _.each(CAH_QUESTION_CARDS,function(c){
+            Cards.insert({text:c,type:CARD_TYPE_QUESTION,deckId:CAHId});
+        });
 
-            _.each(CAH_ANSWER_CARDS,function(c){
-                Cards.insert({text:c,type:CARD_TYPE_ANSWER,deckId:CAHId});
-            });
-        }
-    } catch (e) {
-        console.log("Card creation failure.");
+        _.each(CAH_ANSWER_CARDS,function(c){
+            Cards.insert({text:c,type:CARD_TYPE_ANSWER,deckId:CAHId});
+        });
     }
+
 
 
     // make sure users have full schema
@@ -177,8 +163,8 @@ Meteor.startup(function () {
 
     // TODO: Seasonalize the games, keep the number of games random.
 
-    if (Games.find({open:true}).count() < 760) {
-        Meteor.call("populate",760);
+    if (Games.find({open:true}).count() < 100) {
+        Meteor.call("populate",100);
     }
 
     Meteor.setInterval(function() {
@@ -212,8 +198,8 @@ Meteor.startup(function () {
 Meteor.methods({
     // Draw hands for all players in the game.
     drawHands: function(gameId,handSize) {
-        if (Meteor.isSimulation)
-            return "";
+        if (this.isSimulation)
+            return;
 
         handSize = handSize || K_DEFAULT_HAND_SIZE;
 
@@ -221,8 +207,6 @@ Meteor.methods({
 
         if (!game)
             throw new Meteor.Error(404,"No game to draw hands from.");
-
-
 
         if (!_.has(game,"answerCards"))
             throw new Meteor.Error(500,"Why are there no answer cards?");
@@ -232,64 +216,45 @@ Meteor.methods({
             throw new Meteor.Error(403,"The game is over.");
         }
 
-        if (!game.open)
-        // the game is over. only score screen will display.
+        if (game.open === false) {
+            // the game is over. only score screen will display.
             throw new Meteor.Error(403,"This game is closed.");
+        }
 
-        var players = Players.find({gameId:gameId}).fetch();
-
-        // storing all the ids of drawn cards to remove from the game database entry
         var drawnCards = [];
 
-        // a card drawing function
-        var drawCards = function(oldHand) {
-            var newHand = oldHand || [];
+        var hands = _.groupBy(Hands.find({gameId:gameId}).fetch(),'playerId');
 
-            while (newHand.length < handSize) {
-                if (game.answerCards.length > 0)
-                    newHand.push(game.answerCards.pop());
+        var players = Players.find({gameId:gameId,connected:true}).fetch();
+
+        _.each(players,function(player) {
+            var cards = null;
+
+            if (!_.has(hands,player._id)) {
+                cards = {length:0};
+            } else {
+                cards = hands[player._id];
             }
 
-            // add the drawn cards to the list of cards to remove later from the game's deck
-            drawnCards = _.union(drawnCards,newHand);
-
-            return newHand;
-        }
-        // update any existing hands
-        _.each(players,function(player){
-            var handDoc = Hands.findOne({gameId:gameId,round:game.round,playerId:player._id});
-
-            if (handDoc) {
-                if (handDoc.hand.length < handSize) {
-                    Hands.update({_id:handDoc._id},{$set:{hand:drawCards(handDoc.hand)}});
-                }
-            } else {
-                var oldHand = [];
-
-                if (game.round > 0) {
-                    // get the old hand
-                    var oldHandDoc = Hands.findOne({gameId:gameId,round:game.round-1,playerId:player._id});
-                    if (oldHandDoc)
-                        oldHand = _.union(oldHand,oldHandDoc.hand);
-                }
-
-                // add the new hand
-                Hands.insert({
-                    gameId:gameId,
-                    round:game.round,
-                    playerId:player._id,
-                    userId:player.userId,
-                    hand:drawCards(oldHand)
-                });
+            for (var i = 0; i < handSize - cards.length; i++) {
+                var cardId = game.answerCards.pop();
+                Hands.insert({userId:player.userId,gameId:gameId,playerId:player._id,cardId:cardId});
+                drawnCards.push(cardId);
             }
         });
+
         // update the game
         Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$set:{modified:new Date().getTime()}});
     },
 
     // Find the latest game a given player joined
     findGameWithUser: function(userId) {
-//        Players.findOne({userId:userId});
+        var p = Players.findOne({userId:userId});
+        if (p !== null && _.has(p,'gameId')) {
+            return p.gameId;
+        } else {
+            return null;
+        }
     },
 
     // Join a game
@@ -297,7 +262,7 @@ Meteor.methods({
         if (!this.userId && !_userId) {
             throw new Meteor.Error(500,"When server calls" + " joinGame" + ", you must impersonate a user.");
         } else if (this.userId) {
-            _userId = this.userId
+            _userId = this.userId;
         }
 
         var g = Games.findOne({_id:gameId});
@@ -350,11 +315,13 @@ Meteor.methods({
 
         var playerId = Players.insert(p);
 
+        console.log("joinGame: " + JSON.stringify(p));
+
         // If there is no owner, this first user is now the owner.
         Games.update({_id:gameId,creatorUserId:_userId,$or:[{judgeId:null},{ownerId:null}]},{$set:{ownerId:playerId,judgeId:playerId}});
 
         // Increment the player count and join the game.
-        Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId}, $set:{modified:new Date().getTime()}});
+        Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId,playerIds:playerId}, $set:{modified:new Date().getTime()}});
 
         // Update the heartbeat
         Meteor.users.update({_id:_userId},{$set:{heartbeat:new Date().getTime()}});
@@ -409,7 +376,7 @@ Meteor.methods({
         if (!this.userId && !_userId) {
             throw new Meteor.Error(500,"When server calls" + " createEmptyGame" + ", you must impersonate a user.");
         } else if (this.userId) {
-            _userId = this.userId
+            _userId = this.userId;
         }
 
         console.log("Creating " + JSON.stringify([title,password,location,_userId]));
@@ -420,6 +387,10 @@ Meteor.methods({
             title = "Game #" + (Games.find({}).count() + 1).toString();
 
         var shuffledAnswerCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_ANSWER},{fields:{_id:1}}).fetch(),'_id'));
+
+        if (shuffledAnswerCards === null || shuffledAnswerCards.length === 0) {
+            throw new Meteor.Error(500,"No answer cards were found. Were cards initialized correctly?");
+        }
 
         if (!shuffledAnswerCards)
             throw new Meteor.Error(404,"No answer cards found.");

@@ -235,7 +235,10 @@ playerIdToName = function(id) {
 };
 
 cardIdToText = function(cardId) {
-    var c = Cards.findOne({_id:cardId});
+    var c = null;
+    if (cardId !== null && cardId !== "") {
+        c = Cards.findOne({_id:cardId});
+    }
     if (c)
         return c.text;
     else
@@ -247,7 +250,7 @@ submissionIdToCardId = function(id) {
     if (submission.answerId)
         return submission.answerId;
     else
-        return "";
+        return null;
 };
 
 // Match into an existing game, or create a new one to join into
@@ -410,6 +413,7 @@ joinGameFromHash = function() {
 };
 
 registerTemplates = function() {
+    Handlebars.registerHelper("toCard",cardIdToText);
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
 	Handlebars.registerHelper("playerIdToName",playerIdToName);
 	Handlebars.registerHelper("refreshListviewsAndCreateButtons",refreshListviewsAndCreateButtons);
@@ -562,7 +566,7 @@ registerTemplates = function() {
     Template.scores.preserve(defaultPreserve);
 
 	Template.browse.games = function() {
-		return Games.find({open:true});
+		return Games.find({open:true},{limit:20});
 	};
 
 	Template.browse.events = {
@@ -574,7 +578,7 @@ registerTemplates = function() {
     Template.browse.preserve(defaultPreserve);
 
 	Template.myGames.games = function() {
-		return Games.find({open:true,userIds:Meteor.userId()}).fetch();
+		return Games.find({open:true,userIds:Meteor.userId()});
 	};
 
 	Template.myGames.events = {
@@ -587,10 +591,7 @@ registerTemplates = function() {
 
     Template.submissions.isJudge = isJudge;
 	Template.submissions.submissions = function () {
-		var submissions = Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)}).fetch();
-		return _.map(submissions, function(o) {
-            return _.extend({text:cardIdToText(o.answerId)},o)
-        });
+		return Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)});
 	};
 
     Template.submissions.count = function () {
@@ -628,15 +629,7 @@ registerTemplates = function() {
     Template.hand.isJudge = isJudge;
 
 	Template.hand.hand = function () {
-		return Hands.findOne({userId:Meteor.userId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
-	};
-
-	Template.hand.cardsInHand = function() {
-		var handDoc = Hands.findOne({userId:Meteor.userId(),gameId:Session.get(GAME),round:Session.get(ROUND)});
-        if (handDoc)
-		    return _.map(handDoc.hand, function (o) {return Cards.findOne({_id:o})});
-        else
-            return null;
+		return Hands.find({userId:Meteor.userId(),gameId:Session.get(GAME)});
 	};
 
 	Template.hand.events = {
@@ -698,17 +691,13 @@ Meteor.startup(function() {
 	Session.set(ERROR,null);
 	
 	Deps.autorun(function() {
-		var currentGameId = Session.get(GAME);
-        var currentRound = Session.get(ROUND);
-		if (currentGameId) {
-			Meteor.subscribe("submissions",currentGameId,currentRound);
-			Meteor.subscribe("votesInGame",currentGameId);
-			Meteor.subscribe("usersInGame",currentGameId);
-            Meteor.subscribe("players",currentGameId);
-            Meteor.subscribe("myGames",Meteor.userId());
-            Meteor.subscribe("openGames");
-            Meteor.subscribe("myHands");
-		}
+        Meteor.subscribe("submissions",Session.get(GAME),Session.get(ROUND));
+        Meteor.subscribe("votesInGame",Session.get(GAME));
+        Meteor.subscribe("usersInGame",Session.get(GAME));
+        Meteor.subscribe("players",Session.get(GAME));
+        Meteor.subscribe("myGames",Meteor.userId());
+        Meteor.subscribe("openGames");
+        Meteor.subscribe("hand",Session.get(GAME));
 	});
 
 	Accounts.ui.config({
