@@ -265,7 +265,7 @@ Meteor.methods({
 			Votes.update({_id:winner._id},{$set:{playerId:submission.playerId,questionId:game.questionId,answerId:submission.answerId}});
 			return winner._id;
 		} else {
-			return Votes.insert({gameId:gameId,round:game.round,judgeId:judgeId,playerId:submission.playerId,questionId:game.questionId,answerId:submission.answerId})
+			return Votes.insert({gameId:gameId,round:game.round,judgeId:judgeId,playerId:submission.playerId,questionId:game.questionId,answerId:submission.answerId});
 		}
 	},
 
@@ -281,7 +281,7 @@ Meteor.methods({
 			// the game is over. only score screen will display.
 			return gameId;
 
-		if (Votes.find({gameId:gameId,round:game.round}).count() < 1 && Meteor.isServer)
+		if (Votes.find({gameId:gameId,round:game.round}).count() < 1 && !this.isSimulation)
 			throw new Meteor.Error(500,"The judge hasn't voted yet. Cannot finish round.");
 
         if (Submissions.find({gameId:gameId,round:game.round}).count() < Players.find({gameId:gameId,connected:true}).count()-1) {
@@ -305,7 +305,7 @@ Meteor.methods({
 		// put in a new question card
 
 		
-		if (game.questionCards && game.questionCards.length > 0) {
+		if (game.questionCards && game.questionCards.length > 0 && game.answerCards && game.answerCards.length > 0) {
             var questionCardId = game.questionCards.pop();
 
             var nextJudge = Meteor.call("currentJudge",game._id);

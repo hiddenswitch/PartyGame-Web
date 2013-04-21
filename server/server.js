@@ -212,7 +212,8 @@ Meteor.methods({
 
         // all answer cards exhausted, do not draw any more cards.
         if (game.answerCards.length < 1) {
-            throw new Meteor.Error(403,"The game is over.");
+            Meteor.call("tryCloseGame",gameID);
+            throw new Meteor.Error(405,"The game is over, the game is being closed.");
         }
 
         var drawnCards = [];
@@ -417,6 +418,36 @@ Meteor.methods({
         console.log("Created game " + gameId.toString());
 
         return gameId;
+    },
+
+    // Closes the game if it is valid to do so
+    tryCloseGame:function(gameId) {
+        var g = Games.findOne({_id:gameId});
+
+        if (!g) {
+            throw new Meteor.Error(404,"The game " + gameId + " does not exist.");
+        }
+
+        var open = g.open;
+
+        // If no answer cards remain, close
+        if (open && g.answerCards && g.answerCards.length === 0) {
+            open = false;
+        }
+
+        // If no question cards remain, close
+        if (open && g.questionCards && g.questionCards.length === 0) {
+            open = false;
+        }
+
+        // If no players are connected in this game, close
+        if (open && Players.find({gameId:gameId,connected:true}).count() === 0) {
+            open = false;
+        }
+
+        if (g.open !== open) {
+            Games.update({_id:gameId},{$set:{open:false},modified:new Date().getTime()});
+        }
     }
 });
 
