@@ -433,46 +433,6 @@
     {{/if}}
 </template>
 
-<template name="submissions">
-	{{#if submissions}}
-		{{#each submissions}}
-			{{#if isJudge}}
-				<li><a class="submission" id="{{_id}}" href="#preview">{{{toCard answerId}}}</a></li>
-			{{else}}
-				<li>{{{toCard answerId}}}</li>
-			{{/if}}
-		{{/each}}
-	{{else}}
-		<li>No submissions yet.</li>
-	{{/if}}
-</template>
-
-<template name="scores">
-	{{#if scores}}
-		{{#each scores}}
-			{{#if gameIsOwner}}
-				<li>
-					<a href="#">{{name}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></a>
-					<a onclick="kickThisPlayer('{{playerId}}')" class="userKick" href="#" id="{{playerId}}">Kick</a>
-				</li>
-			{{else}}
-				<li>{{name}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></li>
-			{{/if}}
-		{{/each}}
-	{{/if}}
-</template>
-
-<template name="hand">
-	{{#if gameIsOpen}}
-		{{#if hand}}
-			{{#each hand}}
-				<li><a class="card" id="{{cardId}}" href="#preview">{{{toCard cardId}}}</a></li>
-			{{/each}}
-		{{/if}}
-	{{else}}
-		<li>Game closed.</li>
-	{{/if}}
-</template>
 
 <template name="connectionError">
     {{> error}} {{> connection}}
@@ -481,12 +441,6 @@
 <template name="error">
 	{{#if error}}
 		{{error}}
-	{{/if}}
-</template>
-
-<template name="preview">
-	{{#if text}}
-		<li style="margin-left:auto; margin-right:auto; height:226px; width:178px;">{{{text}}}</li>
 	{{/if}}
 </template>
 
