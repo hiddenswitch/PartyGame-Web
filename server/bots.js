@@ -11,12 +11,12 @@ Meteor.methods({
     },
 
     botJoinOrCreateGame:function() {
-        var gameId = Meteor.call("findGameWithFewPlayers");
+        var gameId = Meteor.call("findGameWithFewPlayers",Math.floor(Random.fraction()*5+4));
 
         if (gameId) {
-            Meteor.call("botJoinGame",gameId);
+            return Meteor.call("botJoinGame",gameId);
         } else {
-            Meteor.call("createEmptyBotGameAndJoin");
+            return Meteor.call("createEmptyBotGameAndJoin");
         }
     },
 
@@ -46,9 +46,10 @@ Meteor.methods({
         var gameId = Meteor.call("createEmptyGame","","",null,botId);
 
         if (gameId) {
-            Meteor.call("botJoinGame",gameId,botId);
+            return Meteor.call("botJoinGame",gameId,botId);
         } else {
             console.log("Failed to create an empty bot game and join it.");
+            return 0;
         }
     },
 
@@ -80,8 +81,10 @@ Meteor.methods({
         if (Meteor.call("joinGame",gameId,botId)) {
             // Update the bot's quantity of inGames
             Meteor.users.update({_id:botId},{$set:{"profile.inGame":true}});
+            return 1;
         } else {
             console.log("Bot could not join game.");
+            return 0;
         }
     },
 
@@ -89,10 +92,19 @@ Meteor.methods({
         // Evaluate all the bot actions
         var tick = Math.floor(new Date().getTime() / 1000);
 
-        var botActions = 0;
+        var o = {
+            botActions:0,
+            botSubmittedCards:0,
+            botVotes:0,
+            botRejoins:0,
+            botDrewHands:0,
+            botsNotInGame:Meteor.users.find({"profile.bot":true,"profile.inGame":false}).count()
+        };
+
 
         // Find bots whose period is up
-        var bots = Meteor.users.find({"profile.bot":true,"profile.inGame":true,$where:tick.toString() + " % this.profile.period == 0"}).fetch();
+
+        var bots = Meteor.users.find({"profile.bot":true,"profile.inGame":true,$where:tick.toString() + " % this.profile.period === 0"}).fetch();
         console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
         if (bots && bots.length > 0) {
             // Determine the state of the game, and perform the relevant action
@@ -126,31 +138,34 @@ Meteor.methods({
                                         }
                                     });
                                 }
-                                botActions++;
+                                o.botVotes++;
+                                o.botActions++;
                             } else
                             // Otherwise, if the bot hasn't submitted an answer, submit an answer.
                             if (game && Submissions.find({playerId:player._id,gameId:game._id,round:game.round}).count() === 0) {
                                 var hand = Hands.find({playerId:player._id,gameId:game._id}).fetch();
                                 if (hand == null || hand.length < K_DEFAULT_HAND_SIZE) {
                                     Meteor.call("drawHands",game._id);
+                                    o.botDrewHands++;
                                 } else {
                                     Meteor.call("submitAnswerCard",
                                         game._id,
                                         _.first(_.shuffle(hand)).cardId,
                                         null,
                                         bot._id);
+                                    o.botSubmittedCards++;
                                 }
-                                botActions++;
+                                o.botActions++;
                             }
                         } else {
                             Meteor.users.update({_id:bot._id},{$set:{"profile.inGame":false}});
-                            Meteor.call("botJoinOrCreateGame");
+                            o.botRejoins += Meteor.call("botJoinOrCreateGame");
                         }
                         // We have done all possible actions in the game.
                     });
                 }
             });
         }
-        return botActions;
+        return o;
     }
 });

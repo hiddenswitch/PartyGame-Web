@@ -163,13 +163,13 @@ Meteor.startup(function () {
 
     // TODO: Seasonalize the games, keep the number of games random.
 
-    if (Games.find({open:true}).count() < 100) {
-        Meteor.call("populate",100);
+    if (Games.find({open:true}).count() < 1000) {
+        Meteor.call("populate",1000);
     }
 
     Meteor.setInterval(function() {
         var botActions = Meteor.call("botsEvaluate");
-        console.log(botActions.toString() + " bot actions performed.");
+        console.log("Bot action summary: " + JSON.stringify(botActions));
     },1000);
 
     // Close games that haven't seen any activity for a while

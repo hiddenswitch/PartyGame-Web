@@ -179,8 +179,6 @@ Meteor.methods({
 
         playerId = playerId || getPlayerId(gameId,_userId);
 
-        console.log("playerId computed: " + playerId);
-
 		if (Players.find({gameId:gameId}).count() < 2)
 			throw new Meteor.Error(500,"Too few players to submit answer.");
 			
