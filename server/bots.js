@@ -3,6 +3,8 @@
  * © 2012 All Rights Reserved
  **/
 
+var tick = 0;
+
 Meteor.methods({
     populate:function(population) {
         for (var i = 0; i < population; i++ ) {
@@ -32,8 +34,8 @@ Meteor.methods({
                 name:nickname,
                 bot:true,
                 inGames:0,
-                // Perform actions 4-20 seconds from being able to
-                period:Math.floor(4+Random.fraction()*16)
+                // Perform actions 20 seconds from being able to
+                period:Math.floor(Random.fraction()*20)
             }
         });
 
@@ -71,7 +73,6 @@ Meteor.methods({
     botJoinGame:function(gameId,botId) {
         // Get a bot
         botId = botId || Meteor.call("getBot");
-        console.log("gameId: " + gameId.toString() + ", botId: "+botId.toString());
         if (!botId) {
             console.log("Could not create a bot.");
             return;
@@ -90,7 +91,7 @@ Meteor.methods({
 
     botsEvaluate:function() {
         // Evaluate all the bot actions
-        var tick = Math.floor(new Date().getTime() / 1000);
+        tick++;
 
         var o = {
             botActions:0,
@@ -104,16 +105,16 @@ Meteor.methods({
 
         // Find bots whose period is up
 
-        var bots = Meteor.users.find({"profile.bot":true,"profile.inGame":true,$where:tick.toString() + " % this.profile.period === 0"}).fetch();
+        var bots = Meteor.users.find({"profile.bot":true,"profile.inGame":true,"profile.period":tick % 20}).fetch();
         console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
         if (bots && bots.length > 0) {
             // Determine the state of the game, and perform the relevant action
             _.each(bots,function(bot){
                 // Perform method calls as this bot by using the impersonation capabilities in the methods.
-                var players = Players.find({userId:bot._id}).fetch();
+                var players = Players.find({userId:bot._id},{fields:{_id:1,gameId:1}}).fetch();
                 if (players && players.length > 0) {
                     _.each(players,function(player) {
-                        var game = Games.findOne({_id:player.gameId});
+                        var game = Games.findOne({_id:player.gameId},{fields:{_id:1,judgeId:1,open:1,round:1}});
 
                         if (game && game.open) {
                             var isJudge = EJSON.equals(game.judgeId,player._id);
@@ -143,7 +144,7 @@ Meteor.methods({
                             } else
                             // Otherwise, if the bot hasn't submitted an answer, submit an answer.
                             if (game && Submissions.find({playerId:player._id,gameId:game._id,round:game.round}).count() === 0) {
-                                var hand = Hands.find({playerId:player._id,gameId:game._id}).fetch();
+                                var hand = Hands.find({playerId:player._id,gameId:game._id},{_id:1,cardId:1}).fetch();
                                 if (hand == null || hand.length < K_DEFAULT_HAND_SIZE) {
                                     Meteor.call("drawHands",game._id);
                                     o.botDrewHands++;

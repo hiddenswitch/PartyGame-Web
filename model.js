@@ -189,7 +189,8 @@ Meteor.methods({
         var hasInHand = Hands.find({playerId:playerId,gameId:gameId,cardId:answerId}).count();
 
         if (!hasInHand) {
-            throw new Meteor.Error(500,"You can't submit a card you don't have!");
+            var details = {hand:Hands.find({playerId:playerId,gameId:gameId}).fetch(),answerId:answerId,hasInHand:hasInHand};
+            throw new Meteor.Error(501,"You can't submit a card you don't have! " + JSON.stringify(details));
         }
 
 		var submission = Submissions.findOne({gameId:gameId,playerId:playerId,round:game.round});
@@ -216,7 +217,7 @@ Meteor.methods({
             _userId = this.userId;
         }
 
-		var game = Games.findOne({_id:gameId});
+		var game = Games.findOne({_id:gameId},{fields:{_id:1,open:1,questionId:1,round:1}});
 		
 		if (!game)
 			throw new Meteor.Error(404,"No game found to submit answer card to.");
@@ -270,7 +271,7 @@ Meteor.methods({
 	// Remove submitted hands from the committed round and increment the round number.
 	// Close the game if there are no more question cards left.
 	finishRound: function(gameId) {
-		var game = Games.findOne({_id:gameId});
+		var game = Games.findOne({_id:gameId},{fields:{open:1,round:1,questionCards:1,answerCards:1,_id:1}});
 
 		if (!game)
 			throw new Meteor.Error(404,"Game not found. Cannot finish round on nonexistent game.");
@@ -287,15 +288,17 @@ Meteor.methods({
         }
 
 		// remove the cards from the player's hands
-        _.each(Submissions.find({gameId:gameId,round:game.round}).fetch(),function(submission) {
+        _.each(Submissions.find({gameId:gameId,round:game.round},{fields:{_id:1,answerId:1,playerId:1}}).fetch(),function(submission) {
             if (!submission.answerId || EJSON.equals(submission.answerId,""))
                 throw new Meteor.Error(500,"Somebody submitted a redacted answer. Try again!");
 
             // does this player have this card in his hand?
             var hand = Hands.find({playerId:submission.playerId,gameId:gameId,cardId:submission.answerId}).count();
 
-            if (hand === 0)
-                throw new Meteor.Error(500,"You can't submit a card you don't have!");
+            if (hand === 0) {
+                var details = {hand:Hands.find({playerId:submission.playerId,gameId:gameId}).fetch(),answerId:submission.answerId,hasInHand:hand};
+                throw new Meteor.Error(505,"You can't submit a card you don't have! " + JSON.stringify(details));
+            }
 
 			Hands.remove({gameId:gameId,playerId:submission.playerId,cardId:submission.answerId});
 		});
@@ -388,10 +391,9 @@ Meteor.methods({
     // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
     // connects or disconnects.
     currentJudge: function(gameId) {
-        var players = Players.find({gameId:gameId,connected:true}).fetch();
+        var players = Players.find({gameId:gameId,connected:true},{fields:{_id:1},sort:{voted:1},limit:1}).fetch();
 
         if (players && players.length > 0) {
-            players = players.superSort("voted");
             return players[0]._id;
         } else {
             return null;

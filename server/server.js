@@ -3,7 +3,7 @@
  */
 
 Meteor.publish("openGames",function() {
-	return Games.find({open:true},{fields:{password:0,questionCards:0,answerCards:0},limit:50,sort:{players:1,modified:-1}});
+	return Games.find({open:true},{fields:{password:0,questionCards:0,answerCards:0},limit:50,sort:{modified:-1}});
 });
 
 Meteor.publish("hand",function(gameId) {
@@ -107,8 +107,7 @@ Meteor.startup(function () {
     // enable the geospatial index on games and users
     try {
         Games._ensureIndex({location:"2d"});
-        Games._ensureIndex({players:1,modified:-1});
-        Games._ensureIndex({userIds:1});
+        Games._ensureIndex({open:1,modified:-1,userIds:1});
         Votes._ensureIndex({gameId:1});
         Hands._ensureIndex({gameId:1});
         Hands._ensureIndex({userId:1});
@@ -162,19 +161,23 @@ Meteor.startup(function () {
     }
 
     // TODO: Seasonalize the games, keep the number of games random.
-
-    if (Games.find({open:true}).count() < 1000) {
-        Meteor.call("populate",1000);
+    var countOfGames = Games.find({open:true}).count();
+    if (countOfGames < 350) {
+        Meteor.call("populate",350-countOfGames);
     }
 
     Meteor.setInterval(function() {
         var botActions = Meteor.call("botsEvaluate");
         console.log("Bot action summary: " + JSON.stringify(botActions));
-    },1000);
+    },2000);
 
-    // Close games that haven't seen any activity for a while
+    // Close games that haven't seen any activity for a while, delete games that have been closed for a while
     Meteor.setInterval(function () {
         Games.update({open:true,modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{$set:{open:false}},{multi:true});
+        var closedGames = _.pluck(Games.find({open:false},{fields:{_id:1}}).fetch(),"_id");
+        Games.remove({open:false,modified:{$lt:new Date().getTime() - K_HEARTBEAT*100}});
+        Players.remove({gameId:{$in:closedGames}});
+
     },40*K_HEARTBEAT);
 
     // Update player connected status. Bots are always connected
@@ -200,7 +203,7 @@ Meteor.methods({
     drawHands: function(gameId,handSize) {
         handSize = handSize || K_DEFAULT_HAND_SIZE;
 
-        var game = Games.findOne({_id:gameId, open:true});
+        var game = Games.findOne({_id:gameId, open:true},{fields:{_id:1,open:1,answerCards:1}});
 
         if (!game)
             throw new Meteor.Error(404,"No game to draw hands from.");
@@ -218,20 +221,12 @@ Meteor.methods({
 
         var drawnCards = [];
 
-        var hands = _.groupBy(Hands.find({gameId:gameId}).fetch(),'playerId');
-
-        var players = Players.find({gameId:gameId,connected:true}).fetch();
+        var players = Players.find({gameId:gameId,connected:true},{fields:{_id:1,userId:1}}).fetch();
 
         _.each(players,function(player) {
-            var cards = null;
+            var handCount = Hands.find({gameId:gameId,playerId:player._id}).count();
 
-            if (!_.has(hands,player._id)) {
-                cards = {length:0};
-            } else {
-                cards = hands[player._id];
-            }
-
-            for (var i = 0; i < handSize - cards.length; i++) {
+            for (var i = 0; i < handSize - handCount; i++) {
                 var cardId = this.isSimulation ? null : game.answerCards.pop();
                 Hands.insert({userId:player.userId,gameId:gameId,playerId:player._id,cardId:cardId});
                 drawnCards.push(cardId);
@@ -260,7 +255,7 @@ Meteor.methods({
             _userId = this.userId;
         }
 
-        var g = Games.findOne({_id:gameId});
+        var g = Games.findOne({_id:gameId},{fields:{_id:1,open:1}});
 
         if (!g)
             throw new Meteor.Error(404,"Cannot join nonexistent game.");
@@ -284,12 +279,7 @@ Meteor.methods({
         p.connected = true;
 
         var getUserName = function(id) {
-            var u = Meteor.users.find({_id:id}).fetch();
-
-            if (!u)
-                return "Anomyous (" + id +")";
-
-            u = u[0];
+            var u = Meteor.users.findOne({_id:id});
 
             if (!u)
                 return "Anomyous (" + id +")";
@@ -310,8 +300,6 @@ Meteor.methods({
 
         var playerId = Players.insert(p);
 
-        console.log("joinGame: " + JSON.stringify(p));
-
         // If there is no owner, this first user is now the owner.
         Games.update({_id:gameId,creatorUserId:_userId,$or:[{judgeId:null},{ownerId:null}]},{$set:{ownerId:playerId,judgeId:playerId}});
 
@@ -330,7 +318,7 @@ Meteor.methods({
     findGameWithFewPlayers: function(gameSize) {
         // find the latest game with fewer than five players
         gameSize = gameSize || K_PREFERRED_GAME_SIZE;
-        var game = Games.findOne({open:true, players:{$lt:gameSize}});
+        var game = Games.findOne({open:true, players:{$lt:gameSize}},{fields:{_id:1}});
 
         if (!game)
             return false;
@@ -347,7 +335,7 @@ Meteor.methods({
         if (!location)
             return false;
 
-        var game = Games.findOne({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}});
+        var game = Games.findOne({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}},{fields:{_id:1}});
 
         if (!game)
             return false;
@@ -356,7 +344,7 @@ Meteor.methods({
     },
 
     findAnyGame: function() {
-        var game = Games.findOne({open:true});
+        var game = Games.findOne({open:true},{fields:{_id:1}});
 
         if (!game)
             return false;
@@ -374,7 +362,6 @@ Meteor.methods({
             _userId = this.userId;
         }
 
-        console.log("Creating " + JSON.stringify([title,password,location,_userId]));
         password = password || "";
         location = location || null;
 
@@ -415,7 +402,7 @@ Meteor.methods({
             location: location
         });
 
-        console.log("Created game " + gameId.toString());
+        console.log("Game stats: " + JSON.stringify({"Number of games":Games.find({open:true}).count(),"Last game created":gameId,"Players":Players.find().count()}));
 
         return gameId;
     },
