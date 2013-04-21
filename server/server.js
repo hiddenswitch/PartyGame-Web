@@ -160,20 +160,6 @@ Meteor.startup(function () {
         console.log("Game schema extension failure.");
     }
 
-    // TODO: Seasonalize the games, keep the number of games random.
-    var countOfBots = Meteor.users.find({'profile.bot':true}).count();
-    if (countOfBots < 100) {
-        Meteor.call("populate",100-countOfGames);
-    }
-
-    var botEvaluateFunction = function () {
-        var botActions = Meteor.call("botsEvaluate");
-        console.log("Bot action summary: " + JSON.stringify(botActions));
-        Meteor.setTimeout(botEvaluateFunction,1000);
-    }
-
-    Meteor.setTimeout(botEvaluateFunction,1000);
-
     // Close games that haven't seen any activity for a while, delete games that have been closed for a while
     Meteor.setInterval(function () {
         Games.update({open:true,modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{$set:{open:false}},{multi:true});

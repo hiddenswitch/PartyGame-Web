@@ -5,6 +5,28 @@
 
 var tick = 0;
 
+var botNames = [];
+
+Meteor.startup(function() {
+    // Get bot names
+    var response = Meteor.http.call("GET","http://localhost:3000/usernames.txt");
+    botNames = response.statusCode === 200 ? _.shuffle(response.content.match(/[^\r\n]+/g)) : [];
+
+    // TODO: Seasonalize the games, keep the number of games random.
+    var countOfBots = Meteor.users.find({'profile.bot':true}).count();
+    if (countOfBots < 100) {
+        Meteor.call("populate",100-countOfBots);
+    }
+
+    var botEvaluateFunction = function () {
+        var botActions = Meteor.call("botsEvaluate");
+        console.log("Bot action summary: " + JSON.stringify(botActions));
+        Meteor.setTimeout(botEvaluateFunction,1000);
+    }
+
+    Meteor.setTimeout(botEvaluateFunction,1000);
+});
+
 Meteor.methods({
     populate:function(population) {
         for (var i = 0; i < population; i++ ) {
@@ -25,9 +47,9 @@ Meteor.methods({
     createBot:function() {
         var userIdPadding = Random.id();
         var password = Random.id();
-        var nickname = "Anonymous (" + userIdPadding + ")";
+        var nickname = botNames.length > 0 ? botNames.pop() : "Anonymous " + userIdPadding;
         var botId = Accounts.createUser({
-            username:"Anonymous "+userIdPadding,
+            username:nickname,
             email:userIdPadding+"@redactedonline.com",
             password:password,
             profile:{
