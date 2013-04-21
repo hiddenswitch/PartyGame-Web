@@ -6,24 +6,18 @@
 Meteor.methods({
     populate:function(population) {
         for (var i = 0; i < population; i++ ) {
-            try {
-                var gameId = Meteor.call("findGameWithFewPlayers");
-
-                if (gameId) {
-                    Meteor.call("botJoinGame",gameId);
-                } else {
-                    Meteor.call("createEmptyBotGameAndJoin");
-                }
-            } catch (e) {
-                console.log(e);
-            }
-
+            Meteor.call("botJoinOrCreateGame");
         }
-
     },
 
-    botFindGame:function(maxSize) {
+    botJoinOrCreateGame:function() {
+        var gameId = Meteor.call("findGameWithFewPlayers");
 
+        if (gameId) {
+            Meteor.call("botJoinGame",gameId);
+        } else {
+            Meteor.call("createEmptyBotGameAndJoin");
+        }
     },
 
     createBot:function() {
@@ -150,10 +144,8 @@ Meteor.methods({
                             }
                         } else {
                             Meteor.users.update({_id:bot._id},{$set:{"profile.inGame":false}});
+                            Meteor.call("botJoinOrCreateGame");
                         }
-
-
-
                         // We have done all possible actions in the game.
                     });
                 }
