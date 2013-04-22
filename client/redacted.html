@@ -3,6 +3,19 @@
 
     <script type="text/javascript" src="/cordova-2.3.0.js"></script>
     <script type="text/javascript" src="/FacebookConnect.js"></script>
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+
+	<link rel="stylesheet" href="/themes/redacted-dark.min.css" />
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.1/jquery.mobile.structure-1.2.1.min.css" />
+
+
+	<script type="text/javascript">
+	$(document).bind("mobileinit",function(event,data){
+		$.mobile.autoInitializePage=true;
+		$.mobile.defaultPageTransition='slide';
+	});
+	</script>
+	<script src="http://code.jquery.com/mobile/1.2.1/jquery.mobile-1.2.1.min.js"></script>
 	<script type="text/javascript">
 	var _gaq = _gaq || [];_gaq.push(['_setAccount', 'UA-34256916-3']);_gaq.push(['_trackPageview']);(function() {var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);})();
 	</script>
