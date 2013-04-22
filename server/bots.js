@@ -14,10 +14,12 @@ Meteor.startup(function() {
         Usernames = null;
     }
     // TODO: Seasonalize the games, keep the number of games random.
-    var countOfBots = Meteor.users.find({'profile.bot':true}).count();
-    if (countOfBots < 100) {
-        Meteor.call("populate",100-countOfBots);
-    }
+    Deps.autorun(function() {
+        var countOfBots = Meteor.users.find({'profile.bot':true}).count();
+        if (countOfBots < 100) {
+            Meteor.call("populate",100-countOfBots);
+        }
+    });
 
     var botEvaluateFunction = function () {
         var botActions = Meteor.call("botsEvaluate");
