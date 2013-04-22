@@ -92,8 +92,6 @@ Meteor.publish("usersInGame",function(gameId) {
 });
 
 Meteor.startup(function () {
-    // Clear the database
-//    clearDatabase();
     // Add the heartbeat field to the user profile
     Accounts.onCreateUser(function(options, user) {
         if (options.profile)
@@ -105,60 +103,20 @@ Meteor.startup(function () {
     });
 
     // enable the geospatial index on games and users
-    try {
-        Games._ensureIndex({location:"2d"});
-        Games._ensureIndex({open:1,modified:-1,userIds:1});
-        Votes._ensureIndex({gameId:1});
-        Hands._ensureIndex({gameId:1});
-        Hands._ensureIndex({userId:1});
-        Cards._ensureIndex({deckId:1});
-        Decks._ensureIndex({title:1});
-        Cards._ensureIndex({type:1});
-        Players._ensureIndex({userId:1});
-        Players._ensureIndex({gameId:1,userId:1,connected:1});
-        Submissions._ensureIndex({gameId:1});
-        Meteor.users._ensureIndex({'profile.heartbeat':-1});
-        Meteor.users._ensureIndex({'profile.location':"2d"});
-    } catch (e) {
-        console.log("Indexing failure. " + e);
-    }
 
-    if (Cards.find({}).count() === 0) {
-        // Cards Against Humanity cards
-        var CAHDeck = new Deck();
-        CAHDeck.title = "Cards Against Humanity";
-        CAHDeck.ownerId = "";
-        CAHDeck.description = "The complete Cards Against Humanity questions and answers, licensed Creative Commons" +
-            "2.0 BY-NC-SA.";
-        CAHDeck.price = 0;
-
-        var CAHId = Decks.insert(CAHDeck);
-
-        _.each(CAH_QUESTION_CARDS,function(c){
-            Cards.insert({text:c,type:CARD_TYPE_QUESTION,deckId:CAHId});
-        });
-
-        _.each(CAH_ANSWER_CARDS,function(c){
-            Cards.insert({text:c,type:CARD_TYPE_ANSWER,deckId:CAHId});
-        });
-    }
-
-
-
-    // make sure users have full schema
-    try {
-        Meteor.users.update({heartbeat:{$exists:false},location:{$exists:false}},{$set:{heartbeat:new Date().getTime(),location:null}},{multi:true});
-    } catch (e) {
-        console.log("User schema extension failure.");
-    }
-
-
-    // make sure games have full schema
-    try {
-        Games.update({connected:{$exists:false},modified:{$exists:false}},{$set:{connected:[],modified:new Date().getTime()}},{multi:true});
-    } catch (e) {
-        console.log("Game schema extension failure.");
-    }
+    Games._ensureIndex({location:"2d"});
+    Games._ensureIndex({open:1,modified:-1,userIds:1});
+    Votes._ensureIndex({gameId:1});
+    Hands._ensureIndex({gameId:1});
+    Hands._ensureIndex({userId:1});
+    Cards._ensureIndex({deckId:1});
+    Decks._ensureIndex({title:1});
+    Cards._ensureIndex({type:1});
+    Players._ensureIndex({userId:1});
+    Players._ensureIndex({gameId:1,userId:1,connected:1});
+    Submissions._ensureIndex({gameId:1});
+    Meteor.users._ensureIndex({'profile.heartbeat':-1});
+    Meteor.users._ensureIndex({'profile.location':"2d"});
 
     // Close games that haven't seen any activity for a while, delete games that have been closed for a while
     Meteor.setInterval(function () {
@@ -188,6 +146,27 @@ Meteor.startup(function () {
 });
 
 Meteor.methods({
+    initCards:function() {
+        if (Cards.find({}).count() === 0) {
+            // Cards Against Humanity cards
+            var CAHDeck = new Deck();
+            CAHDeck.title = "Cards Against Humanity";
+            CAHDeck.ownerId = "";
+            CAHDeck.description = "The complete Cards Against Humanity questions and answers, licensed Creative Commons" +
+                "2.0 BY-NC-SA.";
+            CAHDeck.price = 0;
+
+            var CAHId = Decks.insert(CAHDeck);
+
+            _.each(CAH_QUESTION_CARDS,function(c){
+                Cards.insert({text:c,type:CARD_TYPE_QUESTION,deckId:CAHId});
+            });
+
+            _.each(CAH_ANSWER_CARDS,function(c){
+                Cards.insert({text:c,type:CARD_TYPE_ANSWER,deckId:CAHId});
+            });
+        }
+    },
     // Draw hands for all players in the game.
     drawHands: function(gameId,handSize) {
         handSize = handSize || K_DEFAULT_HAND_SIZE;
@@ -204,7 +183,7 @@ Meteor.methods({
 
         // all answer cards exhausted, do not draw any more cards.
         if (game.answerCards.length < 1) {
-            Meteor.call("tryCloseGame",gameID);
+            Meteor.call("tryCloseGame",gameId);
             throw new Meteor.Error(405,"The game is over, the game is being closed.");
         }
 
@@ -357,14 +336,13 @@ Meteor.methods({
         if (title=="")
             title = "Game #" + (Games.find({}).count() + 1).toString();
 
+        Meteor.call("initCards");
+
         var shuffledAnswerCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_ANSWER},{fields:{_id:1}}).fetch(),'_id'));
 
         if (shuffledAnswerCards === null || shuffledAnswerCards.length === 0) {
-            throw new Meteor.Error(500,"No answer cards were found. Were cards initialized correctly?");
+            throw new Meteor.Error(404,"Cards were not found. Did you forget to initialize cards?");
         }
-
-        if (!shuffledAnswerCards)
-            throw new Meteor.Error(404,"No answer cards found.");
 
         var shuffledQuestionCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_QUESTION},{fields:{_id:1}}).fetch(),'_id'));
 
@@ -398,7 +376,7 @@ Meteor.methods({
 
     // Closes the game if it is valid to do so
     tryCloseGame:function(gameId) {
-        var g = Games.findOne({_id:gameId});
+        var g = Games.findOne({_id:gameId},{fields:{answerCards:1,questionCards:1,open:1}});
 
         if (!g) {
             throw new Meteor.Error(404,"The game " + gameId + " does not exist.");

@@ -9,9 +9,8 @@ var botNames = [];
 
 Meteor.startup(function() {
     // Get bot names
-    var response = Meteor.http.call("GET","http://localhost:3000/usernames.txt");
-    botNames = response.statusCode === 200 ? _.shuffle(response.content.match(/[^\r\n]+/g)) : [];
-
+    botNames = _.shuffle(Usernames);
+    Usernames = null;
     // TODO: Seasonalize the games, keep the number of games random.
     var countOfBots = Meteor.users.find({'profile.bot':true}).count();
     if (countOfBots < 100) {

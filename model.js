@@ -232,7 +232,7 @@ Meteor.methods({
 		var judge = Players.findOne({_id:judgeId});
 		
 		if (!judge)
-			throw new Meteor.Error(404,"Judge with id "+judgeId.toString()+" not found.")
+			throw new Meteor.Error(404,"Judge with id "+judgeId.toString()+" not found.");
 		
 		if (playerId != judgeId)
 			throw new Meteor.Error(500,"It's not your turn to judge!");
