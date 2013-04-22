@@ -364,7 +364,7 @@ Meteor.methods({
             _userId = this.userId;
         }
 
-		var game = Games.findOne({_id:gameId});
+		var game = Games.findOne({_id:gameId},{fields:{_id:1,open:1,ownerId:1,players:1}});
 		
 		if (!game)
 			throw new Meteor.Error(404,"No game found to quit from.");
@@ -378,11 +378,11 @@ Meteor.methods({
 		var ownerId = game.ownerId;
 
 		// If the owner is quitting his own game, assign a new player as the owner
-		if (EJSON.equals(game.ownerId,_userId) && game.players > 1) {
+		if (EJSON.equals(game.ownerId,_userId) && game.players.length > 1) {
 			ownerId = Players.findOne({gameId:gameId,_id:{$ne:game.ownerId}})._id;
 		}
-		
-		return Games.update({_id:gameId},{$inc: {players:-1}, $pullAll:{userIds:_userId}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
+
+		return Games.update({_id:gameId},{$inc: {players:-1}, $pull:{userIds:_userId}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
 	},
 
     // Gets the current judge
