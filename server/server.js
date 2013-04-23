@@ -171,8 +171,9 @@ Meteor.methods({
             var player = players[i];
             var handCount = Hands.find({gameId:gameId,playerId:player._id}).count();
 
-            for (var i = 0; i < handSize - handCount; i++) {
-                if (game.answerCards > 0) {
+            // TODO: Atomize the operations on cards
+            for (var j = 0; j < handSize - handCount; j++) {
+                if (game.answerCards.length > 0) {
                     var cardId = this.isSimulation ? null : game.answerCards.pop();
                     Hands.insert({userId:player.userId,gameId:gameId,playerId:player._id,cardId:cardId});
                     drawnCards.push(cardId);
