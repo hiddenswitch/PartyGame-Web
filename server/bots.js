@@ -7,19 +7,33 @@ var tick = 0;
 
 var botNames = [];
 
+var botPlayers = 400;
+
 Meteor.startup(function() {
     // Get bot names
-    if (!Usernames && Usernames.length > 0) {
+    if (Usernames && Usernames.length > 0) {
         botNames = _.shuffle(Usernames);
         Usernames = null;
     }
     // TODO: Seasonalize the games, keep the number of games random.
     Deps.autorun(function() {
         var countOfBots = Meteor.users.find({'profile.bot':true}).count();
-        if (countOfBots < 100) {
-            Meteor.call("populate",100-countOfBots);
+        if (countOfBots < botPlayers) {
+            Meteor.call("populate",botPlayers-countOfBots);
         }
     });
+
+    var joins = 0
+
+    Games.find({players:{$lt:K_PREFERRED_GAME_SIZE},open:true},{fields:{_id:1,players:1}}).observe({
+        added:function(g) {
+            for (var i = 0; i < K_PREFERRED_GAME_SIZE - g.players; i++) {
+                joins+=Meteor.call("botJoinGame", g._id);
+            }
+        }
+    });
+
+
 
     var botEvaluateFunction = function () {
         var botActions = Meteor.call("botsEvaluate");
@@ -35,6 +49,19 @@ Meteor.methods({
         for (var i = 0; i < population; i++ ) {
             Meteor.call("botJoinOrCreateGame");
         }
+    },
+
+    fillGameWithBots:function(gameId,size) {
+        size = size || K_PREFERRED_GAME_SIZE;
+        var g = Games.findOne({_id:gameId},{fields:{players:1}});
+
+        if (g.players > size) {
+            return 0;
+        }
+
+
+
+        return joins;
     },
 
     botJoinOrCreateGame:function() {
