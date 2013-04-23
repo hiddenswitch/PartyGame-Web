@@ -44,7 +44,9 @@ var Game = function() {
     this.password = ""; // game password if any.
     this.round = -1; // round number.
     this.questionId = 0; // id of current question.
+    this.questionCardsCount = 0; // number of question cards
     this.questionCards = []; // question cards.
+    this.answerCardsCount = 0; // number of answer cards
     this.answerCards = []; // answer cards.
     this.open = 1; // is the game open.
     this.ownerId = 0; // owner of the game.
@@ -312,13 +314,13 @@ Meteor.methods({
             var nextJudge = Meteor.call("currentJudge",game._id);
 
             // increment round
-            Games.update({_id:gameId},{$set:{questionId:questionCardId,modified:new Date().getTime(),judgeId:nextJudge},$inc:{round:1},$pop:{questionCards:1}});
+            Games.update({_id:gameId},{$set:{questionId:questionCardId,modified:new Date().getTime(),judgeId:nextJudge},$inc:{round:1,questionCardsCount:-1},$pop:{questionCards:1}});
 
             // draw new cards
             Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
 		} else {
             // Close the game
-            Games.update({_id:gameId},{$set:{open:false}})
+            Games.update({_id:gameId},{$set:{open:false}});
             // Close the players
             Players.update({gameId:gameId},{$set:{open:false}});
 		}

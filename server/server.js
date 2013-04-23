@@ -117,32 +117,6 @@ Meteor.startup(function () {
     Submissions._ensureIndex({gameId:1});
     Meteor.users._ensureIndex({'profile.heartbeat':-1});
     Meteor.users._ensureIndex({'profile.location':"2d"});
-
-    // Close games that haven't seen any activity for a while, delete games that have been closed for a while
-    Meteor.setInterval(function () {
-        Games.update({open:true,modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{$set:{open:false}},{multi:true});
-        var closedGames = _.pluck(Games.find({open:false},{fields:{_id:1}}).fetch(),"_id");
-        Games.remove({open:false,modified:{$lt:new Date().getTime() - K_HEARTBEAT*100}});
-        Players.remove({gameId:{$in:closedGames}});
-
-    },40*K_HEARTBEAT);
-
-    // Update player connected status. Bots are always connected
-    Meteor.setInterval(function () {
-        var disconnectedUsers = Meteor.users.find({'profile.bot':false,'profile.heartbeat':{$lt:new Date().getTime() - K_HEARTBEAT*2}}).fetch();
-
-        // Set the connected attribute of the Players collection documents to false for disconnected users
-        Players.update({userId:{$in:_.pluck(disconnectedUsers,'_id')},connected:true},{$set:{connected:false}},{multi:true});
-
-        // Update the judges
-        _.each(Games.find({open:true}).fetch(),function(g){
-            var gameCurrentJudge = Meteor.call("currentJudge",g._id);
-            if (g.judge !== gameCurrentJudge) {
-                Games.update({_id:g._id},{$set:{judgeId:gameCurrentJudge}});
-            }
-        });
-
-    },2*K_HEARTBEAT);
 });
 
 Meteor.methods({
@@ -181,6 +155,8 @@ Meteor.methods({
             throw new Meteor.Error(403,"This game is closed.");
         }
 
+        var open = true;
+
         // all answer cards exhausted, do not draw any more cards.
         if (game.answerCards.length < 1) {
             Meteor.call("tryCloseGame",gameId);
@@ -191,18 +167,28 @@ Meteor.methods({
 
         var players = Players.find({gameId:gameId,connected:true},{fields:{_id:1,userId:1}}).fetch();
 
-        _.each(players,function(player) {
+        for (var i = 0; i < players.length; i++) {
+            var player = players[i];
             var handCount = Hands.find({gameId:gameId,playerId:player._id}).count();
 
             for (var i = 0; i < handSize - handCount; i++) {
-                var cardId = this.isSimulation ? null : game.answerCards.pop();
-                Hands.insert({userId:player.userId,gameId:gameId,playerId:player._id,cardId:cardId});
-                drawnCards.push(cardId);
+                if (game.answerCards > 0) {
+                    var cardId = this.isSimulation ? null : game.answerCards.pop();
+                    Hands.insert({userId:player.userId,gameId:gameId,playerId:player._id,cardId:cardId});
+                    drawnCards.push(cardId);
+                } else {
+                    // Out of cards, close game
+                    open = false;
+                    break;
+                }
             }
-        });
+            if (!open) {
+                break;
+            }
+        }
 
         // update the game
-        Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$set:{modified:new Date().getTime()}});
+        Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$inc:{answerCardCount:-drawnCards.length},$set:{open:open,modified:new Date().getTime()}});
     },
 
     // Find the latest game a given player joined
@@ -372,7 +358,9 @@ Meteor.methods({
             password:password, // game password if any
             players:0, // number of players in the game
             round:0, // round number
+            questionCardsCount:shuffledQuestionCards.length,
             questionCards:shuffledQuestionCards,
+            answerCardsCount:shuffledAnswerCards.length,
             answerCards:shuffledAnswerCards,
             questionId:firstQuestionCardId,
             open:true,
@@ -392,32 +380,12 @@ Meteor.methods({
 
     // Closes the game if it is valid to do so
     tryCloseGame:function(gameId) {
-        var g = Games.findOne({_id:gameId},{fields:{answerCards:1,questionCards:1,open:1}});
 
-        if (!g) {
-            throw new Meteor.Error(404,"The game " + gameId + " does not exist.");
-        }
-
-        var open = g.open;
-
-        // If no answer cards remain, close
-        if (open && g.answerCards && g.answerCards.length === 0) {
-            open = false;
-        }
-
-        // If no question cards remain, close
-        if (open && g.questionCards && g.questionCards.length === 0) {
-            open = false;
-        }
-
-        // If no players are connected in this game, close
-        if (open && Players.find({gameId:gameId,connected:true}).count() === 0) {
-            open = false;
-        }
-
-        if (g.open !== open) {
-            Games.update({_id:gameId},{$set:{open:false},modified:new Date().getTime()});
-        }
+        Games.update(
+            gameId === null ?
+                {open:true,$or:[{modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}}, {questionCardsCount:0}, {answerCardsCount:0}]} :
+                {_id:gameId}
+            ,{$set:{open:false},modified:new Date().getTime()},{multi:gameId === null});
     }
 });
 
