@@ -426,7 +426,6 @@ registerTemplates = function() {
     Handlebars.registerHelper("toCard",cardIdToText);
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
 	Handlebars.registerHelper("playerIdToName",playerIdToName);
-	Handlebars.registerHelper("refreshListviewsAndCreateButtons",refreshListviewsAndCreateButtons);
     Handlebars.registerHelper("loggedIn",loggedIn);
 	Handlebars.registerHelper("connectionStatus",function () {
 		var status = Meteor.status().status;
@@ -533,7 +532,7 @@ registerTemplates = function() {
     }
 
 	Template.judge.rendered = function () {
-        refreshListviewsAndCreateButtons();
+        refreshListviews();
         if (isJudge() && playersCount() > 1) {
             $('#submissionsCollapsible h3 a').addClass('magic');
         } else {
@@ -553,14 +552,14 @@ registerTemplates = function() {
 	};
 
     Template.question.preserve(defaultPreserve);
-    Template.question.rendered = refreshListviewsAndCreateButtons;
+    Template.question.rendered = refreshListviews;
 
 	Template.players.players = function () {
 		var players = _.pluck(Players.find({gameId:Session.get(CURRENT_GAME)}),"userId");
 		return _.map(players, function (o) {return Meteor.users.findOne({_id:o})});
 	};
 
-	Template.players.rendered = refreshListviewsAndCreateButtons;
+	Template.players.rendered = refreshListviews;
 	Template.players.created = createListviews;
     Template.players.preserve(defaultPreserve);
 
@@ -571,20 +570,19 @@ registerTemplates = function() {
 		return scores(Session.get(GAME));
 	};
 
-	Template.scores.rendered = refreshListviewsAndCreateButtons;
+	Template.scores.rendered = refreshListviews;
 	Template.scores.created = createListviews;
     Template.scores.preserve(defaultPreserve);
 
 	Template.browse.games = function() {
-
-		return Games.find({open:true},{limit:10,sort:{players:-1},fields:{_id:1,players:1,title:1,open:1}}).fetch();
+		return Games.find({open:true},{limit:10,sort:{players:-1},fields:{_id:1,players:1,title:1,open:1}});
 	};
 
 	Template.browse.events = {
 		'click a': joinGameOnClick
 	};
 
-	Template.browse.rendered = refreshListviewsAndCreateButtons;
+	Template.browse.rendered = refreshListviews;
 	Template.browse.created = createListviews;
     Template.browse.preserve(defaultPreserve);
 
@@ -600,7 +598,7 @@ registerTemplates = function() {
 		'click a': joinGameOnClick
 	};
 
-	Template.myGames.rendered = refreshListviewsAndCreateButtons;
+	Template.myGames.rendered = refreshListviews;
 	Template.myGames.created = createListviews;
     Template.myGames.preserve(defaultPreserve);
 
@@ -639,7 +637,7 @@ registerTemplates = function() {
 		}
 	}
 
-	Template.submissions.rendered = refreshListviewsAndCreateButtons;
+	Template.submissions.rendered = refreshListviews;
 
 	Template.submissions.created = createListviews;
     Template.submissions.preserve(defaultPreserve);
@@ -669,7 +667,6 @@ registerTemplates = function() {
 	};
 
 	Template.hand.rendered = function() {
-        refreshListviewsAndCreateButtons();
         if (isJudge()) {
             $('#handHeader').text("Your Hand");
             $('#handCollapsible h3 a').removeClass('magic');
@@ -690,7 +687,9 @@ registerTemplates = function() {
 			return "REDACTED.";
 	};
 
-    Template.menu.rendered = refreshListviewsAndCreateButtons;
+    Template.preview.rendered = refreshListviews;
+
+    Template.menu.rendered = refreshListviews;
     Template.menu.created = createListviews;
 };
 
