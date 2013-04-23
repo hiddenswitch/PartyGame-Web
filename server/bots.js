@@ -23,18 +23,6 @@ Meteor.startup(function() {
         }
     });
 
-    var joins = 0
-
-    Games.find({players:{$lt:K_PREFERRED_GAME_SIZE},open:true},{fields:{_id:1,players:1}}).observe({
-        added:function(g) {
-            for (var i = 0; i < K_PREFERRED_GAME_SIZE - g.players; i++) {
-                joins+=Meteor.call("botJoinGame", g._id);
-            }
-        }
-    });
-
-
-
     var botEvaluateFunction = function () {
         var botActions = Meteor.call("botsEvaluate");
         console.log("Bot action summary: " + JSON.stringify(botActions));
