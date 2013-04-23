@@ -10,9 +10,12 @@ var botNames = [];
 var botPlayers = 400;
 
 Meteor.startup(function() {
-    // Get bot names
+    // Get bot names, erasing stuff that already exists.
     if (Usernames && Usernames.length > 0) {
-        botNames = _.shuffle(Usernames);
+        var existingUserNames = Meteor.users.find({},{fields:{username:1}}).fetch();
+        existingUserNames = existingUserNames || [];
+        botNames = _.shuffle(_.without(Usernames,existingUserNames));
+        // Clear memory.
         Usernames = null;
     }
     // TODO: Seasonalize the games, keep the number of games random.
@@ -68,7 +71,16 @@ Meteor.methods({
     createBot:function() {
         var userIdPadding = Random.id();
         var password = Random.id();
-        var nickname = botNames.length > 0 ? botNames.pop() : "Anonymous " + userIdPadding;
+        var foundName = false;
+
+        // Only try 10 names before giving up and using a random name
+        for (var i = 0; !foundName || i < 10; i++) {
+            var nickname = botNames.length > 0 ? botNames.pop() : "Anonymous " + userIdPadding;
+            if (Meteor.users.find({username:nickname}).count() === 0) {
+                foundName = true;
+            }
+        }
+
         var botId = Accounts.createUser({
             username:nickname,
             email:userIdPadding+"@redactedonline.com",
