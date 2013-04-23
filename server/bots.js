@@ -26,7 +26,7 @@ Meteor.startup(function() {
     var botEvaluateFunction = function () {
         var botActions = Meteor.call("botsEvaluate");
         console.log("Bot action summary: " + JSON.stringify(botActions));
-        Meteor.setTimeout(botEvaluateFunction,1000);
+        Meteor.setTimeout(botEvaluateFunction,1);
     }
 
     Meteor.setTimeout(botEvaluateFunction,1000);
@@ -42,23 +42,26 @@ Meteor.methods({
     fillGameWithBots:function(gameId,size) {
         size = size || K_PREFERRED_GAME_SIZE;
         var g = Games.findOne({_id:gameId},{fields:{players:1}});
+        var joins = 0;
 
-        if (g.players > size) {
+        if (g && g.players < size) {
+            for (var i = 0; i < size - g.players; i++) {
+                joins += Meteor.call("botJoinGame",gameId);
+            }
+        } else {
             return 0;
         }
-
-
 
         return joins;
     },
 
-    botJoinOrCreateGame:function() {
+    botJoinOrCreateGame:function(botId) {
         var gameId = Meteor.call("findGameWithFewPlayers",Math.floor(Random.fraction()*5+4));
-
+        botId = botId || Meteor.call("getBot");
         if (gameId) {
-            return Meteor.call("botJoinGame",gameId);
+            return Meteor.call("botJoinGame",gameId,botId);
         } else {
-            return Meteor.call("createEmptyBotGameAndJoin");
+            return Meteor.call("createEmptyBotGameAndJoin",botId);
         }
     },
 
@@ -177,6 +180,9 @@ Meteor.methods({
                                         if (r) {
                                             Meteor.call("finishRound",game._id);
                                         }
+                                        if (e) {
+                                            // Defer until next time, pick another random card.
+                                        }
                                     });
                                 }
                                 o.botVotes++;
@@ -200,7 +206,7 @@ Meteor.methods({
                             }
                         } else {
                             Meteor.users.update({_id:bot._id},{$set:{"profile.inGame":false}});
-                            o.botRejoins += Meteor.call("botJoinOrCreateGame");
+                            o.botRejoins += Meteor.call("botJoinOrCreateGame",bot._id);
                         }
                         // We have done all possible actions in the game.
                     });
