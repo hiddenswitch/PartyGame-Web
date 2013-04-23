@@ -129,29 +129,32 @@
             <h4>{{> connectionError}}</h4>
         </div>
 	</div>
-	
+
 	<div data-role="page" id="browse" data-add-back-btn="true" data-theme="a">
 		<div data-role="header" data-position="fixed">
 			<h1>Browse Games</h1>
 		</div>
 		<div data-role="content">
+            <label for="gameNameToJoin" class="ui-hidden-accessible">Game Name</label>
+            <input type="text" name="gameNameToJoin" id="gameNameToJoin" value="" placeholder="Game Name"/>
+            <a href="#" data-role="button" data-icon="plus" onclick="joinGame($('#gameNameToJoin').attr('value'))">Join Game</a>
 
-		<ul data-role="listview" data-inset="true"  class="rounded">
-            <li data-role="list-divider">Open Games</li>
-				{{> browse}}
-		</ul>
+            <ul data-role="listview" data-inset="true" data-inset="true" class="rounded">
+                <li data-role="list-divider">Open Games</li>
+                    {{> browse}}
+            </ul>
 		</div>
         <div data-role="footer" data-position="fixed" data-id="thefooter">
             <h4>{{> connectionError}}</h4>
         </div>
 	</div>
-	
+
 	<div data-role="page" id="myGames" data-add-back-btn="true" data-theme="a">
 		<div  data-role="header" data-position="fixed">
 			<h1>My Games</h1>
 		</div>
 		<div data-role="content">
-		<ul data-role="listview" data-inset="true" class="rounded">
+		<ul data-role="listview" data-inset="true" class="rounded" data-filter="true" data-filter-reveal="false" data-filter-placeholder="Type the title...">
             <li data-role="list-divider">Games I'm Playing</li>
 			{{#isolate}}
 				{{> myGames}}

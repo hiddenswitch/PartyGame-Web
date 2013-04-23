@@ -377,6 +377,16 @@ joinGameOnClick = function(e) {
 	});
 };
 
+joinGame = function(title) {
+    Meteor.call("joinGameWithTitle",title,function(e,r) {
+        if (r) {
+            Session.set(GAME,r);
+            $.mobile.changePage('#game');
+        }
+        setError(e);
+    });
+}
+
 isJudge = function() {
     var currentGameId = Session.get(GAME);
     var playerId = getPlayerId(currentGameId,Meteor.userId());
@@ -566,7 +576,8 @@ registerTemplates = function() {
     Template.scores.preserve(defaultPreserve);
 
 	Template.browse.games = function() {
-		return Games.find({open:true},{limit:20});
+
+		return Games.find({open:true},{limit:10,sort:{players:-1}});
 	};
 
 	Template.browse.events = {
@@ -578,7 +589,11 @@ registerTemplates = function() {
     Template.browse.preserve(defaultPreserve);
 
 	Template.myGames.games = function() {
-		return Games.find({open:true,userIds:Meteor.userId()});
+        if ($ && $.mobile && $.mobile.activePage) {
+            return $.mobile.activePage.attr('id') === "browse" ? Games.find({open:true,userIds:Meteor.userId()}) : null;
+        } else  {
+            return null;
+        }
 	};
 
 	Template.myGames.events = {
@@ -590,6 +605,9 @@ registerTemplates = function() {
     Template.myGames.preserve(defaultPreserve);
 
     Template.submissions.isJudge = isJudge;
+    Template.submissions.count = function () {
+        return Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)}).count();
+    };
 	Template.submissions.submissions = function () {
 		return Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)});
 	};

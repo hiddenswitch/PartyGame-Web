@@ -215,6 +215,22 @@ Meteor.methods({
         }
     },
 
+    joinGameWithTitle: function(title,_userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(500,"When server calls" + " joinGame" + ", you must impersonate a user.");
+        } else if (this.userId) {
+            _userId = this.userId;
+        }
+
+        var g = Games.findOne({title:title});
+
+        if (g) {
+            return Meteor.call("joinGame", g._id,_userId);
+        } else {
+            throw new Meteor.Error(404,"A game named " + title + " was not found.");
+        }
+    },
+
     // Join a game
     joinGame: function(gameId,_userId) {
         if (!this.userId && !_userId) {
