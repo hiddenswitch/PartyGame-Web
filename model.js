@@ -236,8 +236,12 @@ Meteor.methods({
 		if (!judge)
 			throw new Meteor.Error(404,"Judge with id "+judgeId.toString()+" not found.");
 		
-		if (playerId != judgeId)
-			throw new Meteor.Error(500,"It's not your turn to judge!");
+		if (playerId != judgeId) {
+            // Update the current judge.
+            Games.update({_id:gameId},{$set:{judgeId:judgeId}});
+            throw new Meteor.Error(500,"It's not your turn to judge! Updating judge.");
+        }
+
 		
 		var submission = Submissions.findOne({_id:submissionId});
 		var submissionCount = Submissions.find({gameId:gameId,round:game.round}).count();
@@ -393,12 +397,12 @@ Meteor.methods({
     // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
     // connects or disconnects.
     currentJudge: function(gameId) {
-        var players = Players.find({gameId:gameId,connected:true},{fields:{_id:1},sort:{voted:1},limit:1}).fetch();
+        var players = Players.find({gameId:gameId,connected:true,open:true},{fields:{_id:1},sort:{voted:1},limit:1}).fetch();
 
         if (players && players.length > 0) {
             return players[0]._id;
         } else {
-            return null;
+            throw new Meteor.Error("currentJudge: There are no players in this game!",{gameId:gameId});
         }
     },
 	
@@ -413,7 +417,7 @@ Meteor.methods({
 		var game = Games.findOne({_id:gameId});
 		
 		if (!game)
-			throw new Meteor.Error(404,"Cannot find game to end.");
+			throw new Meteor.Error(404,"closeGame: Cannot find game to end.",{gameId:gameId});
 
         var playerId = getPlayerId(gameId,_userId);
 

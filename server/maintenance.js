@@ -6,10 +6,7 @@ Meteor.startup(function() {
     // Close games that haven't seen any activity for a while, delete games that have been closed for a while
     Meteor.setInterval(function () {
         Games.update({open:true,$or:[{modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{questionCardsCount:0},{answerCardsCount:0}]},{$set:{open:false}},{multi:true});
-        var closedGames = _.pluck(Games.find({open:false},{fields:{_id:1}}).fetch(),"_id");
-        Games.remove({open:false,modified:{$lt:new Date().getTime() - K_HEARTBEAT*100}});
-        Players.remove({$or:[{gameId:{$in:closedGames}},{open:false}]});
-
+        Meteor.call("clean");
     },40*K_HEARTBEAT);
 
     // Update player connected status. Bots are always connected
@@ -28,4 +25,19 @@ Meteor.startup(function() {
         });
 
     },2*K_HEARTBEAT);
+});
+
+Meteor.methods({
+    clean:function() {
+        if (this.userId) {
+            throw new Meteor.Error(503,"You must be an administrator to call this function.");
+        }
+
+        var closedGames = _.pluck(Games.find({open:false},{fields:{_id:1}}).fetch(),"_id");
+
+        Hands.remove({gameId:{$in:closedGames}});
+        Submissions.remove({gameId:{$in:closedGames}});
+        Votes.remove({gameId:{$in:closedGames}});
+        Players.remove({$or:[{gameId:{$in:closedGames}},{open:false}]});
+    }
 });

@@ -244,6 +244,7 @@ Meteor.methods({
         // count.
         var p = new Player();
 
+        p.open = true;
         p.userId = _userId;
         p.gameId = gameId;
         p.voted = new Date().getTime();
@@ -278,7 +279,7 @@ Meteor.methods({
         Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId,playerIds:playerId}, $set:{modified:new Date().getTime()}});
 
         // Update the heartbeat
-        Meteor.users.update({_id:_userId},{$set:{heartbeat:new Date().getTime()}});
+        Meteor.users.update({_id:_userId},{$set:{'profile.heartbeat':new Date().getTime()}});
 
         // Draw hands for all users
         Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
