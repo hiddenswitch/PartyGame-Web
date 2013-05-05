@@ -11,30 +11,35 @@ var botPlayers = 400;
 
 var tickRate = 800;
 
-Meteor.startup(function() {
-    // Get bot names, erasing stuff that already exists.
-    if (Usernames && Usernames.length > 0) {
-        var existingUserNames = Meteor.users.find({},{fields:{username:1}}).fetch();
-        existingUserNames = existingUserNames || [];
-        botNames = _.shuffle(_.without(Usernames,existingUserNames));
-        // Clear memory.
-        Usernames = null;
-    }
-    // TODO: Seasonalize the games, keep the number of games random.
-    Deps.autorun(function() {
-        var countOfBots = Meteor.users.find({'profile.bot':true}).count();
-        if (countOfBots < botPlayers) {
-            Meteor.call("populate",botPlayers-countOfBots);
-        }
-    });
+var useBots = false;
 
-    var botEvaluateFunction = function () {
-        var botActions = Meteor.call("botsEvaluate");
-        console.log("Bot action summary: " + JSON.stringify(botActions));
+Meteor.startup(function() {
+    if (useBots) {
+        // Get bot names, erasing stuff that already exists.
+        if (Usernames && Usernames.length > 0) {
+            var existingUserNames = Meteor.users.find({},{fields:{username:1}}).fetch();
+            existingUserNames = existingUserNames || [];
+            botNames = _.shuffle(_.without(Usernames,existingUserNames));
+            // Clear memory.
+            Usernames = null;
+        }
+
+        // TODO: Seasonalize the games, keep the number of games random.
+        Deps.autorun(function() {
+            var countOfBots = Meteor.users.find({'profile.bot':true}).count();
+            if (countOfBots < botPlayers) {
+                Meteor.call("populate",botPlayers-countOfBots);
+            }
+        });
+
+        var botEvaluateFunction = function () {
+            var botActions = Meteor.call("botsEvaluate");
+            console.log("Bot action summary: " + JSON.stringify(botActions));
+            Meteor.setTimeout(botEvaluateFunction,tickRate);
+        }
+
         Meteor.setTimeout(botEvaluateFunction,tickRate);
     }
-
-    Meteor.setTimeout(botEvaluateFunction,tickRate);
 });
 
 Meteor.methods({
