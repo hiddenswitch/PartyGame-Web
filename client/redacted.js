@@ -381,7 +381,7 @@ joinGame = function(title) {
     Meteor.call("joinGameWithTitle",title,function(e,r) {
         if (r) {
             Session.set(GAME,r);
-            $.mobile.changePage('#game');
+            $.mobile.changePage('#roundSummary');
         }
         setError(e);
     });
@@ -610,6 +610,10 @@ registerTemplates = function() {
 		return Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)});
 	};
 
+    Template.submissions.remaining = function() {
+        return playersCount() - submissionCount();
+    }
+
     Template.submissions.count = function () {
         return "(" + submissionCount().toString() + "/" + maxSubmissionsCount().toString() + ")";
     };
@@ -618,6 +622,11 @@ registerTemplates = function() {
 		'click .submission':function(e) {
 			var submissionId = $(e.target).attr('id');
 			Session.set(PREVIEW_CARD,submissionIdToCardId(submissionId));
+
+            previewNo = function () {
+                $.mobile.changePage('#waitForPlayers');
+            };
+
 			previewYes = function () {
 				Meteor.call("pickWinner",Session.get(GAME),submissionId,function(e,r){
 					if (r) {
@@ -625,12 +634,17 @@ registerTemplates = function() {
 							if (e) {
 								console.log(e);
 								Session.set(ERROR,e.reason);
+                                $.mobile.changePage('#waitForPlayers');
 							}
+                            if (r) {
+                                $.mobile.changePage('#roundSummary');
+                            }
 						});
 					}
 					if (e) {
 						console.log(e);
 						Session.set(ERROR,e.reason);
+                        $.mobile.changePage('#waitForPlayers');
 					}
 				});
 			};
@@ -652,14 +666,21 @@ registerTemplates = function() {
 		'click .card':function(e) {
 			var answerId = $(e.target).attr('id');
 			Session.set(PREVIEW_CARD,answerId);
+
+            previewNo = function() {
+                $.mobile.changePage('#chooseCardFromHand');
+            };
+
 			previewYes = function() {
 				Meteor.call("submitAnswerCard",Session.get(GAME),answerId,function(e,r) {
 					if (r) {
 						Session.set(SUBMISSION,r);
+                        $.mobile.changePage('#waitForPlayers');
 					}
 					if (e) {
 						console.log(e);
 						Session.set(ERROR,e.reason);
+                        $.mobile.changePage('#chooseCardFromHand');
 					}
 				});
 			};
