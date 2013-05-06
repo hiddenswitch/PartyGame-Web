@@ -11,10 +11,8 @@ var botPlayers = 400;
 
 var tickRate = 800;
 
-var useBots = false;
-
 Meteor.startup(function() {
-    if (useBots) {
+    if (Meteor.settings.useBots === true) {
         // Get bot names, erasing stuff that already exists.
         if (Usernames && Usernames.length > 0) {
             var existingUserNames = Meteor.users.find({},{fields:{username:1}}).fetch();
