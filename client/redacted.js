@@ -15,6 +15,8 @@ IS_CORDOVA = "isCordova";
 previewYes = function () {};
 previewNo = function () {};
 
+var gameObserver = null;
+
 mutationObserver = {};
 
 refreshListviews = function (changed) {
@@ -697,6 +699,10 @@ registerTemplates = function() {
         }
     };
 
+    Template.nextButtons.isJudge = isJudge;
+    Template.rendered = createAndRefreshButtons;
+    Template.created = createAndRefreshButtons;
+
 	Template.hand.created = createListviews;
     Template.hand.preserve(defaultPreserve);
 
@@ -744,19 +750,26 @@ Meteor.startup(function() {
 	});
 		
 	// update current round
-    Deps.autorun(function() {
-		var currentGameId = Session.get(GAME);
-		var currentGame = Games.findOne({_id:currentGameId});
-		if (currentGame)
-			Session.set(ROUND,currentGame.round);
-	});
+    Deps.autorun(function () {
+        var roundSummaryScreen = function(id,fields) {
+            if (fields.round) {
+                Session.set(ROUND,fields.round);
+                $.mobile.changePage('#roundSummary');
+            }
+        };
+
+        gameObserver = Games.find({_id:Session.get(GAME)}).observeChanges({
+            added:roundSummaryScreen,
+            changed:roundSummaryScreen
+        });
+    });
 
     // Update logged in status (workaround for constant menu refreshing
     Deps.autorun(function () {
         if (Session.get(IS_LOGGED_IN) !== Meteor.userId()) {
             Session.set(IS_LOGGED_IN,Meteor.userId())
         };
-    })
+    });
 	
 	// clear error after 5 seconds
     Deps.autorun(function () {
