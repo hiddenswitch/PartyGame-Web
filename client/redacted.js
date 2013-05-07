@@ -797,6 +797,13 @@ Meteor.startup(function() {
         }
     });
 
+    // refresh listviews when transition is done
+    $(document).live('pageshow', function(){
+        //More stuff to do
+        refreshListviews();
+        createAndRefreshButtons();
+    });
+
     // refresh the listviews when appropriate
 	mutationObserver = new MutationSummary({
 		queries: [{element:'li'},{element:'[data-role="button"]'},{element:'ul[data-role="listview"]'}],
