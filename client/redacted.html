@@ -67,17 +67,17 @@
                 {{/isolate}}
             </ul>
 
+            <ul id="judgeList" data-role="listview" data-inset="true" data-divider-theme="a">
+                <li data-role="list-divider">Judge This Round</li>
+                {{> judge}}
+            </ul>
+
             <div id="scoresCollapsibleInSummary" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="true">
                 <h3>Players</h3>
                 <ul id="scoresListInSummary" data-role="listview" data-inset="true" data-split-icon="delete">
                     {{> scores}}
                 </ul>
             </div>
-
-            <ul id="judgeList" data-role="listview" data-inset="true" data-divider-theme="a">
-                <li data-role="list-divider">Judge This Round</li>
-                {{> judge}}
-            </ul>
 
             {{> nextButtons}}
         </div>
