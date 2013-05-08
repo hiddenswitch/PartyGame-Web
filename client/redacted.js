@@ -752,7 +752,7 @@ Meteor.startup(function() {
 	// update current round
     Deps.autorun(function () {
         var roundSummaryScreen = function(id,fields) {
-            if (fields.round) {
+            if (fields.round && $.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
                 Session.set(ROUND,fields.round);
                 $.mobile.changePage('#roundSummary');
             }
