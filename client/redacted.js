@@ -23,7 +23,7 @@ mutationObserver = {};
 
 refreshListviews = function (changed) {
     try {
-        $('.ui-listview[data-role="listview"]:visible').listview("refresh");
+        $('.ui-listview[data-role="listview"]').listview("refresh");
     } catch (e) {
 
     }
