@@ -21,7 +21,7 @@ mutationObserver = {};
 
 refreshListviews = function (changed) {
     try {
-        $('.ui-listview[data-role="listview"]').listview("refresh");
+        $('.ui-listview[data-role="listview"]:visible').listview("refresh");
     } catch (e) {
 
     }
@@ -739,7 +739,7 @@ Meteor.startup(function() {
         Meteor.subscribe("votesInGame",Session.get(GAME));
         Meteor.subscribe("usersInGame",Session.get(GAME));
         Meteor.subscribe("players",Session.get(GAME));
-        Meteor.subscribe("myGames",Meteor.userId());
+        Meteor.subscribe("myGames");
         Meteor.subscribe("openGames");
         Meteor.subscribe("hand",Session.get(GAME));
 	});
