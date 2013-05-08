@@ -577,7 +577,11 @@ registerTemplates = function() {
     Template.scores.preserve(defaultPreserve);
 
 	Template.browse.games = function() {
-		return Games.find({open:true},{limit:10,sort:{players:-1},fields:{_id:1,players:1,title:1,open:1}});
+        if (Session.equals("currentPage","browse")) {
+            return Games.find({open:true},{limit:10,sort:{players:-1},fields:{_id:1,players:1,title:1,open:1}});
+        } else {
+            return null;
+        }
 	};
 
 	Template.browse.events = {
@@ -589,8 +593,8 @@ registerTemplates = function() {
     Template.browse.preserve(defaultPreserve);
 
 	Template.myGames.games = function() {
-        if ($ && $.mobile && $.mobile.activePage) {
-            return $.mobile.activePage.attr('id') === "browse" ? Games.find({open:true,userIds:Meteor.userId()}) : null;
+        if (Session.equals("currentPage","myGames")) {
+            return Games.find({open:true,userIds:Meteor.userId()});
         } else  {
             return null;
         }
@@ -802,6 +806,7 @@ Meteor.startup(function() {
         //More stuff to do
         refreshListviews();
         createAndRefreshButtons();
+        Session.set("currentPage", $.mobile.activePage.attr('id'));
     });
 
     // refresh the listviews when appropriate
