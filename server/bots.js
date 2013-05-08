@@ -270,12 +270,22 @@ Meteor.methods({
                             Meteor.users.update({_id:bot._id},{$set:{"profile.inGame":false}});
                             Players.update({_id:player._id},{$set:{open:false}});
                             botJoinGame(bot);
+                            Meteor.call("clean",function(e,r) {
+                                if (r) {
+                                    console.log(r);
+                                }
+                            });
                         }
                         // We have done all possible actions in the game.
                     });
                 } else {
                     // Rejoin a game.
                     botJoinGame(bot);
+                    Meteor.call("clean",function(e,r) {
+                        if (r) {
+                            console.log(r);
+                        }
+                    });
                 }
             });
         }
