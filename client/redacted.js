@@ -12,6 +12,8 @@ LOCATION = "currentLocation";
 IS_LOGGED_IN = "isLoggedIn";
 IS_CORDOVA = "isCordova";
 
+K_HIDDEN_TEXT_STRING = "(Hidden)";
+
 previewYes = function () {};
 previewNo = function () {};
 
@@ -244,7 +246,7 @@ cardIdToText = function(cardId) {
     if (c)
         return c.text;
     else
-        return "(Waiting for players to submit...)";
+        return K_HIDDEN_TEXT_STRING;
 };
 
 submissionIdToCardId = function(id) {
@@ -316,8 +318,8 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
     var q = cardIdToText(questionCardId);
     var c = cardIdToText(answerCardId);
 
-    if (!c || !q || q === "(Waiting for players to submit...)" || c === "(Waiting for players to submit...)") {
-        return "(Waiting for players to submit...)";
+    if (!c || !q || q === K_HIDDEN_TEXT_STRING || c === K_HIDDEN_TEXT_STRING) {
+        return K_HIDDEN_TEXT_STRING;
     }
 
     var matches = [];
