@@ -11,7 +11,7 @@ Meteor.publish("hand",function(gameId) {
 });
 
 Meteor.publish("myGames",function() {
-    return Games.find({userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0},sort:{players:1,modified:-1}});
+    return Games.find({userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
 });
 
 Meteor.publish("players",function(gameId) {
@@ -88,7 +88,8 @@ Meteor.publish("cards",function() {
 
 Meteor.publish("usersInGame",function(gameId) {
     // privacy concerns. but does not update correctly when gameId changes.
-	return Meteor.users.find({},{fields:{_id:1,username:1,emails:1,profile:1,location:1}});
+    var userIds = _.pluck(Players.find({gameId:gameId},{fields:{userId:1}}).fetch(),"userId");
+	return Meteor.users.find({_id:{$in:userIds}},{fields:{_id:1,username:1,emails:1,'profile.name':1}});
 });
 
 Meteor.startup(function () {
