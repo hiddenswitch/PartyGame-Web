@@ -11,7 +11,7 @@ Meteor.publish("hand",function(gameId) {
 });
 
 Meteor.publish("myGames",function() {
-    return Games.find({userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
+    return Games.find({open:true,userIds:this.userId},{fields:{password:0,questionCards:0,answerCards:0}});
 });
 
 Meteor.publish("players",function(gameId) {
