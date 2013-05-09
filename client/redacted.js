@@ -757,20 +757,16 @@ Meteor.startup(function() {
 		
 	// update current round
     Deps.autorun(function () {
-        var roundSummaryScreen = function(game) {
-            if (game.round != null) {
+        var game = Games.findOne({_id:Session.get(GAME)},{fields:{round:1}});
+        if (game != null) {
+            if (!Session.equals(ROUND,game.round) {
                 Session.set(ROUND,game.round);
 
                 if ($.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
                     $.mobile.changePage('#roundSummary');
                 }
             }
-        };
-
-        gameObserver = Games.find({_id:Session.get(GAME)}).observe({
-            added:roundSummaryScreen,
-            changed:roundSummaryScreen
-        });
+       }
     });
 
     // Update logged in status (workaround for constant menu refreshing
