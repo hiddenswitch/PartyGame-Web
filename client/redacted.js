@@ -757,9 +757,9 @@ Meteor.startup(function() {
 		
 	// update current round
     Deps.autorun(function () {
-        var roundSummaryScreen = function(id,fields) {
-            if (fields.round) {
-                Session.set(ROUND,fields.round);
+        var roundSummaryScreen = function(game) {
+            if (game.round != null) {
+                Session.set(ROUND,game.round);
 
                 if ($.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
                     $.mobile.changePage('#roundSummary');
@@ -767,7 +767,7 @@ Meteor.startup(function() {
             }
         };
 
-        gameObserver = Games.find({_id:Session.get(GAME)}).observeChanges({
+        gameObserver = Games.find({_id:Session.get(GAME)}).observe({
             added:roundSummaryScreen,
             changed:roundSummaryScreen
         });
