@@ -27,7 +27,6 @@ refreshListviews = function (changed) {
     } catch (e) {
 
     }
-
 }
 
 createListviews = function(changed) {
