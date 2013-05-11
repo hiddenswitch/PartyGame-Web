@@ -2,23 +2,25 @@ Redacted
 ========
 
 An online Cards Against Humanity clone for network play.
-Built on Meteor 0.5.2, from http://www.meteor.com
+Built on Meteor 0.6.0, from http://www.meteor.com
 
 Installation
 ============
 
 To run:
-
+    $ ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+    $ brew install node
+    $ brew install npm
+    $ sudo -H npm install -g meteorite
     $ git clone https://github.com/doctorpangloss/redacted.git
-    $ curl https://install.meteor.com | sh
     $ cd redacted
-    $ meteor
+    $ mrt
 
 Visit http://localhost:3000. You will need API keys for Facebook and Google.
 
 If you'd like to run it on the Internet, try
 
-    $ meteor deploy special-redacted.meteor.com
+    $ mrt deploy special-redacted.meteor.com
 
 And visit http://special-redacted.meteor.com
 
