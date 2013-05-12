@@ -31,8 +31,9 @@ Meteor.startup(function() {
         });
 
         var botEvaluateFunction = function () {
-            var botActions = Meteor.call("botsEvaluate");
+            var botActions = Meteor.call("botsEvaluate",tick);
             console.log("Bot action summary: " + JSON.stringify(botActions));
+            tick++;
             Meteor.setTimeout(botEvaluateFunction,tickRate);
         }
 
@@ -177,13 +178,10 @@ Meteor.methods({
         }
     },
 
-    botsEvaluate:function() {
+    botsEvaluate:function(tick) {
         if (this.userId) {
             throw new Meteor.Error(503,"You must be an administrator to call this function.");
         }
-
-        // Evaluate all the bot actions
-        tick++;
 
         var o = {
             botActions:0,
