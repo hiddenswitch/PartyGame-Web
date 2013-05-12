@@ -758,7 +758,7 @@ Meteor.startup(function() {
                     $.mobile.changePage('#roundSummary');
                 }
             }
-       }
+        }
     });
 
     // Update logged in status (workaround for constant menu refreshing
