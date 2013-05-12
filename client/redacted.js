@@ -802,22 +802,6 @@ Meteor.startup(function() {
         Session.set("currentPage", $.mobile.activePage.attr('id'));
     });
 
-    // refresh the listviews when appropriate
-//	mutationObserver = new MutationSummary({
-//		queries: [{element:'li'},{element:'[data-role="button"]'},{element:'ul[data-role="listview"]'}],
-//		callback: function(summaries) {
-//            if (summaries[2]) {
-//                defaultCreated();
-//            }
-//            if (summaries[0]) {
-//                defaultRendered();
-//            }
-//            if (summaries[1]) {
-//                createAndRefreshButtons();
-//            }
-//		}
-//	});
-
     requestLocation(setError);
 });
 
