@@ -20,71 +20,8 @@ Meteor.publish("players",function(gameId) {
 
 var SUBMISSIONS = "submissions";
 
-Meteor.publish(SUBMISSIONS, function(gameId,round) {
-    var recordset = this;
-
-    recordset.Redacted = {};
-    recordset.Redacted.connectedPlayersCount = 0;
-    recordset.Redacted.submissionsCount = 0;
-
-    recordset.Redacted.updateSubmissions = function(newSubmission) {
-        var submissions = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).fetch();
-
-        _.each(submissions,function(submission){
-            try {
-                if (recordset.Redacted.submissionsCount >= recordset.Redacted.connectedPlayersCount-1) {
-                    try {
-                        recordset.changed(SUBMISSIONS,submission._id, submission);
-                    } catch (e) {
-                        recordset.added(SUBMISSIONS,submission._id, submission);
-                    }
-                } else {
-                    try {
-                        recordset.changed(SUBMISSIONS,submission._id, _.omit(submission,'answerId'));
-                    } catch (e) {
-                        recordset.added(SUBMISSIONS,submission._id, _.omit(submission,'answerId'));
-                    }
-                }
-            } catch (e) {
-                console.log(e);
-            }
-        });
-    };
-
-    var submissionHandle = Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}}).observe({
-        added: function (newSubmission) {
-            recordset.Redacted.submissionsCount++;
-            recordset.added(SUBMISSIONS,newSubmission._id, _.omit(newSubmission,'answerId'));
-            recordset.Redacted.updateSubmissions();
-
-        },
-        removed: function (removedSubmission) {
-            recordset.removed(SUBMISSIONS,removedSubmission._id);
-            recordset.Redacted.submissionsCount--;
-        },
-        changed: function (changedSubmission) {
-            recordset.changed(SUBMISSIONS,changedSubmission._id,changedSubmission);
-            recordset.Redacted.updateSubmissions();
-        }
-    });
-
-    var playersHandle = Players.find({gameId:gameId,connected:true}).observe({
-        added: function() {
-            recordset.Redacted.connectedPlayersCount++;
-            recordset.Redacted.updateSubmissions();
-        },
-        removed: function() {
-            recordset.Redacted.connectedPlayersCount--;
-            recordset.Redacted.updateSubmissions();
-        }
-    });
-
-    recordset.ready();
-
-    recordset.onStop(function () {
-        submissionHandle.stop();
-        playersHandle.stop();
-    });
+Meteor.publish(SUBMISSIONS, function(gameId) {
+    return Submissions.find({gameId:gameId,round:round},{fields:{_id:1,gameId:1,answerId:1,round:1}});
 });
 
 Meteor.publish("votesInGame",function(gameId){
