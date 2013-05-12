@@ -739,7 +739,7 @@ Meteor.startup(function() {
 	Session.set(ERROR,null);
 	
 	Deps.autorun(function() {
-        Meteor.subscribe("submissions",Session.get(GAME),Session.get(ROUND));
+        Meteor.subscribe("submissions",Session.get(GAME));
         Meteor.subscribe("votesInGame",Session.get(GAME));
         Meteor.subscribe("usersInGame",Session.get(GAME));
         Meteor.subscribe("players",Session.get(GAME));
