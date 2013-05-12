@@ -17,7 +17,6 @@ K_HIDDEN_TEXT_STRING = "(Hidden)";
 previewYes = function () {};
 previewNo = function () {};
 
-var gameObserver = null;
 
 mutationObserver = {};
 
@@ -758,7 +757,7 @@ Meteor.startup(function() {
     Deps.autorun(function () {
         var game = Games.findOne({_id:Session.get(GAME)},{fields:{round:1}});
         if (game != null) {
-            if (!Session.equals(ROUND,game.round) {
+            if (!Session.equals(ROUND,game.round)) {
                 Session.set(ROUND,game.round);
 
                 if ($.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
