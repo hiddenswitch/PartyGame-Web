@@ -704,8 +704,8 @@ registerTemplates = function() {
     };
 
     Template.nextButtons.isJudge = isJudge;
-    Template.rendered = createAndRefreshButtons;
-    Template.created = createAndRefreshButtons;
+    Template.nextButtons.rendered = createAndRefreshButtons;
+    Template.nextButtons.created = createAndRefreshButtons;
 
 	Template.hand.created = createListviews;
     Template.hand.preserve(defaultPreserve);
@@ -809,20 +809,20 @@ Meteor.startup(function() {
     });
 
     // refresh the listviews when appropriate
-	mutationObserver = new MutationSummary({
-		queries: [{element:'li'},{element:'[data-role="button"]'},{element:'ul[data-role="listview"]'}],
-		callback: function(summaries) {
-            if (summaries[2]) {
-                createListviews();
-            }
-            if (summaries[0]) {
-                refreshListviews();
-            }
-            if (summaries[1]) {
-                createAndRefreshButtons();
-            }
-		}
-	});
+//	mutationObserver = new MutationSummary({
+//		queries: [{element:'li'},{element:'[data-role="button"]'},{element:'ul[data-role="listview"]'}],
+//		callback: function(summaries) {
+//            if (summaries[2]) {
+//                createListviews();
+//            }
+//            if (summaries[0]) {
+//                refreshListviews();
+//            }
+//            if (summaries[1]) {
+//                createAndRefreshButtons();
+//            }
+//		}
+//	});
 
     requestLocation(setError);
 });
