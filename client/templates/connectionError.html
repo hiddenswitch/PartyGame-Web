@@ -1,0 +1,19 @@
+<template name="connectionError">
+    {{> error}} {{> connection}}
+</template>
+
+<template name="error">
+    {{#if error}}
+    {{error}}
+    {{/if}}
+</template>
+
+<template name="connection">
+    {{#if connectionStatus}}
+    ({{connectionStatus}})
+    {{/if}}
+    {{#if loggingIn}}
+    (Logging in...)
+    {{/if}}
+</template>
+

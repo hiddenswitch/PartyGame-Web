@@ -1,0 +1,39 @@
+<body>
+
+<div data-role="page" id="accountLogin" data-add-back-btn="true" data-theme="a">
+    <div data-role="header" data-position="fixed">
+        <h1>Create an Account or Login</h1>
+    </div>
+    <div data-role="content">
+        <div data-role="collapsible-set">
+            <div data-role="collapsible" data-collapsed="false">
+                <h3>Make a New Account</h3>
+
+                <label for="signUpUsername" class="ui-hidden-accessible">Username</label>
+                <input type="text" name="signUpUsername" id="signUpUsername" value="" placeholder="Username"/>
+                <label for="signUpEmail" class="ui-hidden-accessible">E-mail Address</label>
+                <input type="email" name="signUpEmail" id="signUpEmail" value="" placeholder="E-mail Address"/>
+                <label for="signUpUsername" class="ui-hidden-accessible">Password</label>
+                <input type="password" name="signUpPassword" id="signUpPassword" value="" placeholder="Password"/>
+
+                <a href="#" data-role="button" data-icon="plus" onclick="signUp()">Create</a>
+            </div>
+            <div data-role="collapsible">
+                <h3>Login with an Existing Account</h3>
+
+                <label for="loginUsernameOrEmail" class="ui-hidden-accessible">Username or E-mail</label>
+                <input type="text" name="loginUsernameOrEmail" id="loginUsernameOrEmail" value="" placeholder="Username or E-mail"/>
+                <label for="loginPassword" class="ui-hidden-accessible">Password</label>
+                <input type="password" name="loginPassword" id="loginPassword" value="" placeholder="Password"/>
+
+                <a href="#" data-role="button" data-icon="plus" onclick="login()">Login</a>
+            </div>
+        </div>
+        <p>Go through the hassle of making a custom account just for us. We love you.</p>
+    </div>
+    <div data-role="footer" data-position="fixed" data-id="thefooter">
+        <h4>{{> connectionError}}</h4>
+    </div>
+</div>
+
+</body>

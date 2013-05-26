@@ -1,0 +1,13 @@
+<template name="submissions">
+    {{#if count}}
+    {{#each submissions}}
+    {{#if isJudge}}
+    <li><a class="submission" id="{{_id}}" href="#preview">{{{toCard answerId}}}</a></li>
+    {{else}}
+    <li>{{{toCard answerId}}}</li>
+    {{/if}}
+    {{/each}}
+    {{else}}
+    <li>No submissions yet.</li>
+    {{/if}}
+</template>

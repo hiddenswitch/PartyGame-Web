@@ -1,0 +1,10 @@
+<template name="myGames">
+    {{#if games}}
+    {{#each games}}
+    <li><a class="openGameLink" href="#roundSummary" id="{{_id}}">{{title}}
+        <span class="ui-li-count">{{players}}</span></a></li>
+    {{/each}}
+    {{else}}
+    <li>Not in any games.</li>
+    {{/if}}
+</template>

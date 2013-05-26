@@ -1,0 +1,11 @@
+
+<template name="browse">
+    {{#if games}}
+    {{#each games}}
+    <li><a class="openGameLink" href="#roundSummary" id="{{_id}}">{{title}}
+        <span class="ui-li-count">{{players}}</span></a></li>
+    {{/each}}
+    {{else}}
+    <li>No open games.</li>
+    {{/if}}
+</template>

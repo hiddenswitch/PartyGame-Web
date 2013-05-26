@@ -1,0 +1,11 @@
+<template name="nextButtons">
+    {{#if isJudge}}
+    <a href="#waitForPlayers" class="magic" data-role="button" data-icon="arrow-r">Next</a>
+    {{else}}
+    <a href="#chooseCardFromHand" class="magic" data-role="button" data-icon="arrow-r">Next</a>
+    {{/if}}
+
+    {{#if gameIsOwner}}
+    <a href="#home" data-role="button" data-icon="delete" onclick="closeThisGame()">Close This Game</a>
+    {{/if}}
+</template>

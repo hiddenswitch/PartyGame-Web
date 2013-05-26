@@ -1,0 +1,23 @@
+<body>
+
+<div data-role="page" id="preview" data-add-back-btn="true" data-theme="a">
+    <div data-role="header" data-position="fixed">
+        <h1>Preview</h1>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview" data-inset="true" data-theme="e">
+            {{#isolate}}
+            {{> preview}}
+            {{/isolate}}
+        </ul>
+        <div class="ui-grid-a">
+            <div class="ui-block-a"><a href="#" onclick="previewNo()" data-icon="minus" data-role="button">Nah</a></div>
+            <div class="ui-block-b"><a href="#" data-theme="d" onclick="previewYes()" data-icon="check" data-role="button">Yep</a></div>
+        </div>
+    </div>
+    <div data-role="footer" data-position="fixed" data-id="thefooter">
+        <h4>{{> connectionError}}</h4>
+    </div>
+</div>
+
+</body>
