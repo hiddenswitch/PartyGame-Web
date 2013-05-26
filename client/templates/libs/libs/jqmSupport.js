@@ -2,6 +2,12 @@
  * @author Benjamin Berman
  * © 2012 All Rights Reserved
  **/
+defaultPreserve = {
+    'li[id]':function(node) {
+        return node.id;
+    }
+};
+
 defaultRendered = function () {
     $(this.findAll('ul[data-role="listview"]:not(.ui-listview):visible')).listview();
     $('.ui-listview[data-role="listview"]').listview("refresh");
