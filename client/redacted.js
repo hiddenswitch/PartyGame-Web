@@ -8,7 +8,7 @@ ROUND = "currentRound";
 SUBMISSION = "currentSubmission";
 ERROR = "currentError";
 PREVIEW_CARD = "currentPreviewCard";
-LOCATION = "currentLocation";
+LOCATION = "location";
 IS_LOGGED_IN = "isLoggedIn";
 IS_CORDOVA = "isCordova";
 
@@ -178,7 +178,7 @@ createAndJoinGame = function() {
 			Meteor.call("joinGame",r,function(e2,r2){
 				if (r2) {
 					Session.set(GAME,r2);
-					$.mobile.changePage('#game');
+					$.mobile.changePage('#roundSummary');
 				}
 				if (e2) {
 					Session.set(ERROR,e2.reason || e.reason + ", " + e2.reason);
@@ -663,7 +663,7 @@ Meteor.startup(function() {
         Meteor.subscribe("usersInGame",Session.get(GAME));
         Meteor.subscribe("players",Session.get(GAME));
         Meteor.subscribe("myGames");
-        Meteor.subscribe("openGames");
+        Meteor.subscribe("localGames",Session.get(LOCATION));
         Meteor.subscribe("hand",Session.get(GAME));
 	});
 
