@@ -20,24 +20,6 @@ previewNo = function () {};
 
 mutationObserver = {};
 
-defaultRendered = function () {
-    $(this.findAll('ul[data-role="listview"]:not(.ui-listview):visible')).listview();
-    $('.ui-listview[data-role="listview"]').listview("refresh");
-};
-
-defaultCreated = function() {
-    $('ul[data-role="listview"]:not(.ui-listview):visible').listview();
-};
-
-createAndRefreshButtons = function () {
-    $('[data-role="button"]:visible').button();
-};
-
-refreshListviewsAndCreateButtons = function() {
-    defaultRendered.apply(this);
-    createAndRefreshButtons.apply(this);
-};
-
 setError = function(err,r) {
 	if (err) {
 		Session.set(ERROR,err.reason);
