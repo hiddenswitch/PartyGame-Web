@@ -2,8 +2,12 @@
  * @author Benjamin Berman
  */
 
-Meteor.publish("openGames",function() {
-	return Games.find({open:true},{fields:{password:0,questionCards:0,answerCards:0},limit:50,sort:{modified:-1}});
+Meteor.publish("localGames",function(location) {
+    if (location) {
+        return Games.find({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}},{fields:{_id:1}});
+    } else {
+        return null;
+    }
 });
 
 Meteor.publish("hand",function(gameId) {
