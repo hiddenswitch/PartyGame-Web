@@ -7,7 +7,7 @@ var tick = 0;
 
 var botNames = [];
 
-var botPlayers = 400;
+var botPlayers = 0;
 
 var tickRate = 800;
 

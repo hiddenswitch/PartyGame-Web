@@ -1,0 +1,55 @@
+<body>
+
+
+<div data-role="page" id="waitForPlayers" data-theme="a">
+    <div data-role="header" data-position="fixed">
+        <a href="#home" data-icon="arrow-l">Menu</a>
+        <h1>
+            {{#isolate}}
+            {{#if isJudge}}
+            Judge Answers
+            {{else}}
+            Waiting For Others
+            {{/if}}
+            {{/isolate}}
+        </h1>
+    </div>
+
+    <div data-role="content">
+        <ul id="questionListInWaitForPlayers" data-role="listview" data-inset="true" data-theme="b" data-divider-theme="b">
+            <li data-role="list-divider">Question</li>
+            {{> question}}
+        </ul>
+
+        <div id="submissionsCollapsible" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="true" data-collapsed="false">
+            <h3>
+                {{#isolate}}
+                {{#if isJudge}}
+                {{#if remaining}}
+                Waiting For More Answers {{playersRemainingCount}}
+                {{else}}
+                Pick An Answer
+                {{/if}}
+                {{else}}
+                {{#if remaining}}
+                Awaiting Answers {{playersRemainingCount}}
+                {{else}}
+                The Judge Is Choosing
+                {{/if}}
+                {{/if}}
+                {{/isolate}}</h3>
+            <ul id="submissionsList" data-role="listview" data-inset="true" data-theme="c">
+                {{> submissions}}
+            </ul>
+        </div>
+
+        <div id="scoresCollapsible" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="false">
+            <h3>Scores</h3>
+            <ul id="scoresList" data-role="listview" data-inset="true" data-split-icon="delete">
+                {{> scores}}
+            </ul>
+        </div>
+    </div>
+</div>
+
+</body>

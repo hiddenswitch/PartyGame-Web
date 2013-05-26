@@ -1,0 +1,9 @@
+<template name="judge">
+    {{#if judgeEmailAddress}}
+    {{#if isJudge}}
+    <li id="judgeText" data-icon="star">{{judgeEmailAddress}}</li>
+    {{else}}
+    <li id="judgeText">{{judgeEmailAddress}}</li>
+    {{/if}}
+    {{/if}}
+</template>

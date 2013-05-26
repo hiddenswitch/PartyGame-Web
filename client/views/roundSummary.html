@@ -1,0 +1,47 @@
+<body>
+
+
+<div data-role="page" id="roundSummary" data-theme="a">
+    <div data-role="header" data-position="fixed">
+        <a href="#home" data-icon="arrow-l">Menu</a>
+        <h1 id="roundSummaryHeader">
+            {{#isolate}}
+
+            Round {{gameRound}} Summary
+            {{/isolate}}
+        </h1>
+        <a href="#home" data-icon="delete" onclick="quitThisGame()">Quit</a>
+    </div>
+
+    <div data-role="content">
+        <ul id="questionAndAnswerTextList" data-role="listview" data-inset="true" data-divider-theme="a">
+            {{#isolate}}
+            {{#if gameLastVote}}
+            {{#with gameLastVote}}
+            <li data-role="list-divider">{{playerIdToName judgeId}} Picked {{playerIdToName playerId}}'s Card</li>
+            <li>{{{questionAndAnswerText questionId answerId}}}</li>
+            {{/with}}
+            {{/if}}
+            {{/isolate}}
+        </ul>
+
+        <ul id="judgeList" data-role="listview" data-inset="true" data-divider-theme="a">
+            <li data-role="list-divider">Judge This Round</li>
+            {{> judge}}
+        </ul>
+
+        <div id="scoresCollapsibleInSummary" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="true">
+            <h3>Players</h3>
+            <ul id="scoresListInSummary" data-role="listview" data-inset="true" data-split-icon="delete">
+                {{> scores}}
+            </ul>
+        </div>
+
+        {{> nextButtons}}
+    </div>
+    <div data-role="footer" data-position="fixed" data-id="thefooter">
+        <h4>{{> connectionError}}</h4>
+    </div>
+</div>
+
+</body>

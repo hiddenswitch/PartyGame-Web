@@ -1,0 +1,30 @@
+<body>
+
+<div data-role="page" id="chooseCardFromHand" data-theme="a">
+    <div data-role="header" data-position="fixed">
+        <a href="#home" data-icon="arrow-l">Menu</a>
+        <h1>
+            Pick An Answer Card
+        </h1>
+    </div>
+
+    <div data-role="content">
+        <ul id="questionList" data-role="listview" data-inset="true" data-theme="b" data-divider-theme="b">
+            <li data-role="list-divider">Question</li>
+            {{> question}}
+        </ul>
+
+        <div id="handCollapsible" data-role="collapsible" data-theme="d" data-content-theme="d" data-inset="true" data-collapsed="false">
+            <h3>Your Cards</h3>
+            <ul id="handList" data-role="listview" data-inset="true" data-theme="d">
+                {{> hand}}
+            </ul>
+        </div>
+    </div>
+
+    <div data-role="footer" data-position="fixed" data-id="thefooter">
+        <h4>{{> connectionError}}</h4>
+    </div>
+</div>
+
+</body>
