@@ -375,12 +375,6 @@ isJudge = function() {
         return false;
 };
 
-defaultPreserve = {
-    'li[id]':function(node) {
-        return node.id;
-    }
-};
-
 acceptInvite = function() {
 
 };
