@@ -7,7 +7,8 @@
   "dependencies": {
     "basePackages": {
       "router": {},
-      "handlebar-helpers": {}
+      "handlebar-helpers": {},
+      "leaflet": {}
     },
     "packages": {
       "router": {
@@ -19,6 +20,11 @@
         "git": "https://github.com/raix/Meteor-handlebar-helpers.git",
         "tag": "v0.0.6",
         "commit": "8ca9ab1edcbb7d1ef935d4ad8c7e32479ea70b24"
+      },
+      "leaflet": {
+        "git": "https://github.com/bevanhunt/meteor-leaflet.git",
+        "tag": "v0.1.8",
+        "commit": "8a3d0f53734e4fe3efc3e6e39aa3da0209e2ec8e"
       },
       "page-js-ie-support": {
         "git": "https://github.com/tmeasday/meteor-page-js-ie-support.git",

@@ -1,6 +1,7 @@
 {
   "packages": {
     "router": {},
-    "handlebar-helpers": {}
+    "handlebar-helpers": {},
+    "leaflet": {}
   }
 }
