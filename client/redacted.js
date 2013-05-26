@@ -417,6 +417,12 @@ joinGameFromHash = function() {
     }
 };
 
+function fastclickSetup() {
+    window.addEventListener('load', function () {
+        FastClick.attach(document.body);
+    }, false);
+}
+
 registerTemplates = function() {
     Handlebars.registerHelper("toCard",cardIdToText);
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
@@ -808,3 +814,6 @@ Meteor.startup(function() {
 registerTemplates();
 
 cordovaSetup();
+
+
+fastclickSetup();
