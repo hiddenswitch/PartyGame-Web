@@ -7,7 +7,7 @@ Template.winner.rendered = refreshListviewsAndCreateButtons;
 Template.winner.winner = function() {
     if (Session.get(GAME)) {
         var _scores = scores(Session.get(GAME));
-        if (_scores) {
+        if (_scores && _scores.length > 0) {
             _scores = _.sortBy(_scores,function(s) {return s.score;});
             return _scores[_scores.length-1].name;
         }
