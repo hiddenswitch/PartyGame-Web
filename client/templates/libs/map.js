@@ -8,7 +8,7 @@
 
 Template.map.created = function() {
     // Get the current location
-    if (Session.equals("location",null)) {
+    if (!Session.get("location")) {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
                 Session.set("location",[position.coords.latitude,position.coords.longitude]);
