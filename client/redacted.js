@@ -676,6 +676,10 @@ Meteor.startup(function() {
     Deps.autorun(function () {
         var game = Games.findOne({_id:Session.get(GAME)},{fields:{round:1}});
         if (game != null) {
+            if (game.questionCardsCount === 0) {
+                $.mobile.changePage('#gameOver');
+            }
+
             if (!Session.equals(ROUND,game.round)) {
                 Session.set(ROUND,game.round);
 

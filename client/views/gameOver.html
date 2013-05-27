@@ -1,0 +1,29 @@
+<body>
+
+<div data-role="page" id="gameOver" data-theme="a">
+    <div data-role="header" data-position="fixed">
+        <a href="#home" data-icon="arrow-l">Menu</a>
+        <h1 id="roundSummaryHeader">Game Over</h1>
+    </div>
+
+    <div data-role="content">
+        <ul id="winnerList" data-role="listview" data-inset="true" data-divider-theme="a">
+            <li data-role="list-divider">Winner</li>
+            {{> winner}}
+        </ul>
+
+        <div id="scoresCollapsibleInGameOver" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="false">
+            <h3>Final Scores</h3>
+            <ul id="scoresListInGameOver" data-role="listview" data-inset="true" data-split-icon="delete">
+                {{> scores}}
+            </ul>
+        </div>
+
+        <a href="#home" data-role="button">Back</a>
+    </div>
+    <div data-role="footer" data-position="fixed" data-id="thefooter">
+        <h4>{{> connectionError}}</h4>
+    </div>
+</div>
+
+</body>
