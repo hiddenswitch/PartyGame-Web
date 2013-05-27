@@ -241,7 +241,7 @@ Meteor.methods({
     findGameWithFewPlayers: function(gameSize) {
         // find the latest game with fewer than five players
         gameSize = gameSize || K_PREFERRED_GAME_SIZE;
-        var game = Games.findOne({open:true, players:{$lt:gameSize}},{fields:{_id:1}});
+        var game = Games.findOne({open:true, players:{$lt:gameSize},botLust:false},{fields:{_id:1}});
 
         if (!game)
             return false;
@@ -323,6 +323,7 @@ Meteor.methods({
             modified: new Date().getTime(),
             judgeId:null,
             userIds:[],
+            botLust: location ? false : true,
             location: [location[1],location[0]]
         });
 
