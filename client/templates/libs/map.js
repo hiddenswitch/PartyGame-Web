@@ -6,17 +6,6 @@
     L.Icon.Default.imagePath = 'packages/leaflet/images'
 })();
 
-Template.map.created = function() {
-    // Get the current location
-    if (!Session.get("location")) {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function (position) {
-                Session.set("location",[position.coords.latitude,position.coords.longitude]);
-            });
-        }
-    }
-};
-
 Template.map.rendered = refreshListviewsAndCreateButtons;
 
 Template.map.url = function(lat,long,width,height) {
