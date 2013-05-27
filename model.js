@@ -298,7 +298,7 @@ Meteor.methods({
 			ownerId = Players.findOne({gameId:gameId,_id:{$ne:game.ownerId}})._id;
 		}
 
-		return Games.update({_id:gameId},{$inc: {players:-1}, $pull:{userIds:_userId}, $set:{open:open,ownerId:ownerId,modified:new Date().getTime()}});
+		return Games.update({_id:gameId},{$inc: {players:-1}, $pull:{userIds:_userId}, $set:{open:open,judgeId:Meteor.call("currentJudge",gameId),ownerId:ownerId,modified:new Date().getTime()}});
 	},
 
     // Gets the current judge
