@@ -295,6 +295,8 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
         return K_HIDDEN_TEXT_STRING;
     }
 
+    q = q.replace(/_+/,"████");
+
     var matches = [];
     var match = /(.{0,2})(█+)(.+)/g;
     var isName = /^[A-Z]\w+\s+[A-Z]/;
