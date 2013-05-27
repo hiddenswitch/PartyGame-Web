@@ -258,7 +258,7 @@ Meteor.methods({
         if (!location)
             return false;
 
-        var game = Games.findOne({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}},{fields:{_id:1}});
+        var game = Games.findOne({open:true,location:{$within:{$center:[[location[1],location[0]],K_LOCAL_DISTANCE]}}},{fields:{_id:1}});
 
         if (!game)
             return false;
