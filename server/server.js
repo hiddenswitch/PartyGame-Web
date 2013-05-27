@@ -4,7 +4,7 @@
 
 Meteor.publish("localGames",function(location) {
     if (location) {
-        return Games.find({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}},{fields:{_id:1,title:1,players:1,open:1,round:1}});
+        return Games.find({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}},{fields:{_id:1,title:1,players:1,playerNames:1,open:1,round:1,location:1}});
     } else {
         return null;
     }
@@ -227,7 +227,7 @@ Meteor.methods({
         Games.update({_id:gameId,creatorUserId:_userId,$or:[{judgeId:null},{ownerId:null}]},{$set:{ownerId:playerId,judgeId:playerId}});
 
         // Increment the player count and join the game.
-        Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId,playerIds:playerId}, $set:{modified:new Date().getTime()}});
+        Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId,playerIds:playerId,playerNames: p.name}, $set:{modified:new Date().getTime()}});
 
         // Update the heartbeat
         Meteor.users.update({_id:_userId},{$set:{'profile.heartbeat':new Date().getTime()}});

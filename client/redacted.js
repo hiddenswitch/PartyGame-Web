@@ -344,25 +344,6 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
     }
 };
 
-joinGameOnClick = function(e) {
-	var gameId = $(e.target).attr('id');
-	Meteor.call("joinGame",gameId,function(e,r) {
-		if (r) {
-			Session.set(GAME,r);
-		}
-		setError(e);
-	});
-};
-
-joinGame = function(title) {
-    Meteor.call("joinGameWithTitle",title,function(e,r) {
-        if (r) {
-            Session.set(GAME,r);
-            $.mobile.changePage('#roundSummary');
-        }
-        setError(e);
-    });
-}
 
 isJudge = function() {
     var currentGameId = Session.get(GAME);
@@ -494,21 +475,7 @@ registerTemplates = function() {
 	Template.scores.created = defaultCreated;
     Template.scores.preserve(defaultPreserve);
 
-	Template.browse.games = function() {
-        if (Session.equals("currentPage","browse")) {
-            return Games.find({open:true},{limit:10,sort:{players:-1},fields:{_id:1,players:1,title:1,open:1}});
-        } else {
-            return null;
-        }
-	};
 
-	Template.browse.events = {
-		'click a': joinGameOnClick
-	};
-
-	Template.browse.rendered = defaultRendered;
-	Template.browse.created = defaultCreated;
-    Template.browse.preserve(defaultPreserve);
 
 	Template.myGames.games = function() {
         if (Session.equals("currentPage","myGames")) {

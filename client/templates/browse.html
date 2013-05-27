@@ -2,7 +2,10 @@
 <template name="browse">
     {{#if games}}
     {{#each games}}
-    <li><a class="openGameLink" href="#roundSummary" id="{{_id}}">{{title}}
+    <li><a class="openGameLink" href="#roundSummary" id="{{_id}}">
+        <img src="{{mapUrl location 72 72}}" />
+        <h1>{{title}}</h1>
+        <p>{{#each playerNames}}{{this}} {{/each}}</p>
         <span class="ui-li-count">{{players}}</span></a></li>
     {{/each}}
     {{else}}
