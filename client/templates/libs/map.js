@@ -21,7 +21,7 @@ Template.map.local = function() {
 
 Handlebars.registerHelper("mapUrl",function(location,width,height){
     if (location && location.length > 0) {
-        return Template.map.url(location[0],location[1],width,height);
+        return Template.map.url(location[1],location[0],width,height);
     } else {
         return '/themes/images/redacted_72.png';
     }
