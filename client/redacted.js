@@ -38,7 +38,7 @@ loggedIn = function() {
 };
 
 requestLocation = function(callback) {
-    if (Session.equals(LOCATION,null)) {
+    if (!Session.get(LOCATION)) {
         if (navigator && navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(r){
                 var callbackR = [r.coords.latitude, r.coords.longitude];
