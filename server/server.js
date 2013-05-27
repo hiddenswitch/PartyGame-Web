@@ -71,7 +71,7 @@ Meteor.startup(function () {
 });
 
 Meteor.methods({
-    initCards:function() {
+    initCAHCards:function() {
         if (Cards.find({}).count() === 0) {
             // Cards Against Humanity cards
             var CAHDeck = new Deck();
@@ -291,7 +291,7 @@ Meteor.methods({
         if (title=="")
             title = "Game #" + (Games.find({}).count() + 1).toString();
 
-        Meteor.call("initCards");
+        Meteor.call("updateCardsFromGoogle");
 
         var shuffledAnswerCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_ANSWER},{fields:{_id:1}}).fetch(),'_id'));
 
