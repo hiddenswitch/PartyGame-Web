@@ -296,7 +296,7 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
     }
 
     var matches = [];
-    var match = /(.{0,2})(__)(.+)/g;
+    var match = /(.{0,2})(█+)(.+)/g;
     var isName = /^[A-Z]\w+\s+[A-Z]/;
 
     var beforeAndAfter = match.exec(q);
@@ -337,7 +337,7 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
 
     if (replacements && replacements.length > 0) {
         return _.reduce(replacements,function(memo,text) {
-            return memo.replace("__",text);
+            return memo.replace(/█+/,text);
         },q);
     } else {
         return q + " " + "<span style='font-style:italic;'>"+c+"</span>";

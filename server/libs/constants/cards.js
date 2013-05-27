@@ -837,8 +837,7 @@ CAH_ANSWER_CARDS = ["(I am doing kegels right now).",
     "Beefin' over turf.",
     "A squadron of moles wearing aviator goggles."];
 
-var ANSWER_CARDS;
-ANSWER_CARDS = ["40 acres and a mule.",
+DBB_ANSWER_CARDS = ["40 acres and a mule.",
     "6 Fast 6 Furious.",
     "8 Mile.",
     "A bathtub of moonshine.",
@@ -1795,7 +1794,7 @@ ANSWER_CARDS = ["40 acres and a mule.",
     "Xenu.",
     "Zooey Deschanel."];
 
-var QUESTION_CARDS = ["__ Ain't Nuthin' Ta F' Wit.",
+DBB_QUESTION_CARDS = ["__ Ain't Nuthin' Ta F' Wit.",
         "__ Considered Harmful.",
         "__ each day keeps the doctor away.",
         "__ will be the title of my memoir.",
