@@ -38,19 +38,21 @@ loggedIn = function() {
 };
 
 requestLocation = function(callback) {
-    if (navigator && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(r){
-            var callbackR = [r.coords.latitude, r.coords.longitude];
-            Session.set(LOCATION,callbackR);
+    if (Session.equals(LOCATION,null)) {
+        if (navigator && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(r){
+                var callbackR = [r.coords.latitude, r.coords.longitude];
+                Session.set(LOCATION,callbackR);
+                if (callback)
+                    callback(undefined,callbackR);
+            }, function(e){
+                if (callback)
+                    callback(new Meteor.Error(400,"Geolocation failed",e),null);
+            });
+        } else {
             if (callback)
-                callback(undefined,callbackR);
-        }, function(e){
-            if (callback)
-                callback(new Meteor.Error(400,"Geolocation failed",e),null);
-        });
-    } else {
-        if (callback)
-            callback(new Meteor.Error(404,"Geolocation not supported."),null)
+                callback(new Meteor.Error(404,"Geolocation not supported."),null)
+        }
     }
 };
 

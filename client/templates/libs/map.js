@@ -8,10 +8,12 @@
 
 Template.map.created = function() {
     // Get the current location
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-            Session.set("location",[position.coords.latitude,position.coords.longitude]);
-        });
+    if (Session.equals("location",null)) {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                Session.set("location",[position.coords.latitude,position.coords.longitude]);
+            });
+        }
     }
 };
 
