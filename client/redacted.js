@@ -178,16 +178,20 @@ createAndJoinGame = function() {
 			Meteor.call("joinGame",r,function(e2,r2){
 				if (r2) {
 					Session.set(GAME,r2);
-					$.mobile.changePage('#roundSummary');
 				}
 				if (e2) {
 					Session.set(ERROR,e2.reason || e.reason + ", " + e2.reason);
 					console.log(e2);
+                    $.mobile.changePage('#home');
 				}
 			});
 		}
-		setError(e);
+        if (e) {
+            $.mobile.changePage('#home');
+            setError(e);
+        }
 	});
+    $.mobile.changePage('#roundSummary');
 };
 
 playerIdForUserId = function(userId,gameId) {
