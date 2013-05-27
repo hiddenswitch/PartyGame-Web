@@ -9,7 +9,7 @@ var botNames = [];
 
 var botPlayers = 25;
 
-var tickRate = 800;
+var tickRate = 1;
 
 Meteor.startup(function() {
     if (Meteor.settings.useBots === true) {
@@ -32,7 +32,7 @@ Meteor.startup(function() {
 
         var botEvaluateFunction = function () {
             var botActions = Meteor.call("botsEvaluate",tick);
-            console.log("Bot action summary: " + JSON.stringify(botActions));
+//            console.log("Bot action summary: " + JSON.stringify(botActions));
             tick++;
             Meteor.setTimeout(botEvaluateFunction,tickRate);
         }
@@ -207,7 +207,7 @@ Meteor.methods({
         });
 
         var bots = Meteor.users.find({"profile.bot":true,"profile.inGame":true,"profile.period":tick % 20}).fetch();
-        console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
+//        console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
         if (bots && bots.length > 0) {
             // Determine the state of the game, and perform the relevant action
             _.each(bots,function(bot){
@@ -268,22 +268,12 @@ Meteor.methods({
                             Meteor.users.update({_id:bot._id},{$set:{"profile.inGame":false}});
                             Players.update({_id:player._id},{$set:{open:false}});
                             botJoinGame(bot);
-                            Meteor.call("clean",function(e,r) {
-                                if (r) {
-                                    console.log(r);
-                                }
-                            });
                         }
                         // We have done all possible actions in the game.
                     });
                 } else {
                     // Rejoin a game.
                     botJoinGame(bot);
-                    Meteor.call("clean",function(e,r) {
-                        if (r) {
-                            console.log(r);
-                        }
-                    });
                 }
             });
         }
