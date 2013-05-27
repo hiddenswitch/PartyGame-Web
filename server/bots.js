@@ -9,7 +9,7 @@ var botNames = [];
 
 var botPlayers = 25;
 
-var tickRate = 1;
+var tickRate = 800;
 
 Meteor.startup(function() {
     if (Meteor.settings.useBots === true) {
