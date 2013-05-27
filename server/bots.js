@@ -228,7 +228,7 @@ Meteor.methods({
                                 var submissionsCount = submissionsCursor.count();
 
                                 // Get the number of connected players
-                                var connectedPlayersCount = Players.find({gameId:player.gameId,connected:true}).count();
+                                var connectedPlayersCount = Players.find({gameId:player.gameId,connected:true,open:true}).count();
 
                                 // If it's possible to judge, judge.
                                 if (submissionsCount >= connectedPlayersCount-1) {
