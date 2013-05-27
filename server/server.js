@@ -4,7 +4,7 @@
 
 Meteor.publish("localGames",function(location) {
     if (location) {
-        return Games.find({open:true,location:{$within:{$center:[location,K_LOCAL_DISTANCE]}}},{fields:{_id:1,title:1,players:1,playerNames:1,open:1,round:1,location:1}});
+        return Games.find({open:true,location:{$within:{$center:[[location[1],location[0]],K_LOCAL_DISTANCE]}}},{fields:{_id:1,title:1,players:1,playerNames:1,open:1,round:1,location:1}});
     } else {
         return null;
     }
