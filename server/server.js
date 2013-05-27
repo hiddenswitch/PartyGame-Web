@@ -324,7 +324,7 @@ Meteor.methods({
             judgeId:null,
             userIds:[],
             botLust: location ? false : true,
-            location: [location[1],location[0]]
+            location: location ? [location[1],location[0]] : null
         });
 
         console.log("Game stats: " + JSON.stringify({"Number of games":Games.find({open:true}).count(),"Last game created":gameId,"Players":Players.find().count()}));
