@@ -11,7 +11,23 @@ Submissions = new Meteor.Collection("submissions");
 Players = new Meteor.Collection("players");
 Chats = new Meteor.Collection("chats");
 
+// Online-only collections
+Questions = new Meteor.Collection("questions");
+Answers = new Meteor.Collection("answers");
 
+Question = function() {
+    this.judgeId = "";
+    this.cardId = "";
+    this.created = Date.now();
+    this.modified = Date.now();
+};
+
+Answer = function() {
+    this.userId = "";
+    this.cardId = "";
+    this.created = Date.now();
+    this.modified = Date.now();
+};
 
 Card = function() {
     this.type = CARD_TYPE_QUESTION;  // question or answer card
