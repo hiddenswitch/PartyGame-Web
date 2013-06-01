@@ -20,6 +20,7 @@ Question = function() {
     this.cardId = "";
     this.created = Date.now();
     this.modified = Date.now();
+    this.answerCount = 0;
 };
 
 Answer = function() {
