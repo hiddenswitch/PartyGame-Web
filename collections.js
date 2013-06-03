@@ -16,18 +16,20 @@ Questions = new Meteor.Collection("questions");
 Answers = new Meteor.Collection("answers");
 
 Question = function() {
-    this.judgeId = "";
-    this.cardId = "";
-    this.created = Date.now();
-    this.modified = Date.now();
+    this.judgeId = null;
+    this.cardId = null;
+    this.created = new Date().getTime();
+    this.modified = new Date().getTime();
     this.answerCount = 0;
+    this.answerId = null;
 };
 
 Answer = function() {
-    this.userId = "";
-    this.cardId = "";
-    this.created = Date.now();
-    this.modified = Date.now();
+    this.userId = null;
+    this.cardId = null;
+    this.created = new Date().getTime();
+    this.modified = new Date().getTime();
+    this.winner = false;
 };
 
 Card = function() {
