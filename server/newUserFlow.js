@@ -5,6 +5,10 @@
 
 var K_INITIAL_COINS = 100;
 
+Meteor.publish("userData",function() {
+    return Meteor.users.find({_id:this.userId},{fields:{questionIds:1,score:1,coins:1,lastAction:1,heartbeat:1}});
+});
+
 // Configure user profiles
 Accounts.onCreateUser(function(options, user) {
     if (options.profile) {
@@ -22,6 +26,8 @@ Accounts.onCreateUser(function(options, user) {
     user.coins = K_INITIAL_COINS;
     user.inventory = {decks:['Cards Against Humanity','Starter']};
     user.matchingValue = 0;
+
+    console.log("new user: {0}".format(JSON.stringify(user)));
 
     return user;
 });

@@ -638,6 +638,7 @@ Meteor.startup(function() {
         Meteor.subscribe("myGames");
         Meteor.subscribe("localGames",Session.get(LOCATION));
         Meteor.subscribe("hand",Session.get(GAME));
+        Meteor.subscribe("userData");
 	});
 
 	Accounts.ui.config({
