@@ -18,7 +18,7 @@ Meteor.methods({
 
         var history = Histories.findOne({_id: historyId});
 
-        // if the history doesn't exist, how am I supposed to ascertain a
+        // if the history doesn't exist, how am I supposed to ascertain a valid question card id
         if (history == null) {
             throw new Meteor.Error(404, "You can't answer a card without a question card!\nhistoryId: {0}\nanswerCardId: {1}".format(historyId, answerCardId));
         }
