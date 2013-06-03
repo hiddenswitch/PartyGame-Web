@@ -7,7 +7,6 @@ var K_ANSWERS_PER_QUESTION = 5;
 var K_24_HOURS = 24 * 60 * 60 * 1000;
 
 Meteor.methods({
-    //
     writeAnswer: function (historyId, answerCardId, _userId) {
         if (!this.userId && !_userId) {
             throw new Meteor.Error(403, "Permission denied.");
@@ -102,10 +101,15 @@ Meteor.methods({
         return answer._id;
     },
 
-    getQuestionForUser: function (voluntary, _userId) {
+    getQuestionForUser: function (_userId) {
+        var voluntary = false;
+
         if (!this.userId && !_userId) {
+            // voluntary is false because this action was initiated by the server
             throw new Meteor.Error(403, "Permission denied.");
         } else if (this.userId) {
+            // this action was initiated by a user
+            voluntary = true;
             _userId = this.userId;
         }
 
