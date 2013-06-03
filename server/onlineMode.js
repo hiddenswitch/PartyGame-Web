@@ -121,8 +121,6 @@ Meteor.methods({
 
         var now = new Date().getTime();
 
-        voluntary = (voluntary === undefined || voluntary === null) ? false : voluntary;
-
         var user = Meteor.users.findOne({_id: _userId});
 
         if (user === null) {
@@ -190,7 +188,7 @@ Meteor.methods({
         }
 
         // is a judge assigned to this question?
-        var judgeId = question.judgeId || Meteor.call("assignJudgeToQuestion", questionId, _userId);
+        var judgeId = question.judgeId || Meteor.call("assignJudgeToQuestion", question._id, _userId);
 
         // Am I the judge for this question?
         if (judgeId !== _userId) {
@@ -221,7 +219,7 @@ Meteor.methods({
         }, {$inc: {score: losingScore, coins: losingScore}}, {multi: true});
 
         // reward judging bonus
-        var judgingBonus = Meteor.call("getJudgingBonus", questionId, answerId, _userId, _userId);
+        var judgingBonus = Meteor.call("getJudgingBonus", question._id, answerId, _userId, _userId);
 
         Meteor.users.update({_id: _userId}, {$inc: {coins: judgingBonus}, $set: {lastAction: now}});
 
@@ -320,6 +318,6 @@ Meteor.methods({
 
     getBotUser: function () {
         // returns the id of a bot user.
-        return _.extend({_id: null}, Meteor.users.findOne({bot: {$exists: true}}, {limit: 1, sort: {lastAction: -1}}))._id;
+        return _.extend({_id: null}, Meteor.users.findOne({bot: {$exists: true}}, {limit: 1, sort: {lastAction: 1}}))._id;
     }
 });
