@@ -288,8 +288,6 @@ Meteor.methods({
             eligibleUser = {_id: Meteor.call("getBotUser"), lastAction: now};
         }
 
-        console.log(JSON.stringify(eligibleUser));
-
         // Did we find a bot? If not, diagnose.
         if (eligibleUser._id == null) {
             throw new Meteor.Error(404, "Could not find a user to assign to question {0}".format(questionId));
