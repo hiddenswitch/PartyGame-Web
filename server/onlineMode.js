@@ -209,8 +209,8 @@ Meteor.methods({
         // set this answer as the winning answer
         Questions.update({_id: question._id}, {$set: {answerId: answerId, modified: now}});
 
-        Answers.update({_id: answerId}, {$set: {winner: true, winningAnswerId: answerId, score: winningScore}});
-        Answers.update({questionId: question._id, winner: {$ne: true}}, {$set: {winner: false, winningAnswerId: answerId, score: losingScore}}, {multi: true});
+        Answers.update({_id: answerId}, {$set: {winner: true, winningAnswerId: answerId, score: winningScore, modified: now}});
+        Answers.update({questionId: question._id, winner: {$ne: true}}, {$set: {winner: false, winningAnswerId: answerId, score: losingScore, modified: now}}, {multi: true});
 
         // add this score to the winner's scores and coins
         Meteor.users.update({_id: answer.userId}, {$inc: {score: winningScore, coins: winningScore}});
@@ -223,7 +223,7 @@ Meteor.methods({
         // reward judging bonus
         var judgingBonus = Meteor.call("getJudgingBonus", questionId, answerId, _userId, _userId);
 
-        Meteor.users.update({_id: _userId}, {$inc: {coins: judgingBonus}});
+        Meteor.users.update({_id: _userId}, {$inc: {coins: judgingBonus}, $set: {lastAction: now}});
 
         // return the question id on success
         return question._id;
