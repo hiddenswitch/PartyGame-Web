@@ -149,6 +149,9 @@ Meteor.methods({
             Meteor.users.update({_id: _userId}, {$set: {lastAction: now}});
         }
 
+        // Clear old histories
+        Histories.remove({available: true, answered: true}, {multi: true});
+
         // Return this history entry for this user
         return historyId;
     },
