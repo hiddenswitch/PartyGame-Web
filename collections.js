@@ -14,7 +14,7 @@ Chats = new Meteor.Collection("chats");
 // Online-only collections
 Questions = new Meteor.Collection("questions");
 Answers = new Meteor.Collection("answers");
-History = new Meteor.Collection("history");
+Histories = new Meteor.Collection("history");
 
 Question = function() {
     this.judgeId = null;
