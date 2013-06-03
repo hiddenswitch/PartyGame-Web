@@ -320,6 +320,6 @@ Meteor.methods({
 
     getBotUser: function () {
         // returns the id of a bot user.
-        return _.extend({_id: null}, Meteor.users.findOne({bot: true}, {limit: 1, sort: {lastAction: -1}}))._id;
+        return _.extend({_id: null}, Meteor.users.findOne({bot: {$exists: true}}, {limit: 1, sort: {lastAction: -1}}))._id;
     }
 });
