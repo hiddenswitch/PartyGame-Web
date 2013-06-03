@@ -17,7 +17,7 @@ Meteor.methods({
 
         var now = new Date().getTime();
 
-        var history = History.findOne({_id: historyId});
+        var history = Histories.findOne({_id: historyId});
 
         // if the history doesn't exist, how am I supposed to ascertain a
         if (history == null) {
@@ -91,7 +91,7 @@ Meteor.methods({
         });
 
         // Update the history object with the answer Id
-        History.update({_id: historyId}, {$set: {answerId: answer._id, modified: now}});
+        Histories.update({_id: historyId}, {$set: {answerId: answer._id, modified: now}});
 
         // if the question has reached the number of answers needed for judging, assign it a judge if it needs one
         if (question.answerCount >= K_ANSWERS_PER_QUESTION && question.judgeId === null) {
@@ -120,13 +120,13 @@ Meteor.methods({
         }
 
         // Avoid questions the user already has
-        var unavailableQuestionCardIds = _.pluck(History.find({userId: _userId, available: false}, {fields: {_id: 1}}).fetch(), '_id') || [];
+        var unavailableQuestionCardIds = _.pluck(Histories.find({userId: _userId, available: false}, {fields: {_id: 1}}).fetch(), '_id') || [];
 
         // Do we need to repeat?
         if (unavailableQuestionCardIds.length === Cards.find({type: CARD_TYPE_QUESTION}).count()) {
             unavailableQuestionCardIds = [];
 
-            History.update({userId: _userId, available: false}, {$set: {available: true}}, {multi: true});
+            Histories.update({userId: _userId, available: false}, {$set: {available: true}}, {multi: true});
         }
 
         var questionCard = Cards.findOne({_id: {$nin: unavailableQuestionCardIds}, type: CARD_TYPE_QUESTION}, {fields: {_id: 1}, limit: 1});
@@ -142,7 +142,7 @@ Meteor.methods({
         }
 
         // Append the question to the user's list of unanswered questions
-        var historyId = History.insert({userId: _userId, questionCardId: questionCard._id, answerId: null, available: false, judged: false, created: now, modified: now});
+        var historyId = Histories.insert({userId: _userId, questionCardId: questionCard._id, answerId: null, available: false, judged: false, created: now, modified: now});
 
         // Update last action
         if (voluntary) {
