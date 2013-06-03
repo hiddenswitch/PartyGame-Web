@@ -150,7 +150,7 @@ Meteor.methods({
         }
 
         // Clear old histories
-        Histories.remove({available: true, answered: true}, {multi: true});
+        Histories.remove({available: true, answered: {$ne: null}}, {multi: true});
 
         // Return this history entry for this user
         return historyId;
