@@ -43,18 +43,7 @@ Meteor.publish("usersInGame",function(gameId) {
 });
 
 Meteor.startup(function () {
-    // Add the heartbeat field to the user profile
-    Accounts.onCreateUser(function(options, user) {
-        if (options.profile)
-            user.profile = options.profile;
-        else
-            user.profile = {};
-        user.profile.heartbeat = new Date().getTime();
-        return user;
-    });
-
     // enable the geospatial index on games and users
-
     Games._ensureIndex({location:"2d"});
     Games._ensureIndex({open:1,modified:-1,userIds:1});
     Votes._ensureIndex({gameId:1});
@@ -66,7 +55,7 @@ Meteor.startup(function () {
     Players._ensureIndex({userId:1});
     Players._ensureIndex({gameId:1,userId:1,connected:1});
     Submissions._ensureIndex({gameId:1});
-    Meteor.users._ensureIndex({'profile.heartbeat':-1});
+    Meteor.users._ensureIndex({heartbeat:-1});
     Meteor.users._ensureIndex({'profile.location':"2d"});
 });
 
@@ -230,7 +219,7 @@ Meteor.methods({
         Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId,playerIds:playerId,playerNames: p.name}, $set:{modified:new Date().getTime()}});
 
         // Update the heartbeat
-        Meteor.users.update({_id:_userId},{$set:{'profile.heartbeat':new Date().getTime()}});
+        Meteor.users.update({_id:_userId},{$set:{heartbeat:new Date().getTime()}});
 
         // Draw hands for all users
         Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);

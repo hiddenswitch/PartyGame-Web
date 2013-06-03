@@ -23,7 +23,7 @@ Meteor.startup(function() {
 
     // Update player connected status. Bots are always connected
     Meteor.setInterval(function () {
-        var disconnectedUsers = Meteor.users.find({'profile.bot':{$nin:[true]},'profile.heartbeat':{$lt:new Date().getTime() - K_HEARTBEAT*2}}).fetch();
+        var disconnectedUsers = Meteor.users.find({'profile.bot':{$nin:[true]},heartbeat:{$lt:new Date().getTime() - K_HEARTBEAT*2}}).fetch();
 
         // Set the connected attribute of the Players collection documents to false for disconnected users
         Players.update({userId:{$in:_.pluck(disconnectedUsers,'_id')},connected:true},{$set:{connected:false}},{multi:true});
