@@ -353,7 +353,7 @@ Meteor.methods({
 
         // update heartbeat for the given user
         Players.update({userId:this.userId,connected:false},{$set:{connected:true,location:currentLocation}},{multi:true});
-        Meteor.users.update({_id:this.userId},{$set:{'profile.heartbeat':new Date().getTime()}});
+        Meteor.users.update({_id:this.userId},{$set:{heartbeat:new Date().getTime()}});
 
         return d;
     }
