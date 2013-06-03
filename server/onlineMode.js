@@ -7,12 +7,24 @@ var K_ANSWERS_PER_QUESTION = 5;
 var K_24_HOURS = 24 * 60 * 60 * 1000;
 
 Meteor.methods({
-    writeAnswer: function (questionCardId, answerCardId, _userId) {
+    //
+    writeAnswer: function (historyId, answerCardId, _userId) {
         if (!this.userId && !_userId) {
             throw new Meteor.Error(403, "Permission denied.");
         } else if (this.userId) {
             _userId = this.userId;
         }
+
+        var now = new Date().getTime();
+
+        var history = History.findOne({_id: historyId});
+
+        // if the history doesn't exist, how am I supposed to ascertain a
+        if (history == null) {
+            throw new Meteor.Error(404, "You can't answer a card without a question card!\nhistoryId: {0}\nanswerCardId: {1}".format(historyId, answerCardId));
+        }
+
+        var questionCardId = history.questionCardId;
 
         // check that the question and answer cards exist
         if (Cards.find({_id: questionCardId}).count() === 0) {
@@ -36,11 +48,12 @@ Meteor.methods({
             question = {
                 cardId: questionCardId,
                 judgeId: null,
-                created: new Date().getTime(),
-                modified: new Date().getTime(),
+                created: now,
+                modified: now,
                 answerCardIds: [],
                 answerCount: 0,
-                answerId: null
+                answerId: null,
+                judgeAssigned: null
             };
 
             question._id = Questions.insert(question);
@@ -52,8 +65,8 @@ Meteor.methods({
             questionId: question._id,
             winner: false,
             userId: _userId,
-            created: new Date().getTime(),
-            modified: new Date().getTime()
+            created: now,
+            modified: now
         };
 
         answer._id = Answers.insert(answer);
@@ -65,7 +78,7 @@ Meteor.methods({
         Questions.update({_id: question._id}, {
             $push: {answerCardIds: answerCardId},
             $inc: {answerCount: 1},
-            $set: {modified: new Date().getTime()}
+            $set: {modified: now}
         });
 
         // update this player's question matching value for judge assignment
@@ -73,9 +86,12 @@ Meteor.methods({
 
         // Update the user's last action, and add the questions they have answered
         Meteor.users.update({_id: _userId}, {
-            $set: {lastAction: new Date.now()},
+            $set: {lastAction: now},
             $push: {questionIds: question._id}
         });
+
+        // Update the history object with the answer Id
+        History.update({_id: historyId}, {$set: {answerId: answer._id, modified: now}});
 
         // if the question has reached the number of answers needed for judging, assign it a judge if it needs one
         if (question.answerCount >= K_ANSWERS_PER_QUESTION && question.judgeId === null) {
@@ -84,6 +100,57 @@ Meteor.methods({
 
         // return the id of the answer
         return answer._id;
+    },
+
+    getQuestionForUser: function (voluntary, _userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        } else if (this.userId) {
+            _userId = this.userId;
+        }
+
+        var now = new Date().getTime();
+
+        voluntary = (voluntary === undefined || voluntary === null) ? false : voluntary;
+
+        var user = Meteor.users.findOne({_id: _userId});
+
+        if (user === null) {
+            throw new Meteor.Error(404, "A user with id {0} was not found.".format(_userId));
+        }
+
+        // Avoid questions the user already has
+        var unavailableQuestionCardIds = _.pluck(History.find({userId: _userId, available: false}, {fields: {_id: 1}}).fetch(), '_id') || [];
+
+        // Do we need to repeat?
+        if (unavailableQuestionCardIds.length === Cards.find({type: CARD_TYPE_QUESTION}).count()) {
+            unavailableQuestionCardIds = [];
+
+            History.update({userId: _userId, available: false}, {$set: {available: true}}, {multi: true});
+        }
+
+        var questionCard = Cards.findOne({_id: {$nin: unavailableQuestionCardIds}, type: CARD_TYPE_QUESTION}, {fields: {_id: 1}, limit: 1});
+
+        // Diagnose if we can't find a card
+        if (questionCard === null) {
+            // Diagnose
+            if (Cards.find({type: CARD_TYPE_QUESTION}).count() === 0) {
+                throw new Meteor.Error(504, "No cards have been loaded into the database.");
+            } else {
+                throw new Meteor.Error(404, "No cards found for this user.\nuser: {0}".format(JSON.stringify(user)));
+            }
+        }
+
+        // Append the question to the user's list of unanswered questions
+        var historyId = History.insert({userId: _userId, questionCardId: questionCard._id, answerId: null, available: false, judged: false, created: now, modified: now});
+
+        // Update last action
+        if (voluntary) {
+            Meteor.users.update({_id: _userId}, {$set: {lastAction: now}});
+        }
+
+        // Return this history entry for this user
+        return historyId;
     },
 
     assignJudgeToQuestion: function (questionId, _userId) {
@@ -116,27 +183,28 @@ Meteor.methods({
          If we fail to assign a judge, assign a bot to judge the card.
          */
 
+        var now = new Date().getTime();
+
         // Should we assign?
         var eligibleUser = null;
 
-        if (question.judgeId === null) {
-            // For now, find the latest player judging the fewest cards
-            eligibleUser = Meteor.users.findOne({questionIds: {$ne: questionId}, lastAction: {$gt: new Date().now() - K_24_HOURS}}, {limit: 1, sort: {matchingValue: 1, lastAction: -1}});
-        } else {
-            // Reassign the judge
-        }
+        eligibleUser = Meteor.users.findOne({questionIds: {$ne: questionId}, lastAction: {$lt: now - K_24_HOURS}}, {limit: 1, sort: {matchingValue: 1, lastAction: -1}});
 
         // Do we need to assign this question to a bot?
         if (eligibleUser === null) {
-            eligibleUser = {_id: Meteor.call("getBotUser")};
+            eligibleUser = {_id: Meteor.call("getBotUser"), lastAction: now};
         }
 
-        // A user was found, assign.
-        if (eligibleUser !== null) {
-            Questions.update({_id: questionId}, {$set: {judgeId: eligibleUser._id}});
-        } else {
+        // Did we find a bot? If not, diagnose.
+        if (eligibleUser._id === null) {
             throw new Meteor.Error(404, "Could not find a user to assign to question {0}".format(questionId));
         }
+
+        // Set the judge or reassign.
+        Questions.update({_id: question._id, $or: [
+            {judgeId: null},
+            {judgeId: {$ne: eligibleUser._id}, judgeAssigned: {$lt: now - K_24_HOURS}}
+        ]}, {$set: {judgeId: eligibleUser._id, judgeAssigned: now, modified: now}});
 
         // return the id of the assigned user
         return eligibleUser._id;
