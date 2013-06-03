@@ -40,6 +40,9 @@ Meteor.methods({
             answerCount: {$lt: K_ANSWERS_PER_QUESTION},
             // The question doesn't already have this answer attached to it
             answerCardIds: {$ne: answerCardId}
+        }, {
+            sort: {answerCount: -1, modified: -1},
+            limit: 1
         });
 
         // No question card was found, create one
@@ -52,7 +55,8 @@ Meteor.methods({
                 answerCardIds: [],
                 answerCount: 0,
                 answerId: null,
-                judgeAssigned: null
+                judgeAssigned: null,
+                minimumAnswerCount: K_ANSWERS_PER_QUESTION
             };
 
             question._id = Questions.insert(question);
@@ -62,7 +66,9 @@ Meteor.methods({
         var answer = {
             cardId: answerCardId,
             questionId: question._id,
-            winner: false,
+            winner: null,
+            winningAnswerId: null,
+            score: null,
             userId: _userId,
             created: now,
             modified: now
@@ -93,7 +99,7 @@ Meteor.methods({
         Histories.update({_id: historyId}, {$set: {answerId: answer._id, modified: now}});
 
         // if the question has reached the number of answers needed for judging, assign it a judge if it needs one
-        if (question.answerCount >= K_ANSWERS_PER_QUESTION && question.judgeId === null) {
+        if (question.answerCount >= question.minimumAnswerCount && question.judgeId === null) {
             Meteor.call("assignJudgeToQuestion", question._id);
         }
 
@@ -154,10 +160,87 @@ Meteor.methods({
         }
 
         // Clear old histories
-        Histories.remove({available: true, answered: {$ne: null}}, {multi: true});
+        Histories.remove({available: true, answerId: {$ne: null}}, {multi: true});
 
         // Return this history entry for this user
         return historyId;
+    },
+
+    pickAnswer: function (answerId, _userId) {
+        if (!this.userId && !_userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        } else if (this.userId) {
+            _userId = this.userId;
+        }
+
+        var now = new Date().getTime();
+
+        // get the associated answer
+        var answer = Answers.findOne({_id: answerId});
+
+        if (answer === null) {
+            throw new Meteor.Error(404, "Answer with id {0} not found.".format(answerId));
+        }
+
+        // get the associated question
+        var question = Questions.findOne({_id: answer.questionId});
+
+        if (question === null) {
+            throw new Meteor.Error(404, "Question with id {0} specified by answer {1} not found.".format(answer.questionId, JSON.stringify(answer)));
+        }
+
+        // is a judge assigned to this question?
+        var judgeId = question.judgeId || Meteor.call("assignJudgeToQuestion", questionId, _userId);
+
+        // Am I the judge for this question?
+        if (judgeId !== _userId) {
+            throw new Meteor.Error(403, "User with id {0} is not the judge for this question.".format(_userId));
+        }
+
+        // Have enough people answered this question?
+        if (question.answerCount < question.minimumAnswerCount) {
+            throw new Meteor.Error(400, "The question with id {0} has too few answers.\nanswerCount: {0}\nminimumAnswerCount: {1}".format(question._id, question.answerCount, question.minimumAnswerCount));
+        }
+
+        // Score the answer
+        var winningScore = Meteor.call("getWinningScore", question._id, answerId, _userId) || K_ANSWERS_PER_QUESTION + 1;
+        var losingScore = Meteor.call("getLosingScore", question._id, _userId) || 1;
+
+        // set this answer as the winning answer
+        Questions.update({_id: question._id}, {$set: {answerId: answerId, modified: now}});
+
+        Answers.update({_id: answerId}, {$set: {winner: true, winningAnswerId: answerId, score: winningScore}});
+        Answers.update({questionId: question._id, winner: {$ne: true}}, {$set: {winner: false, winningAnswerId: answerId, score: losingScore}}, {multi: true});
+
+        // add this score to the winner's scores and coins
+        Meteor.users.update({_id: answer.userId}, {$inc: {score: winningScore, coins: winningScore}});
+
+        // add losing scores and coins
+        Meteor.users.update({_id: {
+            $in: _.pluck(Answers.find({questionId: question._id, userId: {$ne: answer.userId}}).fetch(), 'userId')}
+        }, {$inc: {score: losingScore, coins: losingScore}}, {multi: true});
+
+        // reward judging bonus
+        var judgingBonus = Meteor.call("getJudgingBonus", questionId, answerId, _userId, _userId);
+
+        Meteor.users.update({_id: _userId}, {$inc: {coins: judgingBonus}});
+
+        // return the question id on success
+        return question._id;
+    },
+
+    getWinningScore: function (questionId, answerId, _userId) {
+        // for now, just return the number of answers for this question + 1.
+        return _.extend({answerCount: K_ANSWERS_PER_QUESTION + 1}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
+    },
+
+    getLosingScore: function (questionId, _userId) {
+        return 1;
+    },
+
+    getJudgingBonus: function (questionId, answerId, judgeId, _userId) {
+        // return the number of answers for this question
+        return _.extend({answerCount: K_ANSWERS_PER_QUESTION}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
     },
 
     assignJudgeToQuestion: function (questionId, _userId) {

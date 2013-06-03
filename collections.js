@@ -16,16 +16,17 @@ Questions = new Meteor.Collection("questions");
 Answers = new Meteor.Collection("answers");
 Histories = new Meteor.Collection("history");
 
-Question = function() {
+Question = function () {
     this.judgeId = null;
     this.cardId = null;
     this.created = new Date().getTime();
     this.modified = new Date().getTime();
     this.answerCount = 0;
     this.answerId = null;
+    this.minimumAnswerCount = 5;
 };
 
-History = function() {
+History = function () {
     this.userId = null;
     this.questionCardId = null;
     this.answerId = false;
@@ -33,21 +34,23 @@ History = function() {
     this.judged = false;
 };
 
-Answer = function() {
+Answer = function () {
     this.userId = null;
     this.cardId = null;
     this.created = new Date().getTime();
     this.modified = new Date().getTime();
     this.winner = false;
+    this.score = null;
+    this.winningAnswerId = null;
 };
 
-Card = function() {
+Card = function () {
     this.type = CARD_TYPE_QUESTION;  // question or answer card
     this.deckId = ""; // The id of the deck
     this.text = ""; // text of the card
 };
 
-Deck = function() {
+Deck = function () {
     this.title = "";
     this.ownerId = "";
     this.description = "";
@@ -55,7 +58,7 @@ Deck = function() {
     this.storeData = {};
 };
 
-Hand = function() {
+Hand = function () {
     this.gameId = null;
     this.playerId = 0;
     this.userId = null;
@@ -63,7 +66,7 @@ Hand = function() {
     this.hand = []; // Array of card Ids
 };
 
-Vote = function() {
+Vote = function () {
     this.gameId = 0;
     this.round = 0;
     this.judgeId = 0;
