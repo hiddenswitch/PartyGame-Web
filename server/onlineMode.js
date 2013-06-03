@@ -3,7 +3,7 @@
  * © 2012 All Rights Reserved
  **/
 
-var K_ANSWERS_PER_QUESTION = 5;
+var K_ANSWERS_PER_QUESTION = 1;
 var K_24_HOURS = 24 * 60 * 60 * 1000;
 
 Meteor.methods({
@@ -16,11 +16,11 @@ Meteor.methods({
 
         var now = new Date().getTime();
 
-        var history = Histories.findOne({_id: historyId});
+        var history = Histories.findOne({_id: historyId, answerId: null, judged: false, userId: _userId});
 
         // if the history doesn't exist, how am I supposed to ascertain a valid question card id
         if (history == null) {
-            throw new Meteor.Error(404, "You can't answer a card without a question card!\nhistoryId: {0}\nanswerCardId: {1}".format(historyId, answerCardId));
+            throw new Meteor.Error(404, "You can't answer a card to a question that hasn't been assigned to you, a question that has already been answered, or a question that has already been judged!\nhistoryId: {0}\nanswerCardId: {1}".format(historyId, answerCardId));
         }
 
         var questionCardId = history.questionCardId;
@@ -37,7 +37,8 @@ Meteor.methods({
         // Find or create this question with the given cardId which doesn't already have this answer
         var question = Questions.findOne({
             cardId: questionCardId,
-            answerCount: {$lt: K_ANSWERS_PER_QUESTION},
+            // The question hasn't been voted on
+            answerId: null,
             // The question doesn't already have this answer attached to it
             answerCardIds: {$ne: answerCardId}
         }, {
@@ -46,7 +47,7 @@ Meteor.methods({
         });
 
         // No question card was found, create one
-        if (question === null) {
+        if (question == null) {
             question = {
                 cardId: questionCardId,
                 judgeId: null,
@@ -80,12 +81,6 @@ Meteor.methods({
         question.answerCardIds.push(answerCardId);
         question.answerCount++;
 
-        Questions.update({_id: question._id}, {
-            $push: {answerCardIds: answerCardId},
-            $inc: {answerCount: 1},
-            $set: {modified: now}
-        });
-
         // update this player's question matching value for judge assignment
         Meteor.call("updateUserMatchingValue", _userId);
 
@@ -93,6 +88,12 @@ Meteor.methods({
         Meteor.users.update({_id: _userId}, {
             $set: {lastAction: now},
             $push: {questionIds: question._id}
+        });
+
+        Questions.update({_id: question._id}, {
+            $push: {answerCardIds: answerCardId},
+            $inc: {answerCount: 1},
+            $set: {modified: now}
         });
 
         // Update the history object with the answer Id
@@ -123,7 +124,7 @@ Meteor.methods({
 
         var user = Meteor.users.findOne({_id: _userId});
 
-        if (user === null) {
+        if (user == null) {
             throw new Meteor.Error(404, "A user with id {0} was not found.".format(_userId));
         }
 
@@ -140,7 +141,7 @@ Meteor.methods({
         var questionCard = Cards.findOne({_id: {$nin: unavailableQuestionCardIds}, type: CARD_TYPE_QUESTION}, {fields: {_id: 1}, limit: 1});
 
         // Diagnose if we can't find a card
-        if (questionCard === null) {
+        if (questionCard == null) {
             // Diagnose
             if (Cards.find({type: CARD_TYPE_QUESTION}).count() === 0) {
                 throw new Meteor.Error(504, "No cards have been loaded into the database.");
@@ -176,15 +177,19 @@ Meteor.methods({
         // get the associated answer
         var answer = Answers.findOne({_id: answerId});
 
-        if (answer === null) {
+        if (answer == null) {
             throw new Meteor.Error(404, "Answer with id {0} not found.".format(answerId));
         }
 
         // get the associated question
         var question = Questions.findOne({_id: answer.questionId});
 
-        if (question === null) {
+        if (question == null) {
             throw new Meteor.Error(404, "Question with id {0} specified by answer {1} not found.".format(answer.questionId, JSON.stringify(answer)));
+        }
+
+        if (question.answerId !== null) {
+            throw new Meteor.Error(500, "The question with id {0} already has an answer with id {1}".format(question._id, question.answerId));
         }
 
         // is a judge assigned to this question?
@@ -251,7 +256,7 @@ Meteor.methods({
         // find the question. it must not already be answered or have an existing judge
         var question = Questions.findOne({_id: questionId, answerId: null});
 
-        if (question === null) {
+        if (question == null) {
             throw new Meteor.Error(404, "The question with id {0} could not be found.".format(questionId));
         }
 
@@ -276,15 +281,17 @@ Meteor.methods({
         // Should we assign?
         var eligibleUser = null;
 
-        eligibleUser = Meteor.users.findOne({questionIds: {$ne: questionId}, lastAction: {$lt: now - K_24_HOURS}}, {limit: 1, sort: {matchingValue: 1, lastAction: -1}});
+        eligibleUser = Meteor.users.findOne({questionIds: {$ne: questionId}, lastAction: {$gt: now - K_24_HOURS}}, {limit: 1, sort: {matchingValue: 1, lastAction: -1}});
 
         // Do we need to assign this question to a bot?
-        if (eligibleUser === null) {
+        if (eligibleUser == null) {
             eligibleUser = {_id: Meteor.call("getBotUser"), lastAction: now};
         }
 
+        console.log(JSON.stringify(eligibleUser));
+
         // Did we find a bot? If not, diagnose.
-        if (eligibleUser._id === null) {
+        if (eligibleUser._id == null) {
             throw new Meteor.Error(404, "Could not find a user to assign to question {0}".format(questionId));
         }
 
