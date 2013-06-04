@@ -29,7 +29,7 @@ Question = function () {
 History = function () {
     this.userId = null;
     this.questionCardId = null;
-    this.answerId = false;
+    this.answerId = null;
     this.available = false;
     this.judged = false;
 };
