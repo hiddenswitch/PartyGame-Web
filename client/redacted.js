@@ -215,17 +215,6 @@ playerIdToName = function(id) {
     return p.name;
 };
 
-cardIdToText = function(cardId) {
-    var c = null;
-    if (cardId !== null && cardId !== "") {
-        c = Cards.findOne({_id:cardId});
-    }
-    if (c)
-        return c.text;
-    else
-        return K_HIDDEN_TEXT_STRING;
-};
-
 submissionIdToCardId = function(id) {
     var submission = Submissions.findOne({_id:id});
     if (submission.answerId)

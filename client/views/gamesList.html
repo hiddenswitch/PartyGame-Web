@@ -11,39 +11,11 @@
         <a href="#store" data-role="button">Store</a>
         <ul data-role="listview" data-inset="true" data-split-icon="arrow-r" data-split-theme="a">
             <li data-role="list-divider"  class="magic">Local Game</li>
-            <li data-theme="c"><a href="#">
-                {{> map}}
-                <h2>5774 W Olympic Blvd</h2>
-
-                <p>Ben, Tom, Jason, Alex, Tim Eric</p></a>
-                <a href="#roundSummary">Join</a>
-            </li>
+            {{> browse}}
             <li data-role="list-divider">Your Turn</li>
-            <li data-theme="c"><a href="#">
-                <h2>What did I get for Valentine’s day?</h2>
-
-                <p>Choose your card...</p></a>
-                <a href="#roundSummary">Go</a>
-            </li>
-            <li data-theme="c"><a href="#">
-                <h2>I did a few ████ to make ends meet.</h2>
-
-                <p>Chose your card...</p></a>
-                <a href="#roundSummary">Go</a>
-            </li>
-            <li data-theme="c"><a href="#">
-                <h2>Text ████ to donate $5 to the Red Cross.</h2>
-
-                <p>Chose your card...</p></a>
-                <a href="#roundSummary">Go</a>
-            </li>
+            {{> answerQuestion}}
             <li data-role="list-divider">Judge!</li>
-            <li data-theme="c"><a href="#">
-                <h2>████ a day keeps the doctor away.</h2>
-
-                <p>Judge a card...</p></a>
-                <a href="#roundSummary">Go</a>
-            </li>
+            {{> judgeQuestion}}
         </ul>
         <div data-role="controlgroup" data-type="horizontal">
             <a href="#" data-role="button">Facebook</a>
@@ -51,28 +23,7 @@
         </div>
         <ul data-role="listview" data-inset="true" data-split-icon="arrow-r" data-split-theme="a">
             <li data-role="list-divider">Their Turn</li>
-            <li data-theme="c"><a href="#">
-                <h2>Game Title</h2>
-
-                <p>Last Card</p></a>
-                <a href="#roundSummary">Play</a>
-            </li>
-            <li data-theme="c"><a href="#">
-                <img src="/themes/images/redacted_72.png">
-
-                <h2>Game Title</h2>
-
-                <p>Last Card</p></a>
-                <a href="#roundSummary">Play</a>
-            </li>
-            <li data-theme="c"><a href="#">
-                <img src="/themes/images/redacted_72.png">
-
-                <h2>Game Title</h2>
-
-                <p>Last Card</p></a>
-                <a href="#roundSummary">Play</a>
-            </li>
+            {{> pendingQuestion}}
         </ul>
     </div>
 </div>

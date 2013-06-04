@@ -1,0 +1,9 @@
+<template name="judgeQuestion">
+    {{#each questions}}
+    <li data-theme="c"><a href="#judgeQuestion" id="{{_id}}">
+        <h2 id="{{_id}}-animator">{{text}}</h2>
+
+        <p>Judge a card...</p></a>
+    </li>
+    {{/each}}
+</template>

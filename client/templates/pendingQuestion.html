@@ -1,0 +1,9 @@
+<template name="pendingQuestion">
+    {{#each pendingAnswers}}
+    <li data-theme="c">
+        <h2>{{questionText}}</h2>
+
+        <p>Your answer: {{answerText}}</p>
+    </li>
+    {{/each}}
+</template>
