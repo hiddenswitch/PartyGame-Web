@@ -3,8 +3,9 @@
  * © 2012 All Rights Reserved
  **/
 
-var K_ANSWERS_PER_QUESTION = 1;
+var K_ANSWERS_PER_QUESTION = 6;
 var K_24_HOURS = 24 * 60 * 60 * 1000;
+var K_OPTIONS = 3;
 
 Meteor.methods({
     writeAnswer: function (historyId, answerCardId, _userId) {
@@ -30,7 +31,7 @@ Meteor.methods({
             throw new Meteor.Error(404, "Question card with id {0} does not exist.".format(questionCardId));
         }
 
-        if (Cards.find({_id: answerCardId, type:CARD_TYPE_ANSWER}).count() === 0) {
+        if (Cards.find({_id: answerCardId, type: CARD_TYPE_ANSWER}).count() === 0) {
             throw new Meteor.Error(404, "Answer with id {0} does not exist, or the answer is not of the answer type.".format(answerCardId));
         }
 
@@ -150,8 +151,22 @@ Meteor.methods({
             }
         }
 
+        // Pick k answer cards to choose from
+        var answerCardIds = _.pluck(Cards.find({type: CARD_TYPE_ANSWER}, {fields: {_id: 1}, limit: K_OPTIONS}).fetch(), '_id');
+
+        var history = {
+            userId: _userId,
+            questionCardId: questionCard._id,
+            answerCardIds: answerCardIds,
+            answerId: null,
+            available: false,
+            judged: false,
+            created: now,
+            modified: now
+        };
+
         // Append the question to the user's list of unanswered questions
-        var historyId = Histories.insert({userId: _userId, questionCardId: questionCard._id, answerId: null, available: false, judged: false, created: now, modified: now});
+        var historyId = Histories.insert(history);
 
         // Update last action
         if (voluntary) {
