@@ -30,8 +30,8 @@ Meteor.methods({
             throw new Meteor.Error(404, "Question card with id {0} does not exist.".format(questionCardId));
         }
 
-        if (Cards.find({_id: answerCardId}).count() === 0) {
-            throw new Meteor.Error(404, "Answer card with id {0} does not exist.".format(answerCardId));
+        if (Cards.find({_id: answerCardId, type:CARD_TYPE_ANSWER}).count() === 0) {
+            throw new Meteor.Error(404, "Answer with id {0} does not exist, or the answer is not of the answer type.".format(answerCardId));
         }
 
         // Find or create this question with the given cardId which doesn't already have this answer
