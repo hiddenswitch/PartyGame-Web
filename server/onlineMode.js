@@ -5,7 +5,57 @@
 
 var K_ANSWERS_PER_QUESTION = 6;
 var K_24_HOURS = 24 * 60 * 60 * 1000;
+var K_10_MINUTES = 10 * 60 * 1000;
 var K_OPTIONS = 3;
+
+var CardCache = {
+    questionCards: [],
+    answerCards: [],
+    updateAndShuffleCards: function () {
+        var self = this;
+        self.questionCards = _.shuffle(Cards.find({type: CARD_TYPE_QUESTION}).fetch());
+        self.answerCards = _.shuffle(Cards.find({type: CARD_TYPE_ANSWER}).fetch());
+    },
+    getQuestionCardsExcluding: function (exclusionIds) {
+        var self = this;
+        return _.filter(self.questionCards, function (card) {
+            return !_.contains(exclusionIds, card._id);
+        });
+    },
+    getRandomQuestionCardExcluding: function (exclusionIds) {
+        var self = this;
+        return _.first(_.shuffle(_.filter(self.questionCards, function (card) {
+            return !_.contains(exclusionIds, card._id);
+        })));
+    },
+    getAnswerCardsExcluding: function (exclusionIds) {
+        var self = this;
+        return _.filter(self.answerCards, function (card) {
+            return !_.contains(exclusionIds, card._id);
+        });
+    },
+    getSomeAnswerCardsExcluding: function (exclusionIds, count) {
+        var self = this;
+        count = count || K_OPTIONS;
+        var eligibleAnswerCards = null;
+
+        if (self.answerCards.length - exclusionIds.length < count || exclusionIds == null) {
+            eligibleAnswerCards = self.answerCards;
+        } else {
+            eligibleAnswerCards = _.shuffle(_.filter(self.answerCards, function (card) {
+                return !_.contains(exclusionIds, card._id);
+            }));
+        }
+
+        return eligibleAnswerCards.slice(0, 3);
+    }
+};
+
+Meteor.startup(function () {
+    // Update and shuffle the cards
+    CardCache.updateAndShuffleCards();
+    Meteor.setInterval(CardCache.updateAndShuffleCards, K_10_MINUTES);
+});
 
 Meteor.methods({
     writeAnswer: function (historyId, answerCardId, _userId) {
@@ -24,11 +74,9 @@ Meteor.methods({
             throw new Meteor.Error(404, "You can't answer a card to a question that hasn't been assigned to you, a question that has already been answered, or a question that has already been judged!\nhistoryId: {0}\nanswerCardId: {1}".format(historyId, answerCardId));
         }
 
-        var questionCardId = history.questionCardId;
-
         // check that the question and answer cards exist
         if (Cards.find({_id: questionCardId}).count() === 0) {
-            throw new Meteor.Error(404, "Question card with id {0} does not exist.".format(questionCardId));
+            throw new Meteor.Error(404, "Question card with id {0} does not exist.".format(history.questionCardId));
         }
 
         if (Cards.find({_id: answerCardId, type: CARD_TYPE_ANSWER}).count() === 0) {
@@ -37,7 +85,7 @@ Meteor.methods({
 
         // Find or create this question with the given cardId which doesn't already have this answer
         var question = Questions.findOne({
-            cardId: questionCardId,
+            cardId: history.questionCardId,
             // The question hasn't been voted on
             answerId: null,
             // The question doesn't already have this answer attached to it
@@ -50,7 +98,7 @@ Meteor.methods({
         // No question card was found, create one
         if (question == null) {
             question = {
-                cardId: questionCardId,
+                cardId: history.questionCardId,
                 judgeId: null,
                 created: now,
                 modified: now,
@@ -130,16 +178,17 @@ Meteor.methods({
         }
 
         // Avoid questions the user already has
-        var unavailableQuestionCardIds = _.pluck(Histories.find({userId: _userId, available: false}, {fields: {_id: 1}}).fetch(), '_id') || [];
+        // TODO: Flatten Histories query for questionAvailable and answerAvailable into one call.
+        var unavailableQuestionCardIds = _.uniq(_.pluck(Histories.find({userId: _userId, questionAvailable: false}, {fields: {questionCardId: 1}}).fetch(), 'questionCardId')) || [];
 
-        // Do we need to repeat?
+        // Do we need to repeat questions?
         if (unavailableQuestionCardIds.length === Cards.find({type: CARD_TYPE_QUESTION}).count()) {
             unavailableQuestionCardIds = [];
 
-            Histories.update({userId: _userId, available: false}, {$set: {available: true}}, {multi: true});
+            Histories.update({userId: _userId, questionAvailable: false}, {$set: {questionAvailable: true}}, {multi: true});
         }
 
-        var questionCard = Cards.findOne({_id: {$nin: unavailableQuestionCardIds}, type: CARD_TYPE_QUESTION}, {fields: {_id: 1}, limit: 1});
+        var questionCard = CardCache.getRandomQuestionCardExcluding(unavailableQuestionCardIds);
 
         // Diagnose if we can't find a card
         if (questionCard == null) {
@@ -151,15 +200,24 @@ Meteor.methods({
             }
         }
 
-        // Pick k answer cards to choose from
-        var answerCardIds = _.pluck(Cards.find({type: CARD_TYPE_ANSWER}, {fields: {_id: 1}, limit: K_OPTIONS}).fetch(), '_id');
+        var unavailableAnswerCardIds = _.uniq(_.flatten(_.pluck(Histories.find({userId: _userId, answersAvailable: false}, {fields: {answerCardIds: 1}}).fetch(), 'answerCardIds'))) || [];
+
+        if (unavailableAnswerCardIds.length > CardCache.answerCards.length - K_OPTIONS) {
+            unavailableAnswerCardIds = [];
+
+            Histories.update({userId: _userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
+        }
+
+        // Do we need to repeat answers?
+        var answerCardIds = _.pluck(CardCache.getSomeAnswerCardsExcluding(unavailableAnswerCardIds, K_OPTIONS), '_id');
 
         var history = {
             userId: _userId,
             questionCardId: questionCard._id,
             answerCardIds: answerCardIds,
             answerId: null,
-            available: false,
+            questionAvailable: false,
+            answersAvailable: false,
             judged: false,
             created: now,
             modified: now
@@ -174,7 +232,7 @@ Meteor.methods({
         }
 
         // Clear old histories
-        Histories.remove({available: true, answerId: {$ne: null}}, {multi: true});
+        Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
 
         // Return this history entry for this user
         return historyId;
