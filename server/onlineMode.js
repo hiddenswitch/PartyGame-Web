@@ -180,12 +180,13 @@ Meteor.methods({
         // Avoid questions the user already has
         // TODO: Flatten Histories query for questionAvailable and answerAvailable into one call.
         var unavailableQuestionCardIds = _.uniq(_.pluck(Histories.find({userId: _userId, questionAvailable: false}, {fields: {questionCardId: 1}}).fetch(), 'questionCardId')) || [];
+        var repeatQuestions = false;
 
         // Do we need to repeat questions?
         if (unavailableQuestionCardIds.length === Cards.find({type: CARD_TYPE_QUESTION}).count()) {
             unavailableQuestionCardIds = [];
 
-            Histories.update({userId: _userId, questionAvailable: false}, {$set: {questionAvailable: true}}, {multi: true});
+            repeatQuestions = true;
         }
 
         var questionCard = CardCache.getRandomQuestionCardExcluding(unavailableQuestionCardIds);
@@ -202,11 +203,12 @@ Meteor.methods({
 
         // Do we need to repeat answers?
         var unavailableAnswerCardIds = _.uniq(_.flatten(_.pluck(Histories.find({userId: _userId, answersAvailable: false}, {fields: {answerCardIds: 1}}).fetch(), 'answerCardIds'))) || [];
+        var repeatAnswers = false;
 
         if (unavailableAnswerCardIds.length > CardCache.answerCards.length - K_OPTIONS) {
             unavailableAnswerCardIds = [];
 
-            Histories.update({userId: _userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
+            repeatAnswers = true;
         }
 
         var answerCardIds = _.pluck(CardCache.getSomeAnswerCardsExcluding(unavailableAnswerCardIds, K_OPTIONS), '_id');
@@ -243,6 +245,14 @@ Meteor.methods({
 
         // Clear old histories
         Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
+
+        if (repeatQuestions) {
+            Histories.update({userId: _userId, questionAvailable: false}, {$set: {questionAvailable: true}}, {multi: true});
+        }
+
+        if (repeatAnswers) {
+            Histories.update({userId: _userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
+        }
 
         // Return this history entry for this user
         return historyId;
