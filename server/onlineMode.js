@@ -190,16 +190,17 @@ Meteor.methods({
 
         var questionCard = CardCache.getRandomQuestionCardExcluding(unavailableQuestionCardIds);
 
-        // Diagnose if we can't find a card
+        // Diagnose if we can't find a question card
         if (questionCard == null) {
             // Diagnose
             if (Cards.find({type: CARD_TYPE_QUESTION}).count() === 0) {
-                throw new Meteor.Error(504, "No cards have been loaded into the database.");
+                throw new Meteor.Error(504, "No question cards have been loaded into the database.");
             } else {
-                throw new Meteor.Error(404, "No cards found for this user.\nuser: {0}".format(JSON.stringify(user)));
+                throw new Meteor.Error(404, "No question cards found for this user.\nuser: {0}".format(JSON.stringify(user)));
             }
         }
 
+        // Do we need to repeat answers?
         var unavailableAnswerCardIds = _.uniq(_.flatten(_.pluck(Histories.find({userId: _userId, answersAvailable: false}, {fields: {answerCardIds: 1}}).fetch(), 'answerCardIds'))) || [];
 
         if (unavailableAnswerCardIds.length > CardCache.answerCards.length - K_OPTIONS) {
@@ -208,8 +209,17 @@ Meteor.methods({
             Histories.update({userId: _userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
         }
 
-        // Do we need to repeat answers?
         var answerCardIds = _.pluck(CardCache.getSomeAnswerCardsExcluding(unavailableAnswerCardIds, K_OPTIONS), '_id');
+
+        // Diagnose if we can't find answer cards
+        if (answerCardIds == null || answerCardIds.length === 0) {
+            // Diagnose
+            if (Cards.find({type: CARD_TYPE_ANSWER}).count() === 0) {
+                throw new Meteor.Error(504, "No answer cards have been loaded into the database.");
+            } else {
+                throw new Meteor.Error(404, "No answer cards found for this user.\nuser: {0}".format(JSON.stringify(user)));
+            }
+        }
 
         var history = {
             userId: _userId,
