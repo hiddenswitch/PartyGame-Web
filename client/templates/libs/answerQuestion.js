@@ -9,7 +9,7 @@ Template.answerQuestion.preserve(defaultPreserve);
 Template.answerQuestion.events = {
     'click a': function (e) {
         var historyId = $(e.currentTarget).attr('id');
-        Session.set("historyId", historyId);
+        Session.set("history", Histories.findOne({_id: historyId}));
     }
 };
 
