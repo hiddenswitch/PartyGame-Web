@@ -1,7 +1,22 @@
 <body>
 
 <div id="history" data-role="page">
+    <div data-role="header" data-position="fixed">
+        <a href="#gamesList" data-icon="arrow-l">Back</a>
 
+        <h1>Your Turn</h1>
+    </div>
+    <div data-role="content">
+        <ul data-role="listview" data-inset="true" data-split-icon="arrow-r" data-split-theme="a">
+            <li data-role="list-divider">Question</li>
+            {{> historyQuestion}}
+        </ul>
+
+        <ul data-role="listview" data-inset="true" data-split-icon="arrow-r" data-split-theme="a">
+            <li data-role="list-divider">Pick Your Answer</li>
+            {{> historyAnswers}}
+        </ul>
+    </div>
 </div>
 
 </body>

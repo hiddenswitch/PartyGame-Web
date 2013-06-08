@@ -75,7 +75,7 @@ Meteor.methods({
         }
 
         // check that the question and answer cards exist
-        if (Cards.find({_id: questionCardId}).count() === 0) {
+        if (Cards.find({_id: history.questionCardId}).count() === 0) {
             throw new Meteor.Error(404, "Question card with id {0} does not exist.".format(history.questionCardId));
         }
 
