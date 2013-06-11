@@ -13,6 +13,11 @@
             <li data-role="list-divider"  class="magic">Local Game</li>
             {{> browse}}
             <li data-role="list-divider">Your Turn</li>
+            <li data-theme="c"><a href="#" id="getNewQuestionButton" onclick="Meteor.call('getQuestionForUser');">
+                <h2>Get A Question</h2>
+
+                <p>And pick a naughty answer.</p></a>
+            </li>
             {{> answerQuestion}}
             <li data-role="list-divider">Judge!</li>
             {{> judgeQuestion}}
