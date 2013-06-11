@@ -4,6 +4,11 @@
  **/
 var URL_TO_CARDS_TSV = "https://dl.dropboxusercontent.com/u/2891540/cards.tsv";
 
+Meteor.startup(function () {
+    // Update cards
+    Meteor.call("updateCardsFromGoogle");
+});
+
 Meteor.methods({
     updateCardsFromGoogle: function () {
         (function (e, r) {

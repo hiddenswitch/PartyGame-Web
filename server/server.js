@@ -280,8 +280,6 @@ Meteor.methods({
         if (title=="")
             title = "Game #" + (Games.find({}).count() + 1).toString();
 
-        Meteor.call("updateCardsFromGoogle");
-
         var shuffledAnswerCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_ANSWER},{fields:{_id:1}}).fetch(),'_id'));
 
         if (shuffledAnswerCards === null || shuffledAnswerCards.length === 0) {
