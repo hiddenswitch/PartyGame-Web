@@ -61,7 +61,7 @@ var JudgeManager = {
                 coerce ? null : {$or: [
                     {judgeId: null},
                     {judgeId: {$ne: judgeId}, judgeAssigned: {$lt: now - K_24_HOURS}}
-            ]}), {$set: {judgeId: judgeId, judgeAssigned: now, modified: now}});
+                ]}), {$set: {judgeId: judgeId, judgeAssigned: now, modified: now}});
     }
 };
 
@@ -632,8 +632,8 @@ Meteor.methods({
         return answerId;
     },
 
-    // For a given user, generate some game event using a bot
-    onlineBotParticipateForUser: function (userId) {
+    // For a given user, generate an answer or judge event using a bot
+    onlineBotAnswerOrJudgeForUser: function (userId) {
         if (this.userId) {
             throw new Meteor.Error(503, "You must be an administrator to call this function.");
         }
