@@ -49,6 +49,10 @@ var CardManager = {
         }
 
         return eligibleAnswerCards.slice(0, 3);
+    },
+    initializeCards: function () {
+        CardManager.updateAndShuffleCards();
+        Meteor.setInterval(CardManager.updateAndShuffleCards, K_10_MINUTES);
     }
 };
 
@@ -65,10 +69,43 @@ var JudgeManager = {
     }
 };
 
+var BotManager = {
+    actionDelay: 3 * 1000,
+    queueDelay: 100,
+    queue: [],
+    tickHandle: null,
+    setIntervalHandler: function () {
+        BotManager.tickHandle = Meteor.setInterval(BotManager.tick, BotManager.queueDelay);
+    },
+    initializeBotLoop: function () {
+        BotManager.userObserver = Meteor.users.find({lastAction: {$gt: 0}}, {fields: {lastAction: 1}}).observeChanges({
+            added: BotManager.handleAction,
+            changed: BotManager.handleAction
+        });
+
+        BotManager.setIntervalHandler();
+    },
+    tick: function () {
+        BotManager.queue = _.compact(BotManager.queue);
+        if (BotManager.queue.length > 0) {
+            // Execute the queued action
+            console.log("Bot action: {0}.".format(JSON.stringify(BotManager.queue.pop()())));
+        } else {
+            Meteor.clearInterval(BotManager.tickHandle);
+        }
+    },
+    handleAction: function (id, user) {
+        if (BotManager.tickHandle === null) {
+            BotManager.setIntervalHandler();
+        }
+        BotManager.queue.push(Meteor.call.bind(this, "onlineBotAnswerOrJudgeForUser", id));
+    }
+};
+
 Meteor.startup(function () {
     // Update and shuffle the cards
-    CardManager.updateAndShuffleCards();
-    Meteor.setInterval(CardManager.updateAndShuffleCards, K_10_MINUTES);
+    CardManager.initializeCards();
+    BotManager.initializeBotLoop();
 });
 
 Meteor.methods({
