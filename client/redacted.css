@@ -22,33 +22,34 @@ ul[data-role=listview] li img {
 */
 
 #titleText {
+    font-size: 32pt;
     text-align: center;
 }
 
 /*Portrait iPhone*/
-@media only screen and (min-device-width: 320px) {
-    #titleText {
-        font-size:32pt;
-    }
-}
+/*@media only screen and (min-device-width: 320px) {*/
+    /*#titleText {*/
+        /*font-size:32pt;*/
+    /*}*/
+/*}*/
 
 /*Landscape iPhone*/
-@media only screen and (min-device-width: 480px) {
-    #titleText {
-        font-size:44pt;
-    }
-}
+/*@media only screen and (min-device-width: 480px) {*/
+    /*#titleText {*/
+        /*font-size:44pt;*/
+    /*}*/
+/*}*/
 
 /*iPad*/
-@media only screen and (min-device-width: 768px) {
-    #titleText {
-        font-size:109.5pt;
-    }
-}
+/*@media only screen and (min-device-width: 768px) {*/
+    /*#titleText {*/
+        /*font-size:109.5pt;*/
+    /*}*/
+/*}*/
 
 /*Desktop*/
-@media only screen and (min-device-width: 1024px) {
-    #titleText {
-        font-size:144pt;
-    }
-}
+/*@media only screen and (min-device-width: 1024px) {*/
+    /*#titleText {*/
+        /*font-size:144pt;*/
+    /*}*/
+/*}*/
