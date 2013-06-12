@@ -2,9 +2,9 @@
     {{#if loggedIn}}
     <ul id="menuList" data-role="listview">
         {{> browse}}
-        <li><a href="#browse">Create Game</a></li>
+        <li data-theme="c" data-icon="plus"><a href="#browse">Create Game</a></li>
+        <li data-theme="c" data-icon="delete"><a href="#browse" onclick="Meteor.logout();">Logout</a></li>
     </ul>
-    <a data-role="button" href="#" onclick="Meteor.logout()">Logout</a>
     {{else}}
     <a id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</a>
     <a id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</a>
