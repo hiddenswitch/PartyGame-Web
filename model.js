@@ -352,8 +352,11 @@ Meteor.methods({
         var d = new Date().getTime();
 
         // update heartbeat for the given user
-        Players.update({userId:this.userId,connected:false},{$set:{connected:true,location:currentLocation}},{multi:true});
+        Players.update({userId:this.userId,connected:false},{$set:{connected:true,location:[currentLocation[1],currentLocation[0]]}},{multi:true});
         Meteor.users.update({_id:this.userId},{$set:{heartbeat:new Date().getTime()}});
+        if (currentLocation != null) {
+            Meteor.users.update({_id:this.userId},{$set:{location:[currentLocation[1],currentLocation[0]]}});
+        }
 
         return d;
     }
