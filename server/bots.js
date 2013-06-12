@@ -9,27 +9,6 @@ var botPlayers = 0;
 
 var tickRate = 800;
 
-Meteor.startup(function() {
-    if (Meteor.settings.useBots === true) {
-        // TODO: Seasonalize the games, keep the number of games random.
-        Deps.autorun(function() {
-            var countOfBots = Meteor.users.find({'profile.bot':true}).count();
-            if (countOfBots < botPlayers) {
-                Meteor.call("populate",botPlayers-countOfBots);
-            }
-        });
-
-        var botEvaluateFunction = function () {
-            var botActions = Meteor.call("botsEvaluate",tick);
-//            console.log("Bot action summary: " + JSON.stringify(botActions));
-            tick++;
-            Meteor.setTimeout(botEvaluateFunction,tickRate);
-        };
-
-        Meteor.setTimeout(botEvaluateFunction,tickRate);
-    }
-});
-
 Meteor.methods({
     populate:function(population) {
         if (this.userId) {
@@ -67,7 +46,7 @@ Meteor.methods({
         }
 
         var gameId = Meteor.call("findGameWithFewPlayers",5);
-        botId = botId || Meteor.call("getBot");
+        botId = botId || Meteor.call("getOnlineBotUser");
         if (gameId) {
             return Meteor.call("botJoinGame",gameId,botId);
         } else {
@@ -75,47 +54,12 @@ Meteor.methods({
         }
     },
 
-    createBot:function() {
-        if (this.userId) {
-            throw new Meteor.Error(503,"You must be an administrator to call this function.");
-        }
-
-        var userIdPadding = Random.id();
-        var password = Random.id();
-        var foundName = false;
-
-        // Only try 10 names before giving up and using a random name
-        for (var i = 0; !foundName || i < 10; i++) {
-            var nickname = ShuffledBotNames.length > 0 ? ShuffledBotNames.pop() : "Anonymous " + userIdPadding;
-            if (Meteor.users.find({username:nickname}).count() === 0) {
-                foundName = true;
-            }
-        }
-
-        var botId = Accounts.createUser({
-            username:nickname,
-            email:userIdPadding+"@redactedonline.com",
-            password:password,
-            profile:{
-                name:nickname,
-                bot:true,
-                inGame:false,
-                // Perform actions 20 seconds from being able to
-                period:Math.floor(Random.fraction()*20)
-            }
-        });
-
-        Meteor.users.update({_id:botId},{$set:{bot:true,bored:false}});
-
-        return botId;
-    },
-
     createEmptyBotGameAndJoin:function(botId) {
         if (this.userId) {
             throw new Meteor.Error(503,"You must be an administrator to call this function.");
         }
 
-        botId = botId || Meteor.call("getBot");
+        botId = botId || Meteor.call("getOnlineBotUser");
 
         var gameId = Meteor.call("createEmptyGame","","",null,botId);
 
@@ -127,32 +71,13 @@ Meteor.methods({
         }
     },
 
-    getBot:function() {
-        if (this.userId) {
-            throw new Meteor.Error(503,"You must be an administrator to call this function.");
-        }
-
-        // Create a new bot, or find a bot with few games, and return the userId of the bot
-        var bot = Meteor.users.findOne({"profile.bot":true,"profile.inGame":false});
-
-        var botId;
-        // If we didn't find a bot, add one.
-        if (bot) {
-            botId = bot._id;
-        } else {
-            botId = Meteor.call("createBot");
-        }
-
-        return botId;
-    },
-
     botJoinGame:function(gameId,botId) {
         if (this.userId) {
             throw new Meteor.Error(503,"You must be an administrator to call this function.");
         }
 
         // Get a bot
-        botId = botId || Meteor.call("getBot");
+        botId = botId ||  Meteor.call("getOnlineBotUser");
         if (!botId) {
             console.log("Could not create a bot.");
             return;
@@ -161,7 +86,7 @@ Meteor.methods({
         // Join the specified game.
         if (Meteor.call("joinGame",gameId,botId)) {
             // Update the bot's quantity of inGames
-            Meteor.users.update({_id:botId},{$set:{"profile.inGame":true}});
+            Meteor.users.update({_id:botId},{$set:{inGame:true}});
             return 1;
         } else {
             console.log("Bot could not join game.");
@@ -182,7 +107,7 @@ Meteor.methods({
             botDrewHands:0,
             doNothing:0,
             tryAgains:0,
-            botsNotInGame:Meteor.users.find({"profile.bot":true,"profile.inGame":false}).count()
+            botsNotInGame:Meteor.users.find({bot:true,inGame:false}).count()
         };
 
         var botJoinGame = function(bot) {
@@ -191,13 +116,13 @@ Meteor.methods({
         // Find bots whose period is up
 
         // De-synchronize the bot process
-        var botsNotInGame = Meteor.users.find({"profile.bot":true,"profile.inGame":false},{fields:{_id:1}}).fetch();
+        var botsNotInGame = Meteor.users.find({bot:true,inGame:false},{fields:{_id:1}}).fetch();
 
         _.each(botsNotInGame,function(bot) {
             botJoinGame(bot);
         });
 
-        var bots = Meteor.users.find({"profile.bot":true,"profile.inGame":true,"profile.period":tick % 20}).fetch();
+        var bots = Meteor.users.find({bot:true,inGame:true,"profile.period":tick % 20}).fetch();
 //        console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
         if (bots && bots.length > 0) {
             // Determine the state of the game, and perform the relevant action
@@ -256,7 +181,7 @@ Meteor.methods({
                                 o.doNothing++;
                             }
                         } else {
-                            Meteor.users.update({_id:bot._id},{$set:{"profile.inGame":false}});
+                            Meteor.users.update({_id:bot._id},{$set:{inGame:false}});
                             Players.update({_id:player._id},{$set:{open:false}});
                             botJoinGame(bot);
                         }

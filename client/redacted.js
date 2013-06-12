@@ -98,11 +98,11 @@ loginAnonymously = function() {
 };
 
 loginWithFacebook = function() {
-	Meteor.loginWithFacebook({},setErrorAndGoHome)
+	Meteor.loginWithFacebook({},setErrorAndGoHome);
 };
 
 loginWithGoogle = function() {
-	Meteor.loginWithGoogle({},setErrorAndGoHome)
+	Meteor.loginWithGoogle({},setErrorAndGoHome);
 };
 
 signUp = function() {
@@ -267,7 +267,7 @@ scores = function(gameId) {
 
 createNewUserAndLogin = function(username,email,password,callback) {
     if (username && email && password) {
-        Accounts.createUser({username:username,email:email,password:password},callback);
+        Accounts.createUser({username:username,email:email,password:password,profile:{location:Session.get(LOCATION)}},callback);
     } else {
         throw new Meteor.Error(403,"Please fill out: " + (username ? "" : " username") + (email ? "" : " email") + (password ? "" : " password")+".");
     }
@@ -277,7 +277,7 @@ createNewAnonymousUser = function(nickname,callback) {
     var userIdPadding = Math.random().toString(36).slice(-8);
     var password = Math.random().toString(36).slice(-8);
     nickname = nickname || "Anonymous (" + userIdPadding + ")";
-    Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname}},callback)
+    Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname,location:Session.get(LOCATION)}},callback)
 };
 
 questionAndAnswerText = function(questionCardId,answerCardId) {

@@ -106,6 +106,7 @@ var JudgeManager = {
 
 var BotManager = {
     entertainmentDelay: 1000,
+    tick: 0,
     keepEntertained: function () {
         Meteor.setInterval(function () {
             _.each(Meteor.users.find({
@@ -120,6 +121,9 @@ var BotManager = {
                         Meteor.call("onlineBotPlayWithUser", user._id);
                     });
                 });
+
+            Meteor.call("botsEvaluate", BotManager.tick);
+            BotManager.tick++;
         }, BotManager.entertainmentDelay);
     }
 };
@@ -475,7 +479,7 @@ Meteor.methods({
         var now = new Date().getTime();
 
         // returns the id of a bot user.
-        var bot = Meteor.users.findOne({bot: {$exists: true}, lastAction: {$lt: now - K_10_MINUTES}}, {limit: 1, sort: {lastAction: 1}});
+        var bot = Meteor.users.findOne({bot: true, lastAction: {$lt: now - K_10_MINUTES}, inGame: false}, {limit: 1, sort: {lastAction: 1}});
 
         if (bot == null) {
             // Create a bot
@@ -513,12 +517,14 @@ Meteor.methods({
             email: userIdPadding + "@redactedonline.com",
             password: password,
             profile: {
-                name: nickname
+                name: nickname,
+                period: Math.floor(Random.fraction() * 20)
             }
         });
 
         var userSchemaExtension = {};
 
+        userSchemaExtension.inGame = false;
         userSchemaExtension.heartbeat = now;
         userSchemaExtension.lastAction = now;
         userSchemaExtension.questionIds = [];
@@ -532,6 +538,7 @@ Meteor.methods({
         userSchemaExtension.unansweredHistoriesCount = 0;
         userSchemaExtension.unjudgedQuestionsCount = 0;
         userSchemaExtension.pendingJudgeCount = 0;
+        userSchemaExtension.location = null;
 
         Meteor.users.update({_id: botId}, {$set: userSchemaExtension});
 
@@ -700,9 +707,34 @@ Meteor.methods({
             possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingAQuestionToJudge", userId));
         }
 
+        var localGamesCount = user.location ? Games.find({open: true, location: {$within: {$center: [
+            user.location,
+            0.01
+        ]}}}, {fields: {_id: 1}}).count() : null;
+
+        if (user.location !== null && localGamesCount !== null && localGamesCount === 0) {
+            possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingLocalGame", userId, user.location));
+        }
+
         if (possibleActions.length !== 0) {
             return Random.choice(possibleActions)();
         }
+    },
+
+    onlineBotPlayWithUserByCreatingLocalGame: function (userId, location) {
+        if (this.userId) {
+            throw new Meteor.Error(503, "You must be an administrator to call this function.");
+        }
+
+        var now = new Date().getTime();
+
+        var ownerBotId = Meteor.call("getOnlineBotUser");
+        var gameId = Meteor.call("createEmptyGame", "", "", location, ownerBotId);
+
+        Meteor.call("botJoinGame", gameId, ownerBotId);
+        Meteor.call("fillGameWithBots", gameId, 6);
+
+        return gameId;
     },
 
     onlineBotPlayWithUserByCreatingAQuestionToJudge: function (userId) {

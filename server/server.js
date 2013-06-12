@@ -310,7 +310,7 @@ Meteor.methods({
             modified: new Date().getTime(),
             judgeId:null,
             userIds:[],
-            botLust: location ? false : true,
+            botLust: true,
             location: location ? [location[1],location[0]] : null
         });
 
@@ -325,8 +325,7 @@ Meteor.methods({
         Games.update(
             gameId === null ?
                 {open:true,$or:[{modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}}, {questionCardsCount:0}, {answerCardsCount:0}]} :
-                {_id:gameId}
-            ,{$set:{open:false},modified:new Date().getTime()},{multi:gameId === null});
+                {_id:gameId},{$set:{open:false},modified:new Date().getTime()},{multi:gameId === null});
     }
 });
 
