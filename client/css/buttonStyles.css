@@ -17,5 +17,6 @@
 
 #facebookButton .ui-btn-inner {
     margin-right: 36px;
+    margin-top: 5px;
     background: none;
 }
