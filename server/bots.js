@@ -5,7 +5,7 @@
 
 var tick = 0;
 
-var botPlayers = 25;
+var botPlayers = 0;
 
 var tickRate = 800;
 
@@ -104,6 +104,8 @@ Meteor.methods({
                 period:Math.floor(Random.fraction()*20)
             }
         });
+
+        Meteor.users.update({_id:botId},{$set:{bot:true,bored:false}});
 
         return botId;
     },
