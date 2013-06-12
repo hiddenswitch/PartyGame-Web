@@ -7,7 +7,8 @@
 	color: 					#ffffff /*{global-active-color}*/;
 	cursor: pointer;
 	text-decoration: none;
-  font-family: Lato, sans-serif
+    font-family: "Helvetica Neue", Lato, sans-serif
+    font-weight: 100;
 }
 .ui-btn-active:visited,
 .ui-btn-active:hover,

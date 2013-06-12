@@ -6,12 +6,12 @@ var URL_TO_CARDS_TSV = "https://dl.dropboxusercontent.com/u/2891540/cards.tsv";
 
 Meteor.startup(function () {
     // Update cards
-    Meteor.call("updateCardsFromGoogle");
+    Meteor.call("initCAHCards");
 });
 
 Meteor.methods({
     updateCardsFromGoogle: function () {
-        (function (e, r) {
+        Meteor.http.get(URL_TO_CARDS_TSV, function (e, r) {
             if (r) {
                 var cardsCounted = 0;
                 var cards = _.compact(_.map(r.content.split('\n').splice(1), function (o) {
@@ -50,6 +50,6 @@ Meteor.methods({
             if (e) {
                 console.log(e);
             }
-        })(null, Meteor.http.get(URL_TO_CARDS_TSV));
+        });
     }
 });
