@@ -637,14 +637,18 @@ Meteor.startup(function() {
 		
 	// update current round
     Deps.autorun(function () {
-        var game = Games.findOne({_id:Session.get(GAME)},{fields:{round:1}});
+        var game = Games.findOne({_id:Session.get(GAME)},{fields:{round:1,judgeId:1}});
         if (game != null) {
             if (game.open === false) {
                 $.mobile.changePage('#gameOver');
             } else if (!Session.equals(ROUND,game.round)) {
                 Session.set(ROUND,game.round);
-
                 if ($.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
+                    $.mobile.changePage('#roundSummary');
+                }
+            } else if (!Session.equals("judge",game.judgeId) && playerIdForUserId(Meteor.userId()) === game.judgeId) {
+                Session.set("judge",game.judgeId);
+                if ($.mobile.activePage && _.contains(['waitForPlayers','chooseCardFromHand'],$.mobile.activePage.attr('id'))) {
                     $.mobile.changePage('#roundSummary');
                 }
             }
