@@ -3,7 +3,7 @@
     border-style: outset;
     border-width: 14px 14px 15px 69px;
     overflow: hidden;
-    -moz-border-image: url(/themes/images/facebookButton.png) 14 14 15 80;
+    -moz-border-image: url(/themes/images/facebookButtonHover.png) 14 14 15 80;
     -webkit-border-image: url(/themes/images/facebookButton.png) 14 14 15 80;
     -o-border-image: url(/themes/images/facebookButton.png) 14 14 15 80;
     border-image: url(/themes/images/facebookButton.png) 14 14 15 80 fill;
