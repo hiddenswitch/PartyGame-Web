@@ -40,7 +40,7 @@ var CardManager = {
         count = count || K_OPTIONS;
         var eligibleAnswerCards = null;
 
-        if (self.answerCards.length - exclusionIds.length < count || exclusionIds == null) {
+        if (self.answerCards.length - exclusionIds.length < count || exclusionIds == null || exclusionIds.length === 0) {
             eligibleAnswerCards = self.answerCards;
         } else {
             eligibleAnswerCards = _.shuffle(_.filter(self.answerCards, function (card) {
@@ -105,21 +105,22 @@ var JudgeManager = {
 };
 
 var BotManager = {
+    entertainmentDelay: 1000,
     keepEntertained: function () {
         Meteor.setInterval(function () {
             _.each(Meteor.users.find({
                 bot: false,
                 $or: [
-                    {unjudgedQuestionsCount: {$gt: Random.choice([0,1,2,3])}},
-                    {unansweredHistoriesCount: {$lt: Random.choice([0,1,2,3])}},
-                    {pendingJudgeCount: {$lt: Random.choice([0,1,2,3])}}
+                    {unjudgedQuestionsCount: {$gt: Random.choice([0, 1, 2, 3])}},
+                    {unansweredHistoriesCount: {$lt: Random.choice([0, 1, 2, 3])}},
+                    {pendingJudgeCount: {$lt: Random.choice([0, 1, 2, 3])}}
                 ]}, {fields: {_id: 1}}).fetch(),
                 function (user) {
                     Meteor.defer(function () {
                         Meteor.call("onlineBotPlayWithUser", user._id);
                     });
                 });
-        }, 7000);
+        }, BotManager.entertainmentDelay);
     }
 };
 
@@ -359,6 +360,9 @@ Meteor.methods({
             $in: _.pluck(Answers.find({questionId: question._id, userId: {$ne: answer.userId}}).fetch(), 'userId')}
         }, {$inc: {score: losingScore, coins: losingScore, unjudgedQuestionsCount: -1}}, {multi: true});
 
+        // decrement the judge's pending judge count
+        Meteor.users.update({_id: question.judgeId}, {$inc: {pendingJudgeCount: -1}});
+
         // reward judging bonus
         var judgingBonus = Meteor.call("getJudgingBonus", question._id, answerId, _userId, _userId);
 
@@ -571,7 +575,7 @@ Meteor.methods({
 
         if (answerCardId == null) {
             // Get a random answer card to use.
-            answerCardId = _.first(CardManager.getSomeAnswerCardsExcluding(question.answerCardIds, 1));
+            answerCardId = _.first(CardManager.getSomeAnswerCardsExcluding(question.answerCardIds, 1))._id;
         }
 
         if (answerCardId == null) {
