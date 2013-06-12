@@ -68,7 +68,7 @@ Meteor.startup(function () {
     Players._ensureIndex({gameId:1,userId:1,connected:1});
     Submissions._ensureIndex({gameId:1});
     Meteor.users._ensureIndex({heartbeat:-1});
-    Meteor.users._ensureIndex({'profile.location':"2d"});
+    Meteor.users._ensureIndex({location:"2d"});
 });
 
 Meteor.methods({
