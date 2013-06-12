@@ -110,16 +110,16 @@ var BotManager = {
             _.each(Meteor.users.find({
                 bot: false,
                 $or: [
-                    {unjudgedQuestionsCount: {$gt: 2}},
-                    {unansweredHistoriesCount: {$lt: 3}},
-                    {pendingJudgeCount: {$lt: 1}}
+                    {unjudgedQuestionsCount: {$gt: Random.choice([0,1,2,3])}},
+                    {unansweredHistoriesCount: {$lt: Random.choice([0,1,2,3])}},
+                    {pendingJudgeCount: {$lt: Random.choice([0,1,2,3])}}
                 ]}, {fields: {_id: 1}}).fetch(),
                 function (user) {
                     Meteor.defer(function () {
                         Meteor.call("onlineBotPlayWithUser", user._id);
                     });
                 });
-        }, 1000);
+        }, 7000);
     }
 };
 
@@ -712,7 +712,7 @@ Meteor.methods({
 
         // Generate something for the user to judge
         var question = {
-            cardId: CardManager.getRandomQuestionCardExcluding(unavailableQuestionCardIds),
+            cardId: CardManager.getRandomQuestionCardExcluding(unavailableQuestionCardIds)._id,
             judgeId: null,
             created: now,
             modified: now,
