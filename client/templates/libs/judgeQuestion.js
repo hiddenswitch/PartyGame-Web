@@ -21,7 +21,7 @@ Template.judgeQuestion.events = {
 };
 
 Template.judgeQuestion.questions = function () {
-    var questions = Questions.find({judgeId: Meteor.userId()}).fetch();
+    var questions = Questions.find({judgeId: Meteor.userId(), answerId: null}).fetch();
 
     return _.map(questions, function (question) {
         return _.extend(question, {text: cardIdToText(question.cardId)});
