@@ -10,11 +10,11 @@
     </ul>
     {{else}}
     <h3>Play Now</h3>
-    <a class="magic" href="#accountLogin" data-role="button" data-icon="arrow-r">Create an Account</a>
+    <a id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</a>
+    <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
+    <a href="#accountLogin" data-role="button" data-icon="arrow-r">Create an Account</a>
     <a href="#anonymousLogin" data-role="button" data-icon="arrow-r">Play As Guest</a>
     <h3>Login with Facebook or Google</h3>
-    <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
-    <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
     <p>Login with Facebook or Google for the best experience. We won't post anything, we won't steal your information, and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with the Besties XOXO.</p>
     {{/if}}
 </template>

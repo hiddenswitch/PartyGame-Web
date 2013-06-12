@@ -1,0 +1,21 @@
+#facebookButton {
+    background: none;
+    border-style: solid;
+    border-width: 14px 14px 15px 69px;
+    -moz-border-image: url(/themes/images/facebookButton.png) 14 14 15 80;
+    -webkit-border-image: url(/themes/images/facebookButton.png) 14 14 15 80;
+    -o-border-image: url(/themes/images/facebookButton.png) 14 14 15 80;
+    border-image: url(/themes/images/facebookButton.png) 14 14 15 80 fill;
+}
+
+#facebookButton:hover {
+    -moz-border-image: url(/themes/images/facebookButtonHover.png) 14 14 15 80;
+    -webkit-border-image: url(/themes/images/facebookButtonHover.png) 14 14 15 80;
+    -o-border-image: url(/themes/images/facebookButtonHover.png) 14 14 15 80;
+    border-image: url(/themes/images/facebookButtonHover.png) 14 14 15 80 fill;
+}
+
+#facebookButton .ui-btn-inner {
+    margin-right: 36px;
+    background: none;
+}
