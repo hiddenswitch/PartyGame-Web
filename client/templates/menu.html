@@ -1,13 +1,10 @@
 <template name="menu">
     {{#if loggedIn}}
-    <ul id="menuList" data-role="listview" data-inset="true" class="rounded">
-        <li class="magic"><a id="matchButton" href="#roundSummary" onclick="matchMake()">Play Now</a></li>
-        <li><a href="#myGames">My Games</a></li>
-        <li><a href="#news">News</a></li>
-        <li><a href="#browse">Join Game</a></li>
-        <li><a href="#createGame">Create Custom Game</a></li>
-        <li><a href="#" onclick="Meteor.logout()">Logout</a></li>
+    <ul id="menuList" data-role="listview">
+        {{> browse}}
+        <li><a href="#browse">Create Game</a></li>
     </ul>
+    <a data-role="button" href="#" onclick="Meteor.logout()">Logout</a>
     {{else}}
     <a id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</a>
     <a id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</a>
