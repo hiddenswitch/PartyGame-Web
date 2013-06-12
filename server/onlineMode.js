@@ -50,6 +50,28 @@ var CardManager = {
 
         return eligibleAnswerCards.slice(0, 3);
     },
+    getUnavailableQuestionCardIdsForUser: function (userId) {
+        var unavailableQuestionCardIds = _.uniq(_.pluck(Histories.find({userId: userId, questionAvailable: false}, {fields: {questionCardId: 1}}).fetch(), 'questionCardId')) || [];
+
+        if (unavailableQuestionCardIds.length >= Cards.find({type: CARD_TYPE_QUESTION}).count()) {
+            unavailableQuestionCardIds = [];
+
+            Histories.update({userId: _userId, questionAvailable: false}, {$set: {questionAvailable: true}}, {multi: true});
+        }
+
+        return unavailableQuestionCardIds;
+    },
+    getUnavailableAnswerCardIdsForUser: function (userId) {
+        var unavailableAnswerCardIds = _.uniq(_.flatten(_.pluck(Histories.find({userId: userId, answersAvailable: false}, {fields: {answerCardIds: 1}}).fetch(), 'answerCardIds'))) || [];
+
+        if (unavailableAnswerCardIds.length >= CardManager.answerCards.length - K_OPTIONS) {
+            unavailableAnswerCardIds = [];
+
+            Histories.update({userId: _userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
+        }
+
+        return unavailableAnswerCardIds;
+    },
     initializeCards: function () {
         CardManager.updateAndShuffleCards();
         Meteor.setInterval(CardManager.updateAndShuffleCards, K_10_MINUTES);
@@ -60,52 +82,51 @@ var JudgeManager = {
     setJudge: function (questionId, judgeId, coerce) {
         var now = new Date().getTime();
 
-        return Questions.update(
-            _.extend({_id: questionId},
-                coerce ? null : {$or: [
-                    {judgeId: null},
-                    {judgeId: {$ne: judgeId}, judgeAssigned: {$lt: now - K_24_HOURS}}
-                ]}), {$set: {judgeId: judgeId, judgeAssigned: now, modified: now}});
+        var question = Questions.findOne({_id: questionId});
+
+        var assignJudge = false;
+
+        if (question.judgeId == null) {
+            assignJudge = true;
+        } else if (coerce || question.judgeAssigned < now - K_24_HOURS) {
+            if (judgeId !== question.judgeId) {
+                Meteor.users.update({_id: question.judgeId}, {$inc: {pendingJudgeCount: -1}});
+            }
+            assignJudge = true;
+        }
+
+        if (assignJudge) {
+            Meteor.users.update({_id: judgeId}, {$inc: {pendingJudgeCount: 1}});
+            return Questions.update({_id: questionId}, {$set: {judgeId: judgeId, judgeAssigned: now, modified: now}});
+        } else {
+            return null;
+        }
     }
 };
 
 var BotManager = {
-    actionDelay: 3 * 1000,
-    queueDelay: 100,
-    queue: [],
-    tickHandle: null,
-    setIntervalHandler: function () {
-        BotManager.tickHandle = Meteor.setInterval(BotManager.tick, BotManager.queueDelay);
-    },
-    initializeBotLoop: function () {
-        BotManager.userObserver = Meteor.users.find({lastAction: {$gt: 0}}, {fields: {lastAction: 1}}).observeChanges({
-            added: BotManager.handleAction,
-            changed: BotManager.handleAction
-        });
-
-        BotManager.setIntervalHandler();
-    },
-    tick: function () {
-        BotManager.queue = _.compact(BotManager.queue);
-        if (BotManager.queue.length > 0) {
-            // Execute the queued action
-            console.log("Bot action: {0}.".format(JSON.stringify(BotManager.queue.pop()())));
-        } else {
-            Meteor.clearInterval(BotManager.tickHandle);
-        }
-    },
-    handleAction: function (id, user) {
-        if (BotManager.tickHandle === null) {
-            BotManager.setIntervalHandler();
-        }
-        BotManager.queue.push(Meteor.call.bind(this, "onlineBotAnswerOrJudgeForUser", id));
+    keepEntertained: function () {
+        Meteor.setInterval(function () {
+            _.each(Meteor.users.find({
+                bot: false,
+                $or: [
+                    {unjudgedQuestionsCount: {$gt: 2}},
+                    {unansweredHistoriesCount: {$lt: 3}},
+                    {pendingJudgeCount: {$lt: 1}}
+                ]}, {fields: {_id: 1}}).fetch(),
+                function (user) {
+                    Meteor.defer(function () {
+                        Meteor.call("onlineBotPlayWithUser", user._id);
+                    });
+                });
+        }, 1000);
     }
 };
 
 Meteor.startup(function () {
     // Update and shuffle the cards
     CardManager.initializeCards();
-    BotManager.initializeBotLoop();
+    BotManager.keepEntertained();
 });
 
 Meteor.methods({
@@ -187,7 +208,8 @@ Meteor.methods({
         // Update the user's last action, and add the questions they have answered
         Meteor.users.update({_id: _userId}, {
             $set: {lastAction: now},
-            $push: {questionIds: question._id}
+            $push: {questionIds: question._id},
+            $inc: {unjudgedQuestionsCount: 1, unansweredHistoriesCount: -1}
         });
 
         Questions.update({_id: question._id}, {
@@ -209,14 +231,11 @@ Meteor.methods({
     },
 
     getQuestionForUser: function (_userId) {
-        var voluntary = false;
-
         if (!this.userId && !_userId) {
             // voluntary is false because this action was initiated by the server
             throw new Meteor.Error(403, "Permission denied.");
         } else if (this.userId) {
             // this action was initiated by a user
-            voluntary = true;
             _userId = this.userId;
         }
 
@@ -230,16 +249,7 @@ Meteor.methods({
 
         // Avoid questions the user already has
         // TODO: Flatten Histories query for questionAvailable and answerAvailable into one call.
-        var unavailableQuestionCardIds = _.uniq(_.pluck(Histories.find({userId: _userId, questionAvailable: false}, {fields: {questionCardId: 1}}).fetch(), 'questionCardId')) || [];
-        var repeatQuestions = false;
-
-        // Do we need to repeat questions?
-        if (unavailableQuestionCardIds.length === Cards.find({type: CARD_TYPE_QUESTION}).count()) {
-            unavailableQuestionCardIds = [];
-
-            repeatQuestions = true;
-        }
-
+        var unavailableQuestionCardIds = CardManager.getUnavailableQuestionCardIdsForUser(_userId);
         var questionCard = CardManager.getRandomQuestionCardExcluding(unavailableQuestionCardIds);
 
         // Diagnose if we can't find a question card
@@ -253,15 +263,7 @@ Meteor.methods({
         }
 
         // Do we need to repeat answers?
-        var unavailableAnswerCardIds = _.uniq(_.flatten(_.pluck(Histories.find({userId: _userId, answersAvailable: false}, {fields: {answerCardIds: 1}}).fetch(), 'answerCardIds'))) || [];
-        var repeatAnswers = false;
-
-        if (unavailableAnswerCardIds.length > CardManager.answerCards.length - K_OPTIONS) {
-            unavailableAnswerCardIds = [];
-
-            repeatAnswers = true;
-        }
-
+        var unavailableAnswerCardIds = CardManager.getUnavailableAnswerCardIdsForUser(_userId);
         var answerCardIds = _.pluck(CardManager.getSomeAnswerCardsExcluding(unavailableAnswerCardIds, K_OPTIONS), '_id');
 
         // Diagnose if we can't find answer cards
@@ -290,20 +292,10 @@ Meteor.methods({
         var historyId = Histories.insert(history);
 
         // Update last action
-        if (voluntary) {
-            Meteor.users.update({_id: _userId}, {$set: {lastAction: now}});
-        }
+        Meteor.users.update({_id: _userId}, {$set: {lastAction: now}, $inc: {unansweredHistoriesCount: 1}});
 
         // Clear old histories
         Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
-
-        if (repeatQuestions) {
-            Histories.update({userId: _userId, questionAvailable: false}, {$set: {questionAvailable: true}}, {multi: true});
-        }
-
-        if (repeatAnswers) {
-            Histories.update({userId: _userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
-        }
 
         // Return this history entry for this user
         return historyId;
@@ -360,12 +352,12 @@ Meteor.methods({
         Answers.update({questionId: question._id, winner: {$ne: true}}, {$set: {winner: false, winningAnswerId: answerId, score: losingScore, modified: now}}, {multi: true});
 
         // add this score to the winner's scores and coins
-        Meteor.users.update({_id: answer.userId}, {$inc: {score: winningScore, coins: winningScore}});
+        Meteor.users.update({_id: answer.userId}, {$inc: {score: winningScore, coins: winningScore, unjudgedQuestionsCount: -1}});
 
         // add losing scores and coins
         Meteor.users.update({_id: {
             $in: _.pluck(Answers.find({questionId: question._id, userId: {$ne: answer.userId}}).fetch(), 'userId')}
-        }, {$inc: {score: losingScore, coins: losingScore}}, {multi: true});
+        }, {$inc: {score: losingScore, coins: losingScore, unjudgedQuestionsCount: -1}}, {multi: true});
 
         // reward judging bonus
         var judgingBonus = Meteor.call("getJudgingBonus", question._id, answerId, _userId, _userId);
@@ -528,10 +520,14 @@ Meteor.methods({
         userSchemaExtension.questionIds = [];
         userSchemaExtension.score = 0;
         userSchemaExtension.bot = true;
+        userSchemaExtension.bored = false;
         userSchemaExtension.coins = K_INITIAL_COINS;
         userSchemaExtension.inventory = {decks: ['Cards Against Humanity', 'Starter']};
         userSchemaExtension.matchingValue = 0;
         userSchemaExtension.judgeTheseQuestionIds = [];
+        userSchemaExtension.unansweredHistoriesCount = 0;
+        userSchemaExtension.unjudgedQuestionsCount = 0;
+        userSchemaExtension.pendingJudgeCount = 0;
 
         Meteor.users.update({_id: botId}, {$set: userSchemaExtension});
 
@@ -669,8 +665,8 @@ Meteor.methods({
         return answerId;
     },
 
-    // For a given user, generate an answer or judge event using a bot
-    onlineBotAnswerOrJudgeForUser: function (userId) {
+    // For a given user, generate an answer or judge event with a bot
+    onlineBotPlayWithUser: function (userId) {
         if (this.userId) {
             throw new Meteor.Error(503, "You must be an administrator to call this function.");
         }
@@ -679,22 +675,78 @@ Meteor.methods({
             throw new Meteor.Error(504, "Null user id specified.");
         }
 
-        // Discover something the user is waiting on.
-        // First, check if one of the questions they've answered is waiting on more answers or needs to be judged.
-        var waitingAnswer = Answers.findOne({
+        // Play with the user
+        var user = Meteor.users.findOne({_id: userId});
+
+        if (user.bot === true) {
+            throw new Meteor.Error(504, "Invalid user.");
+        }
+
+        var possibleActions = [];
+
+        if (user.unansweredHistoriesCount < 3) {
+            possibleActions.push(Meteor.call.bind(this, "getQuestionForUser", userId));
+        }
+
+        if (user.unjudgedQuestionsCount > 0) {
+            possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByAnsweringOrJudging", userId));
+        }
+
+        if (user.pendingJudgeCount < 2) {
+            possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingAQuestionToJudge", userId));
+        }
+
+        if (possibleActions.length !== 0) {
+            return Random.choice(possibleActions)();
+        }
+    },
+
+    onlineBotPlayWithUserByCreatingAQuestionToJudge: function (userId) {
+        if (this.userId) {
+            throw new Meteor.Error(503, "You must be an administrator to call this function.");
+        }
+
+        var now = new Date().getTime();
+
+        var unavailableQuestionCardIds = CardManager.getUnavailableQuestionCardIdsForUser(userId);
+
+        // Generate something for the user to judge
+        var question = {
+            cardId: CardManager.getRandomQuestionCardExcluding(unavailableQuestionCardIds),
+            judgeId: null,
+            created: now,
+            modified: now,
+            answerCardIds: [],
+            answerCount: 0,
+            answerId: null,
+            judgeAssigned: null,
+            minimumAnswerCount: K_ANSWERS_PER_QUESTION
+        };
+
+        question._id = Questions.insert(question);
+
+        // Make bots submit answers
+        for (; question.answerCount < question.minimumAnswerCount; question.answerCount++) {
+            Meteor.call("onlineBotAppendAnswer", question._id, Meteor.call("getOnlineBotUser"));
+        }
+
+        // Coerce the player as the judge
+        JudgeManager.setJudge(question._id, userId, true);
+
+        return {
             userId: userId,
-            winningAnswerId: null
-        }, {
-            limit: 1,
-            fields: {
-                questionId: 1,
-                _id: 1
-            },
-            sort: {
-                // Oldest first
-                modified: 1
-            }
-        });
+            reason: "player {0} assigned to judge {1}".format(userId, question._id),
+            method: "setJudge",
+            result: question._id
+        };
+    },
+
+    onlineBotPlayWithUserByAnsweringOrJudging: function (userId) {
+        if (this.userId) {
+            throw new Meteor.Error(503, "You must be an administrator to call this function.");
+        }
+
+        var waitingAnswer = Answers.findOne({userId: userId, winningAnswerId: null}, {limit: 1, fields: {questionId: 1, _id: 1}, sort: {modified: 1}});
 
         // If an answer is associated with an unjudged question, diagnose
         if (waitingAnswer != null) {
@@ -708,27 +760,24 @@ Meteor.methods({
             if (question.answerCount < question.minimumAnswerCount) {
                 return {
                     userId: userId,
-                    condition: "insufficient answers for questionId {0}".format(waitingAnswer.questionId),
+                    reason: "insufficient answers for questionId {0}".format(waitingAnswer.questionId),
                     method: "onlineBotAppendAnswer",
                     result: Meteor.call("onlineBotAppendAnswer", waitingAnswer.questionId, Meteor.call("getOnlineBotUser"))
                 };
             } else {
-                // Coerce the question to be judged by this bot
-                return {
-                    userId: userId,
-                    condition: "judge hasn't answered questionId {0} yet".format(waitingAnswer.questionId),
-                    method: "onlineBotJudgeQuestion",
-                    result: Meteor.call("onlineBotJudgeQuestion", waitingAnswer.questionId, Meteor.call("getOnlineBotUser"), true)
-                };
+                // If the question was assigned to a bot, judge the question
+                if (Meteor.users.find({_id: question.judgeId, bot: true}).count() > 0) {
+                    return {
+                        userId: userId,
+                        reason: "question id {0} not yet judged".format(waitingAnswer.questionId),
+                        method: "onlineBotJudgeQuestion",
+                        result: Meteor.call("onlineBotJudgeQuestion", waitingAnswer.questionId, question.judgeId)
+                    };
+                }
             }
-
-            // Should not reach here
-            throw new Meteor.Error(500, "Unreachable code detected. 0x5001");
         }
 
-        // No action was performed
         return null;
     }
-
 
 });
