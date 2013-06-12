@@ -115,12 +115,12 @@ Meteor.methods({
         };
         // Find bots whose period is up
 
-        // De-synchronize the bot process
-        var botsNotInGame = Meteor.users.find({bot:true,inGame:false},{fields:{_id:1}}).fetch();
-
-        _.each(botsNotInGame,function(bot) {
-            botJoinGame(bot);
-        });
+//        // De-synchronize the bot process
+//        var botsNotInGame = Meteor.users.find({bot:true,inGame:false},{fields:{_id:1}}).fetch();
+//
+//        _.each(botsNotInGame,function(bot) {
+//            botJoinGame(bot);
+//        });
 
         var bots = Meteor.users.find({bot:true,inGame:true,"profile.period":tick % 20}).fetch();
 //        console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
