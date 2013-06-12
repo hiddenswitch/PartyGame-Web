@@ -9,7 +9,9 @@ defaultPreserve = {
 };
 
 defaultRendered = function () {
-    $(this.findAll('ul[data-role="listview"]:not(.ui-listview):visible')).listview();
+    var findAll = this.findAll || document.querySelectorAll;
+
+    $(findAll('ul[data-role="listview"]:not(.ui-listview):visible')).listview();
     $('.ui-listview[data-role="listview"]').listview("refresh");
 };
 
