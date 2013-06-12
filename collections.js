@@ -35,6 +35,7 @@ History = function () {
 };
 
 Answer = function () {
+    this.questionId = null;
     this.userId = null;
     this.cardId = null;
     this.created = new Date().getTime();
