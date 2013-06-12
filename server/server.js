@@ -10,6 +10,18 @@ Meteor.publish("localGames",function(location) {
     }
 });
 
+Meteor.publish("questions",function() {
+    return Questions.find({judgeId:this.userId});
+});
+
+Meteor.publish("histories",function() {
+    return Questions.find({userId:this.userId});
+});
+
+Meteor.publish("answers",function() {
+    return Answers.find({$or:[{userId:this.userId},{judgeId:this.userId}]});
+});
+
 Meteor.publish("hand",function(gameId) {
 	return Hands.find({userId:this.userId,gameId:gameId});
 });
