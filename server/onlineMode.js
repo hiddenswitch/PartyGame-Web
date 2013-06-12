@@ -707,12 +707,9 @@ Meteor.methods({
             possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingAQuestionToJudge", userId));
         }
 
-        var localGamesCount = user.location ? Games.find({open: true, location: {$within: {$center: [
-            user.location,
-            0.01
-        ]}}}, {fields: {_id: 1}}).count() : null;
+        var localGamesCount = user.location != null ? Games.find({open: true, location: {$within: {$center: [user.location, 0.01]}}}, {fields: {_id: 1}}).count() : Games.find({open:true, location: null}).count();
 
-        if (user.location !== null && localGamesCount !== null && localGamesCount === 0) {
+        if (localGamesCount === 0) {
             possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingLocalGame", userId, user.location));
         }
 
