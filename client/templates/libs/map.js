@@ -9,14 +9,16 @@
 Template.map.rendered = refreshListviewsAndCreateButtons;
 
 Template.map.url = function(lat,long,width,height) {
-    return "http://staticmap.openstreetmap.de/staticmap.php?center=" + [lat,long].join(',') + "&zoom=13&size="+[width,height].join('x')+"&maptype=mapnik";
+    return '/themes/images/redacted_72.png';
+//    return "http://staticmap.openstreetmap.de/staticmap.php?center=" + [lat,long].join(',') + "&zoom=13&size="+[width,height].join('x')+"&maptype=mapnik";
 };
 
 Template.map.local = function() {
-    var location = Session.get("location");
-    if (location && location.length == 2) {
-        return Template.map.url(location[0],location[1],72,72);
-    }
+    return '/themes/images/redacted_72.png';
+//    var location = Session.get("location");
+//    if (location && location.length == 2) {
+//        return Template.map.url(location[0],location[1],72,72);
+//    }
 };
 
 Handlebars.registerHelper("mapUrl",function(location,width,height){

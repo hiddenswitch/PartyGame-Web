@@ -18,27 +18,27 @@
 
 @keyframes megacolor {
     0% {background: red;}
-    20% {background: #adff2f;}
-    40% {background: orange;}
-    60% {background: #1e90ff;}
-    80% {background:yellow;}
-    100% {background:#8a2be2;}
+    /*20% {background: #adff2f;}*/
+    /*40% {background: orange;}*/
+    /*60% {background: #1e90ff;}*/
+    /*80% {background:yellow;}*/
+    100% {background:black;}
 }
 
 @-webkit-keyframes megacolor {
     0% {background: red;}
-    20% {background: #adff2f;}
-    40% {background: orange;}
-    60% {background: #1e90ff;}
-    80% {background:yellow;}
-    100% {background:#8a2be2;}
+    /*20% {background: #adff2f;}*/
+    /*40% {background: orange;}*/
+    /*60% {background: #1e90ff;}*/
+    /*80% {background:yellow;}*/
+    100% {background:black;}
 }
 
 @-moz-keyframes megacolor {
     0% {background: red;}
-    20% {background: #adff2f;}
-    40% {background: orange;}
-    60% {background: #1e90ff;}
-    80% {background:yellow;}
-    100% {background:#8a2be2;}
+    /*20% {background: #adff2f;}*/
+    /*40% {background: orange;}*/
+    /*60% {background: #1e90ff;}*/
+    /*80% {background:yellow;}*/
+    100% {background:black;}
 }

@@ -41,17 +41,17 @@ Meteor.methods({
     },
 
     botJoinOrCreateGame:function(botId) {
-        if (this.userId) {
-            throw new Meteor.Error(503,"You must be an administrator to call this function.");
-        }
-
-        var gameId = Meteor.call("findGameWithFewPlayers",5);
-        botId = botId || Meteor.call("getOnlineBotUser");
-        if (gameId) {
-            return Meteor.call("botJoinGame",gameId,botId);
-        } else {
-            return Meteor.call("createEmptyBotGameAndJoin",botId);
-        }
+//        if (this.userId) {
+//            throw new Meteor.Error(503,"You must be an administrator to call this function.");
+//        }
+//
+//        var gameId = Meteor.call("findGameWithFewPlayers",5);
+//        botId = botId || Meteor.call("getOnlineBotUser");
+//        if (gameId) {
+//            return Meteor.call("botJoinGame",gameId,botId);
+//        } else {
+//            return Meteor.call("createEmptyBotGameAndJoin",botId);
+//        }
     },
 
     createEmptyBotGameAndJoin:function(botId) {
@@ -77,7 +77,7 @@ Meteor.methods({
         }
 
         // Get a bot
-        botId = botId ||  Meteor.call("getOnlineBotUser");
+        botId = botId || Meteor.call("getOnlineBotUser");
         if (!botId) {
             console.log("Could not create a bot.");
             return;
@@ -115,12 +115,12 @@ Meteor.methods({
         };
         // Find bots whose period is up
 
-//        // De-synchronize the bot process
-//        var botsNotInGame = Meteor.users.find({bot:true,inGame:false},{fields:{_id:1}}).fetch();
-//
-//        _.each(botsNotInGame,function(bot) {
-//            botJoinGame(bot);
-//        });
+        // De-synchronize the bot process
+        var botsNotInGame = Meteor.users.find({bot:true,inGame:false},{fields:{_id:1}}).fetch();
+
+        _.each(botsNotInGame,function(bot) {
+            botJoinGame(bot);
+        });
 
         var bots = Meteor.users.find({bot:true,inGame:true,"profile.period":tick % 20}).fetch();
 //        console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
