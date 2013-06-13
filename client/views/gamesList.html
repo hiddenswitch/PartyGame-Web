@@ -8,9 +8,9 @@
         <a href="#home" data-icon="plus">New Game</a>
     </div>
     <div data-role="content">
-        <a href="#store" data-role="button">Store</a>
-        <ul data-role="listview" data-inset="true" data-split-icon="arrow-r" data-split-theme="a">
-            <li data-role="list-divider"  class="magic">Local Game</li>
+        <ul data-role="listview" data-split-icon="arrow-r" data-split-theme="a">
+            <li><a href="#home">Store</a></li>
+            <li data-role="list-divider">Local Game</li>
             {{> browse}}
             <li data-role="list-divider">Your Turn</li>
             <li data-theme="c"><a href="#" id="getNewQuestionButton" onclick="Meteor.call('getQuestionForUser');">
@@ -22,11 +22,16 @@
             <li data-role="list-divider">Judge!</li>
             {{> judgeQuestion}}
         </ul>
-        <div data-role="controlgroup" data-type="horizontal">
-            <a href="#" data-role="button">Facebook</a>
-            <a href="#" data-role="button">Twitter</a>
-        </div>
-        <ul data-role="listview" data-inset="true" data-split-icon="arrow-r" data-split-theme="a">
+        <center>
+            <div>
+                <div data-role="controlgroup" data-type="horizontal">
+                    <a href="#" data-role="button">Facebook</a>
+                    <a href="#" data-role="button">Twitter</a>
+                </div>
+            </div>
+        </center>
+
+        <ul data-role="listview" data-split-icon="arrow-r" data-split-theme="a">
             <li data-role="list-divider">Their Turn</li>
             {{> pendingQuestion}}
         </ul>
