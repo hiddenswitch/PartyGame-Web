@@ -17,7 +17,7 @@ To run:
     $ cd redacted
     $ mrt
 
-Visit http://localhost:3000. You will need API keys for Facebook and Google.
+Visit [localhost](http://localhost:3000). You will need API keys for Facebook and Google.
 
 If you'd like to run it on the Internet, try
 
