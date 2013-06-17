@@ -3,7 +3,7 @@
     <ul id="menuList" data-role="listview">
         {{> browse}}
         <li data-theme="c" data-icon="plus"><a href="#browse">Create Game</a></li>
-        <li data-theme="c" data-icon="delete"><a href="#browse" onclick="Meteor.logout();">Logout</a></li>
+        <li data-theme="c" data-icon="delete"><a href="#home" onclick="Meteor.logout();">Logout</a></li>
     </ul>
     {{else}}
     <a id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</a>
