@@ -699,6 +699,8 @@ Meteor.startup(function() {
     });
 
     requestLocation(setError);
+
+    $.mobile.initializePage();
 });
 
 registerTemplates();
