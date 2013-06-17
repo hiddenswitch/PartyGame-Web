@@ -141,7 +141,7 @@ Meteor.methods({
         }
 
         // update the game
-        Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$inc:{answerCardCount:-drawnCards.length},$set:{open:open,modified:new Date().getTime()}});
+        Games.update({_id:gameId},{$pullAll:{answerCards:drawnCards},$inc:{answerCardsCount:-drawnCards.length},$set:{open:open,modified:new Date().getTime()}});
     },
 
     // Find the latest game a given player joined
