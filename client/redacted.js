@@ -199,6 +199,10 @@ playerIdForUserId = function(userId,gameId) {
     gameId = gameId || Session.get(GAME);
     var p = Players.find({gameId:gameId,userId:userId},{reactive:false}).fetch();
 
+    if (userId == null || gameId == null) {
+        return "";
+    }
+
     if (p && p[0]) {
         return p[0]._id;
     } else {
