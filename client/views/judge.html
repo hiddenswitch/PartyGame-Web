@@ -2,18 +2,13 @@
 
 <div id="judge" data-role="page">
     <div data-role="header" data-position="fixed">
-        <a href="#gamesList" data-icon="arrow-l">Back</a>
+        <a href="#home" data-icon="arrow-l">Back</a>
 
         <h1>Judge</h1>
     </div>
     <div data-role="content">
-        <ul data-role="listview" data-inset="true" data-split-icon="arrow-r" data-split-theme="a">
-            <li data-role="list-divider">Question</li>
+        <ul data-role="listview" style="margin-top: -15px;">
             {{> judgeQuestionDetail}}
-        </ul>
-
-        <ul data-role="listview" data-inset="true" data-split-icon="arrow-r" data-split-theme="a">
-            <li data-role="list-divider">Which goes best?</li>
             {{> judgeAnswers}}
         </ul>
     </div>

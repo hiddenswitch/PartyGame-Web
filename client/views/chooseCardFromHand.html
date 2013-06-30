@@ -9,14 +9,14 @@
     </div>
 
     <div data-role="content">
-        <ul id="questionList" data-role="listview" data-inset="true" data-theme="b" data-divider-theme="b">
+        <ul id="questionList" data-role="listview" data-inset="false" data-theme="b" data-divider-theme="b">
             <li data-role="list-divider">Question</li>
             {{> question}}
         </ul>
 
-        <div id="handCollapsible" data-role="collapsible" data-theme="d" data-content-theme="d" data-inset="true" data-collapsed="false">
+        <div id="handCollapsible" data-role="collapsible" data-theme="d" data-content-theme="d" data-inset="false" data-collapsed="false">
             <h3>Your Cards</h3>
-            <ul id="handList" data-role="listview" data-inset="true" data-theme="d">
+            <ul id="handList" data-role="listview" data-inset="false" data-theme="d">
                 {{> hand}}
             </ul>
         </div>

@@ -14,9 +14,9 @@ Template.historyAnswers.answers = function () {
 
 Template.historyAnswers.events = {
     'click a': function (e) {
+        $.mobile.changePage('#home');
         var answerCardId = $(e.currentTarget).attr('id');
         var history = Session.get("history");
         Meteor.call("writeAnswer", history._id, answerCardId);
-        $.mobile.changePage('#gamesList');
     }
 };

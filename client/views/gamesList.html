@@ -1,40 +1,8 @@
 <body>
 
 <div data-role="page" id="gamesList" data-theme="a">
-    <div data-role="header" data-position="fixed">
-        <a href="#home" data-icon="arrow-l">Stats</a>
-
-        <h1>Redacted</h1>
-        <a href="#home" data-icon="plus">New Game</a>
-    </div>
     <div data-role="content">
-        <ul data-role="listview" data-split-icon="arrow-r" data-split-theme="a">
-            <li><a href="#home">Store</a></li>
-            <li data-role="list-divider">Local Game</li>
-            {{> browse}}
-            <li data-role="list-divider">Your Turn</li>
-            <li data-theme="c"><a href="#" id="getNewQuestionButton" onclick="Meteor.call('getQuestionForUser');">
-                <h2>Get A Question</h2>
 
-                <p>And pick a naughty answer.</p></a>
-            </li>
-            {{> answerQuestion}}
-            <li data-role="list-divider">Judge!</li>
-            {{> judgeQuestion}}
-        </ul>
-        <center>
-            <div>
-                <div data-role="controlgroup" data-type="horizontal">
-                    <a href="#" data-role="button">Facebook</a>
-                    <a href="#" data-role="button">Twitter</a>
-                </div>
-            </div>
-        </center>
-
-        <ul data-role="listview" data-split-icon="arrow-r" data-split-theme="a">
-            <li data-role="list-divider">Their Turn</li>
-            {{> pendingQuestion}}
-        </ul>
     </div>
 </div>
 
