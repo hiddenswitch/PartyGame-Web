@@ -97,7 +97,7 @@ var JudgeManager = {
 
         if (assignJudge) {
             Meteor.users.update({_id: judgeId}, {$inc: {pendingJudgeCount: 1}});
-            Answers.update({questionId: questionId}, {$set: {judgeId: judgeId}});
+            Answers.update({questionId: questionId}, {$set: {judgeId: judgeId}}, {multi: true});
             return Questions.update({_id: questionId}, {$set: {judgeId: judgeId, judgeAssigned: now, modified: now}});
         } else {
             return null;
