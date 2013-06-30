@@ -628,19 +628,25 @@ Meteor.startup(function() {
 	Session.set(ERROR,null);
 	
 	Deps.autorun(function() {
+        Meteor.subscribe("localGames",Session.get(LOCATION));
+	});
+
+    Deps.autorun(function() {
         Meteor.subscribe("submissions",Session.get(GAME));
         Meteor.subscribe("votesInGame",Session.get(GAME));
         Meteor.subscribe("usersInGame",Session.get(GAME));
         Meteor.subscribe("players",Session.get(GAME));
-        Meteor.subscribe("myGames");
-        Meteor.subscribe("localGames",Session.get(LOCATION));
+        Meteor.subscribe("hand",Session.get(GAME));
+    })
+
+    Deps.autorun(function() {
         Meteor.subscribe("histories");
         Meteor.subscribe("questions");
         Meteor.subscribe("myAnswers");
         Meteor.subscribe("myJudges");
-        Meteor.subscribe("hand",Session.get(GAME));
         Meteor.subscribe("userData");
-	});
+        Meteor.subscribe("myGames");
+    });
 
 	Accounts.ui.config({
 		requestPermissions: {facebook: ['user_likes']},
