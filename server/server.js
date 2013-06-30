@@ -3,11 +3,7 @@
  */
 
 Meteor.publish("localGames",function(location) {
-    if (location) {
-        return Games.find({open:true,location:{$within:{$center:[[location[0],location[1]],K_LOCAL_DISTANCE]}}},{fields:{_id:1,title:1,players:1,playerNames:1,open:1,round:1,location:1}});
-    } else {
-        return null;
-    }
+    return Games.find(_.extend({open:true,location:null}, location ? {location:{$within:{$center:[[location[0],location[1]],K_LOCAL_DISTANCE]}}} : null),{fields:{_id:1,title:1,players:1,playerNames:1,open:1,round:1,location:1}});
 });
 
 Meteor.publish("questions",function() {
@@ -15,11 +11,15 @@ Meteor.publish("questions",function() {
 });
 
 Meteor.publish("histories",function() {
-    return Questions.find({userId:this.userId});
+    return Histories.find({userId:this.userId});
 });
 
-Meteor.publish("answers",function() {
-    return Answers.find({$or:[{userId:this.userId},{judgeId:this.userId}]});
+Meteor.publish("myAnswers",function() {
+    return Answers.find({userId: this.userId});
+});
+
+Meteor.publish("myJudges",function() {
+    return Answers.find({judgeId: this.userId});
 });
 
 Meteor.publish("hand",function(gameId) {
