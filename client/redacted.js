@@ -40,7 +40,7 @@ loggedIn = function() {
 requestLocation = function(callback) {
     if (navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(r){
-            var callbackR = [r.coords.latitude, r.coords.longitude];
+            var callbackR = [r.coords.longitude, r.coords.latitude];
             Session.set(LOCATION,callbackR);
             if (callback)
                 callback(undefined,callbackR);
@@ -173,7 +173,9 @@ createAndJoinGame = function() {
 	}
 	
 	// reenable password when there's a way to join a game with passwords
-	Meteor.call("createEmptyGame",gameTitle,"",Session.get(LOCATION),function(e,r){
+    var location = Session.get(LOCATION);
+
+	Meteor.call("createEmptyGame",gameTitle,"",location,function(e,r){
 		if (r) { // new game id returned
 			Meteor.call("joinGame",r,function(e2,r2){
 				if (r2) {

@@ -6,11 +6,35 @@ var URL_TO_CARDS_TSV = "https://dl.dropboxusercontent.com/u/2891540/cards.tsv";
 
 Meteor.startup(function () {
     // Update cards
-    Meteor.call("initCAHCards");
+    if (Cards.find({}).count() === 0) {
+        Meteor.call("addCAHCards");
+        Meteor.call("addGoogleCards");
+    }
 });
 
 Meteor.methods({
-    updateCardsFromGoogle: function () {
+    addCAHCards: function () {
+        // Cards Against Humanity cards
+        var CAHDeck = new Deck();
+        CAHDeck.title = "Cards Against Humanity";
+        CAHDeck.ownerId = "";
+        CAHDeck.description = "The complete Cards Against Humanity questions and answers, licensed Creative Commons" +
+            "2.0 BY-NC-SA.";
+        CAHDeck.price = 0;
+
+        var CAHId = Decks.insert(CAHDeck);
+
+        _.each(CAH_QUESTION_CARDS, function (c) {
+            Cards.insert({text: c.replace(/_+/g, K_BLANKS), type: CARD_TYPE_QUESTION, deckId: CAHId});
+        });
+
+        _.each(CAH_ANSWER_CARDS, function (c) {
+            Cards.insert({text: c.replace(/_+/g, K_BLANKS), type: CARD_TYPE_ANSWER, deckId: CAHId});
+        });
+
+    },
+
+    addGoogleCards: function () {
         Meteor.http.get(URL_TO_CARDS_TSV, function (e, r) {
             if (r) {
                 var cardsCounted = 0;
@@ -30,7 +54,7 @@ Meteor.methods({
                 }));
 
                 _.each(cards, function (c) {
-                    var formattedText = c.text.replace(/_+/, K_BLANKS);
+                    var formattedText = c.text.replace(/_+/g, K_BLANKS);
                     if (Cards.find({text: formattedText}).count() === 0) {
                         var deckId = null;
                         if (Decks.find({title: c.deck}).count() === 0) {

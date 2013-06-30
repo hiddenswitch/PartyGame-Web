@@ -105,7 +105,7 @@ var JudgeManager = {
 };
 
 var BotManager = {
-    entertainmentDelay: 1000,
+    entertainmentDelay: 800,
     tick: 0,
     keepEntertained: function () {
         Meteor.setInterval(function () {
@@ -707,8 +707,9 @@ Meteor.methods({
             possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingAQuestionToJudge", userId));
         }
 
-        // user.location != null ? Games.find({open: true, location: {$within: {$center: [user.location, 0.01]}}}, {fields: {_id: 1}}).count() :
-        var localGamesCount = Games.find({open:true}).count();
+        var localGamesCount = (user.location != null && user.location.length == 2 && user.location[0] && user.location[1]) ?
+            (Games.find({open: true, location: {$within: {$center: [[user.location[0], user.location[1]], 0.01]}}}, {fields: {_id: 1}}).count())
+            : (Games.find({open: true}).count());
 
         if (localGamesCount === 0) {
             possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingLocalGame", userId, user.location));

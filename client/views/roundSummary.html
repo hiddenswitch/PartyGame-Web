@@ -14,7 +14,7 @@
     </div>
 
     <div data-role="content">
-        <ul id="questionAndAnswerTextList" data-role="listview" data-inset="true" data-divider-theme="c">
+        <ul id="questionAndAnswerTextList" data-role="listview" data-inset="false" data-divider-theme="c">
             {{#isolate}}
             {{#if gameLastVote}}
             {{#with gameLastVote}}
@@ -25,14 +25,14 @@
             {{/isolate}}
         </ul>
 
-        <ul id="judgeList" data-role="listview" data-inset="true" data-divider-theme="c">
+        <ul id="judgeList" data-role="listview" data-inset="false" data-divider-theme="c">
             <li data-role="list-divider">Judge This Round</li>
             {{> judge}}
         </ul>
 
-        <div id="scoresCollapsibleInSummary" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="true" data-collapsed="true">
+        <div id="scoresCollapsibleInSummary" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="false" data-collapsed="true">
             <h3>Players</h3>
-            <ul id="scoresListInSummary" data-role="listview" data-inset="true" data-split-icon="delete">
+            <ul id="scoresListInSummary" data-role="listview" data-inset="false" data-split-icon="delete">
                 {{> scores}}
             </ul>
         </div>

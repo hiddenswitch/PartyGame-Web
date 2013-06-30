@@ -4,7 +4,7 @@
 
 Meteor.publish("localGames",function(location) {
     if (location) {
-        return Games.find({open:true,location:{$within:{$center:[[location[1],location[0]],K_LOCAL_DISTANCE]}}},{fields:{_id:1,title:1,players:1,playerNames:1,open:1,round:1,location:1}});
+        return Games.find({open:true,location:{$within:{$center:[[location[0],location[1]],K_LOCAL_DISTANCE]}}},{fields:{_id:1,title:1,players:1,playerNames:1,open:1,round:1,location:1}});
     } else {
         return null;
     }
@@ -72,27 +72,6 @@ Meteor.startup(function () {
 });
 
 Meteor.methods({
-    initCAHCards:function() {
-        if (Cards.find({}).count() === 0) {
-            // Cards Against Humanity cards
-            var CAHDeck = new Deck();
-            CAHDeck.title = "Cards Against Humanity";
-            CAHDeck.ownerId = "";
-            CAHDeck.description = "The complete Cards Against Humanity questions and answers, licensed Creative Commons" +
-                "2.0 BY-NC-SA.";
-            CAHDeck.price = 0;
-
-            var CAHId = Decks.insert(CAHDeck);
-
-            _.each(CAH_QUESTION_CARDS,function(c){
-                Cards.insert({text:c,type:CARD_TYPE_QUESTION,deckId:CAHId});
-            });
-
-            _.each(CAH_ANSWER_CARDS,function(c){
-                Cards.insert({text:c,type:CARD_TYPE_ANSWER,deckId:CAHId});
-            });
-        }
-    },
     // Draw hands for all players in the game.
     drawHands: function(gameId,handSize) {
         handSize = handSize || K_DEFAULT_HAND_SIZE;
@@ -259,7 +238,7 @@ Meteor.methods({
         if (!location)
             return false;
 
-        var game = Games.findOne({open:true,location:{$within:{$center:[[location[1],location[0]],K_LOCAL_DISTANCE]}}},{fields:{_id:1}});
+        var game = Games.findOne({open:true,location:{$within:{$center:[[location[0],location[1]],K_LOCAL_DISTANCE]}}},{fields:{_id:1}});
 
         if (!game)
             return false;
@@ -323,8 +302,18 @@ Meteor.methods({
             judgeId:null,
             userIds:[],
             botLust: true,
-            location: location ? [location[1],location[0]] : null
+            location: location ? [location[0],location[1]] : null,
+            locationFriendly: null
         });
+
+        // Update friendly location name
+        if (location && location.length > 0 && location[0] && location[1]) {
+            Meteor.http.get("http://nominatim.openstreetmap.org/reverse?format=json&lat={1}&lon={0}&zoom=18&addressdetails=1".format(location[0], location[1]), function (e, r) {
+                if (r.statusCode === 200 && r.data != null) {
+                    Games.update({_id: gameId}, {$set: {locationFriendly: r.data}});
+                }
+            });
+        }
 
         console.log("Game stats: " + JSON.stringify({"Number of games":Games.find({open:true}).count(),"Last game created":gameId,"Players":Players.find().count()}));
 

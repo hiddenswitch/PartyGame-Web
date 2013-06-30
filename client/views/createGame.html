@@ -8,11 +8,7 @@
 
         <label for="gameTitle" class="ui-hidden-accessible">Title</label>
         <input type="text" name="gameTitle" id="gameTitle" value="" placeholder="Title"/>
-        <label for="cardAgainstHumanityCheckbox">Cards Against Humanity</label>
-        <input type="checkbox" name="cardAgainstHumanityCheckbox" id="cardAgainstHumanityCheckbox" checked />
         <a href="#" data-role="button" data-icon="plus" onclick="createAndJoinGame()">Create and Join</a>
-        <label style="visibility: hidden;" for="gamePassword" class="ui-hidden-accessible">Password</label>
-        <input style="visibility: hidden;" type="text" name="gamePassword" id="gamePassword" value="" placeholder="Password (Unsupported)"/>
     </div>
     <div data-role="footer" data-position="fixed" data-id="thefooter">
         <h4>{{> connectionError}}</h4>

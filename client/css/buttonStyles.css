@@ -34,6 +34,13 @@
     border-image: url(/themes/images/googleButton.png) 11 16 15 140 fill repeat stretch;
 }
 
+#googleButton:hover {
+    -moz-border-image: url(/themes/images/googleButtonHover.png) 11 16 15 140 repeat stretch;
+    -webkit-border-image: url(/themes/images/googleButtonHover.png) 11 16 15 140 repeat stretch;
+    -o-border-image: url(/themes/images/googleButtonHover.png) 11 16 15 140 repeat stretch;
+    border-image: url(/themes/images/googleButtonHover.png) 11 16 15 140 fill repeat stretch;
+}
+
 #googleButton .ui-btn-inner {
     text-overflow: none;
     z-index: 1;

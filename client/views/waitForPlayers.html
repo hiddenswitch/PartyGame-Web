@@ -16,12 +16,12 @@
     </div>
 
     <div data-role="content">
-        <ul id="questionListInWaitForPlayers" data-role="listview" data-inset="true" data-theme="b" data-divider-theme="b">
+        <ul id="questionListInWaitForPlayers" data-role="listview" data-inset="false" data-theme="b" data-divider-theme="b">
             <li data-role="list-divider">Question</li>
             {{> question}}
         </ul>
 
-        <div id="submissionsCollapsible" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="true" data-collapsed="false">
+        <div id="submissionsCollapsible" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="false" data-collapsed="false">
             <h3>
                 {{#isolate}}
                 {{#if isJudge}}
@@ -38,14 +38,14 @@
                 {{/if}}
                 {{/if}}
                 {{/isolate}}</h3>
-            <ul id="submissionsList" data-role="listview" data-inset="true" data-theme="c">
+            <ul id="submissionsList" data-role="listview" data-inset="false" data-theme="c">
                 {{> submissions}}
             </ul>
         </div>
 
-        <div id="scoresCollapsible" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="true" data-collapsed="false">
+        <div id="scoresCollapsible" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="false" data-collapsed="false">
             <h3>Scores</h3>
-            <ul id="scoresList" data-role="listview" data-inset="true" data-split-icon="delete">
+            <ul id="scoresList" data-role="listview" data-inset="false" data-split-icon="delete">
                 {{> scores}}
             </ul>
         </div>
