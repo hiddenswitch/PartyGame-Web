@@ -4,7 +4,8 @@
     "basePackages": {
       "router": {},
       "handlebar-helpers": {},
-      "leaflet": {}
+      "leaflet": {},
+      "npm": {}
     },
     "packages": {
       "router": {
@@ -21,6 +22,11 @@
         "git": "https://github.com/bevanhunt/meteor-leaflet.git",
         "tag": "v0.1.8",
         "commit": "8a3d0f53734e4fe3efc3e6e39aa3da0209e2ec8e"
+      },
+      "npm": {
+        "git": "https://github.com/arunoda/meteor-npm.git",
+        "tag": "v0.1.4",
+        "commit": "68ab2b952ab21a5bbba879b37be9385ec8ff6d63"
       },
       "page-js-ie-support": {
         "git": "https://github.com/tmeasday/meteor-page-js-ie-support.git",

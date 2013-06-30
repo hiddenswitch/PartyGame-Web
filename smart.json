@@ -2,6 +2,7 @@
   "packages": {
     "router": {},
     "handlebar-helpers": {},
-    "leaflet": {}
+    "leaflet": {},
+    "npm": {}
   }
 }
