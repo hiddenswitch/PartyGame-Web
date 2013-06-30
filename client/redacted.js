@@ -634,6 +634,10 @@ Meteor.startup(function() {
         Meteor.subscribe("players",Session.get(GAME));
         Meteor.subscribe("myGames");
         Meteor.subscribe("localGames",Session.get(LOCATION));
+        Meteor.subscribe("histories");
+        Meteor.subscribe("questions");
+        Meteor.subscribe("myAnswers");
+        Meteor.subscribe("myJudges");
         Meteor.subscribe("hand",Session.get(GAME));
         Meteor.subscribe("userData");
 	});

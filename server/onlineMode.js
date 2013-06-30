@@ -97,6 +97,7 @@ var JudgeManager = {
 
         if (assignJudge) {
             Meteor.users.update({_id: judgeId}, {$inc: {pendingJudgeCount: 1}});
+            Answers.update({questionId: questionId}, {$set: {judgeId: judgeId}});
             return Questions.update({_id: questionId}, {$set: {judgeId: judgeId, judgeAssigned: now, modified: now}});
         } else {
             return null;
@@ -197,6 +198,7 @@ Meteor.methods({
             winningAnswerId: null,
             score: null,
             userId: _userId,
+            judgeId: null,
             created: now,
             modified: now
         };
@@ -597,6 +599,7 @@ Meteor.methods({
             winningAnswerId: null,
             score: null,
             userId: botId,
+            judgeId: null,
             created: now,
             modified: now
         };
@@ -708,7 +711,10 @@ Meteor.methods({
         }
 
         var localGamesCount = (user.location != null && user.location.length == 2 && user.location[0] && user.location[1]) ?
-            (Games.find({open: true, location: {$within: {$center: [[user.location[0], user.location[1]], 0.01]}}}, {fields: {_id: 1}}).count())
+            (Games.find({open: true, location: {$within: {$center: [
+                [user.location[0], user.location[1]],
+                0.01
+            ]}}}, {fields: {_id: 1}}).count())
             : (Games.find({open: true}).count());
 
         if (localGamesCount === 0) {

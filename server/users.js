@@ -6,7 +6,7 @@
 var K_INITIAL_COINS = 100;
 
 Meteor.publish("userData",function() {
-    return Meteor.users.find({_id:this.userId},{fields:{questionIds:1,score:1,coins:1,lastAction:1,heartbeat:1,bored:1}});
+    return Meteor.users.find({_id:this.userId},{fields:{questionIds:1,score:1,coins:1}});
 });
 
 // Configure user profiles
