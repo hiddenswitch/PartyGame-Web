@@ -2,7 +2,21 @@
  * @author Benjamin Berman
  * © 2012 All Rights Reserved
  **/
-var Facebook = Meteor.require('facebook-node-sdk');
+var FacebookManager = {
+    facebookNpm: Meteor.require('facebook-node-sdk')
+};
 
-facebook = new Facebook({appID: Meteor.settings.facebook.appId, secret: Meteor.settings.facebook.appSecret});
+FacebookManager.facebook = new FacebookManager.facebookNpm({
+    appID: Meteor.settings.facebook.appId,
+    secret: Meteor.settings.facebook.appSecret
+});
 
+Meteor.methods({
+    'facebookQuery':function() {
+        var query = Meteor.sync(function(done) {
+            FacebookManager.facebook.api('/benjamin.berman.16', done);
+        });
+
+        return query;
+    }
+});
