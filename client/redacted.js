@@ -433,14 +433,7 @@ registerTemplates = function() {
             return "Waiting for more players...";
     }
 
-	Template.judge.rendered = function () {
-        defaultRendered.apply(this);
-        if (isJudge() && playersCount() > 1) {
-            $('#submissionsCollapsible h3 a').addClass('magic');
-        } else {
-            $('#submissionsCollapsible h3 a').removeClass('magic');
-        }
-    }
+	Template.judge.rendered = defaultRendered;
 	Template.judge.created = defaultCreated;
     Template.judge.preserve(defaultPreserve);
 
@@ -579,15 +572,7 @@ registerTemplates = function() {
 		}
 	};
 
-	Template.hand.rendered = function() {
-        if (isJudge()) {
-            $('#handHeader').text("Your Hand");
-            $('#handCollapsible h3 a').removeClass('magic');
-        } else {
-            $('#handHeader').text("Play a Card");
-            $('#handCollapsible h3 a').addClass('magic');
-        }
-    };
+	Template.hand.rendered = defaultRendered;
 
     Template.nextButtons.isJudge = isJudge;
     Template.nextButtons.rendered = createAndRefreshButtons;
