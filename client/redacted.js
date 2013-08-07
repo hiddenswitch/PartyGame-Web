@@ -591,11 +591,6 @@ registerTemplates = function() {
 
     Template.preview.rendered = defaultRendered;
     Template.preview.created = defaultCreated;
-
-    Template.menu.rendered = function () {
-        $('div[data-role="controlgroup"]:visible()').controlgroup();
-    };
-    Template.menu.created = defaultCreated;
 };
 
 cordovaSetup = function() {

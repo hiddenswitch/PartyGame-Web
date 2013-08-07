@@ -1319,7 +1319,7 @@ function handlePluginsObject(path, moduleList) {
 }
 
 function injectPluginScript(pathPrefix) {
-    injectScript(pathPrefix + 'cordova_plugins.js', function(){
+    injectScript('/cordova_plugins.js', function(){
         try {
             var moduleList = require("cordova/plugin_list");
             handlePluginsObject(pathPrefix, moduleList);
