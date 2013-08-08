@@ -591,6 +591,9 @@ registerTemplates = function() {
 
     Template.preview.rendered = defaultRendered;
     Template.preview.created = defaultCreated;
+
+    Template.gamesList.rendered = defaultRendered;
+    Template.gamesList.created = defaultCreated;
 };
 
 cordovaSetup = function() {
