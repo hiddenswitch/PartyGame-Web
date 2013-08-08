@@ -595,8 +595,19 @@ registerTemplates = function() {
 
 cordovaSetup = function() {
     // Startup for Cordova
-    document.addEventListener('online', function(e) {
-        Session.set(IS_CORDOVA,true);
+    document.addEventListener('deviceready', function(e) {
+        if (window.isCordova) {
+            Session.set(IS_CORDOVA,true);
+
+//            window.oldWindowOpen = window.open;
+//            window.open = function(strUrl, strWindowName, strWindowFeatures) {
+//                var _browser = window.oldWindowOpen(strUrl, strWindowName, strWindowFeatures);
+//                _browser.addEventListener("loaderror",function(event){
+//                    _browser.closed = true;
+//                });
+//                return _browser;
+//            }
+        }
     }, false);
 };
 
@@ -697,6 +708,7 @@ Meteor.startup(function() {
     requestLocation(setError);
 
     $.mobile.initializePage();
+
 });
 
 registerTemplates();
