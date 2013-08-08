@@ -10,14 +10,15 @@
     </ul>
     {{else}}
 
+    {{#unless isCordova}}
     <a id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</a>
     <a id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</a>
-    <center>
-        <div style="max-width: 180px;">
-            <a href="#accountLogin" data-mini="true" data-role="button" data-icon="arrow-r">Create an Account</a>
-            <a href="#anonymousLogin" data-mini="true" data-role="button" data-icon="arrow-r">Play As Guest</a>
-        </div>
-    </center>
+    {{/unless}}
+
+    <a href="#accountLogin" data-mini="false" data-role="button"
+       data-icon="arrow-r">Create an Account</a>
+    <a href="#anonymousLogin" data-mini="false" data-role="button"
+       data-icon="arrow-r">Play As Guest</a>
 
     <p>Login with Facebook or Google for the best experience. We won't post anything, we won't steal your information,
         and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with
