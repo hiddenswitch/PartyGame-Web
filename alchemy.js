@@ -4,6 +4,11 @@
  **/
 Alchemies = new Meteor.Collection("alchemies");
 
+// Players need to see all possible alchemies.
+Meteor.publish("alchemies",function(){
+    return Alchemies.find();
+});
+
 CARD_TYPE_ADJECTIVE = 10;
 CARD_TYPE_NOUN = 20;
 
@@ -53,7 +58,7 @@ Meteor.methods({
             var nounCard = Cards.findOne({_id: nounCardId});
 
             alchemy = {
-                _id: Alchemies.insert({userId: _userId, adjectiveCardId: adjectiveCardId, nounCardId: nounCardId, text: AlchemyManager.combineCards(adjectiveCard, nounCard)})
+                _id: Alchemies.insert({adjectiveCardId: adjectiveCardId, nounCardId: nounCardId, text: AlchemyManager.combineCards(adjectiveCard, nounCard)})
             };
         }
         // TODO: Replace all occurrences of the card in the inventory more correctly?
