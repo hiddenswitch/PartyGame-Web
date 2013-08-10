@@ -433,14 +433,7 @@ registerTemplates = function() {
             return "Waiting for more players...";
     }
 
-	Template.judge.rendered = function () {
-        defaultRendered.apply(this);
-        if (isJudge() && playersCount() > 1) {
-            $('#submissionsCollapsible h3 a').addClass('magic');
-        } else {
-            $('#submissionsCollapsible h3 a').removeClass('magic');
-        }
-    }
+	Template.judge.rendered = defaultRendered;
 	Template.judge.created = defaultCreated;
     Template.judge.preserve(defaultPreserve);
 
@@ -579,15 +572,7 @@ registerTemplates = function() {
 		}
 	};
 
-	Template.hand.rendered = function() {
-        if (isJudge()) {
-            $('#handHeader').text("Your Hand");
-            $('#handCollapsible h3 a').removeClass('magic');
-        } else {
-            $('#handHeader').text("Play a Card");
-            $('#handCollapsible h3 a').addClass('magic');
-        }
-    };
+	Template.hand.rendered = defaultRendered;
 
     Template.nextButtons.isJudge = isJudge;
     Template.nextButtons.rendered = createAndRefreshButtons;
@@ -607,16 +592,25 @@ registerTemplates = function() {
     Template.preview.rendered = defaultRendered;
     Template.preview.created = defaultCreated;
 
-    Template.menu.rendered = function () {
-        $('div[data-role="controlgroup"]:visible()').controlgroup();
-    };
-    Template.menu.created = defaultCreated;
+    Template.gamesList.rendered = refreshListviewsAndCreateButtons;
+    Template.gamesList.created = defaultCreated;
 };
 
 cordovaSetup = function() {
     // Startup for Cordova
-    document.addEventListener('online', function(e) {
-        Session.set(IS_CORDOVA,true);
+    document.addEventListener('deviceready', function(e) {
+        if (window.isCordova) {
+            Session.set(IS_CORDOVA,true);
+
+//            window.oldWindowOpen = window.open;
+//            window.open = function(strUrl, strWindowName, strWindowFeatures) {
+//                var _browser = window.oldWindowOpen(strUrl, strWindowName, strWindowFeatures);
+//                _browser.addEventListener("loaderror",function(event){
+//                    _browser.closed = true;
+//                });
+//                return _browser;
+//            }
+        }
     }, false);
 };
 
@@ -717,6 +711,7 @@ Meteor.startup(function() {
     requestLocation(setError);
 
     $.mobile.initializePage();
+
 });
 
 registerTemplates();
