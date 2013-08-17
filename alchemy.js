@@ -2,15 +2,12 @@
  * @author Benjamin Berman
  * © 2012 All Rights Reserved
  **/
-Alchemies = new Meteor.Collection("alchemies");
 
 // Players need to see all possible alchemies.
 Meteor.publish("alchemies",function(){
     return Alchemies.find();
 });
 
-CARD_TYPE_ADJECTIVE = 10;
-CARD_TYPE_NOUN = 20;
 
 AlchemyManager = {
     combineCards: function (adjectiveCard, nounCard) {
