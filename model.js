@@ -3,13 +3,16 @@
  * Copyright 2012
  */
 
-
-
-
-
+// Old theme URL
 THEME_URL = "http://jquerymobile.com/themeroller/?ver=1.2.0&style_id=20121211-131";
 
+// Card type enum
+CARD_TYPE_QUESTION = 1; // card of type question
+CARD_TYPE_ANSWER = 2; // card of type answer
+CARD_TYPE_ADJECTIVE = 10;
+CARD_TYPE_NOUN = 20;
 
+// Error messages.
 E_NO_MORE_CARDS = "No more cards.";
 E_GAME_OVER = "The game is over.";
 

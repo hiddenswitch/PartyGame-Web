@@ -16,6 +16,15 @@ Questions = new Meteor.Collection("questions");
 Answers = new Meteor.Collection("answers");
 Histories = new Meteor.Collection("history");
 
+// Alchemies
+Alchemies = new Meteor.Collection("alchemies");
+
+Alchemy = function() {
+    this.nounCardId = null;
+    this.adjectiveCardId = null;
+    this.text = null;
+};
+
 Question = function () {
     this.judgeId = null;
     this.cardId = null;
