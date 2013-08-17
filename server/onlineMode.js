@@ -3,82 +3,13 @@
  * © 2012 All Rights Reserved
  **/
 
-var K_ANSWERS_PER_QUESTION = 6;
-var K_24_HOURS = 24 * 60 * 60 * 1000;
-var K_10_MINUTES = 10 * 60 * 1000;
-var K_OPTIONS = 3;
-var K_INITIAL_COINS = 100;
+K_ANSWERS_PER_QUESTION = 6;
+K_24_HOURS = 24 * 60 * 60 * 1000;
+K_10_MINUTES = 10 * 60 * 1000;
+K_OPTIONS = 3;
+K_INITIAL_COINS = 100;
 
-var CardManager = {
-    questionCards: [],
-    answerCards: [],
-    updateAndShuffleCards: function () {
-        var self = this;
-        self.questionCards = _.shuffle(Cards.find({type: CARD_TYPE_QUESTION}).fetch());
-        self.answerCards = _.shuffle(Cards.find({type: CARD_TYPE_ANSWER}).fetch());
-    },
-    getQuestionCardsExcluding: function (exclusionIds) {
-        var self = this;
-        return _.filter(self.questionCards, function (card) {
-            return !_.contains(exclusionIds, card._id);
-        });
-    },
-    getRandomQuestionCardExcluding: function (exclusionIds) {
-        var self = this;
-        return _.first(_.shuffle(_.filter(self.questionCards, function (card) {
-            return !_.contains(exclusionIds, card._id);
-        })));
-    },
-    getAnswerCardsExcluding: function (exclusionIds) {
-        var self = this;
-        return _.filter(self.answerCards, function (card) {
-            return !_.contains(exclusionIds, card._id);
-        });
-    },
-    getSomeAnswerCardsExcluding: function (exclusionIds, count) {
-        var self = this;
-        count = count || K_OPTIONS;
-        var eligibleAnswerCards = null;
-
-        if (self.answerCards.length - exclusionIds.length < count || exclusionIds == null || exclusionIds.length === 0) {
-            eligibleAnswerCards = self.answerCards;
-        } else {
-            eligibleAnswerCards = _.shuffle(_.filter(self.answerCards, function (card) {
-                return !_.contains(exclusionIds, card._id);
-            }));
-        }
-
-        return eligibleAnswerCards.slice(0, 3);
-    },
-    getUnavailableQuestionCardIdsForUser: function (userId) {
-        var unavailableQuestionCardIds = _.uniq(_.pluck(Histories.find({userId: userId, questionAvailable: false}, {fields: {questionCardId: 1}}).fetch(), 'questionCardId')) || [];
-
-        if (unavailableQuestionCardIds.length >= Cards.find({type: CARD_TYPE_QUESTION}).count()) {
-            unavailableQuestionCardIds = [];
-
-            Histories.update({userId: _userId, questionAvailable: false}, {$set: {questionAvailable: true}}, {multi: true});
-        }
-
-        return unavailableQuestionCardIds;
-    },
-    getUnavailableAnswerCardIdsForUser: function (userId) {
-        var unavailableAnswerCardIds = _.uniq(_.flatten(_.pluck(Histories.find({userId: userId, answersAvailable: false}, {fields: {answerCardIds: 1}}).fetch(), 'answerCardIds'))) || [];
-
-        if (unavailableAnswerCardIds.length >= CardManager.answerCards.length - K_OPTIONS) {
-            unavailableAnswerCardIds = [];
-
-            Histories.update({userId: _userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
-        }
-
-        return unavailableAnswerCardIds;
-    },
-    initializeCards: function () {
-        CardManager.updateAndShuffleCards();
-        Meteor.setInterval(CardManager.updateAndShuffleCards, K_10_MINUTES);
-    }
-};
-
-var JudgeManager = {
+JudgeManager = {
     setJudge: function (questionId, judgeId, coerce) {
         var now = new Date().getTime();
 
@@ -105,7 +36,7 @@ var JudgeManager = {
     }
 };
 
-var BotManager = {
+BotManager = {
     entertainmentDelay: 800,
     tick: 0,
     keepEntertained: function () {

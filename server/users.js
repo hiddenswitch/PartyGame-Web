@@ -3,7 +3,7 @@
  * © 2012 All Rights Reserved
  **/
 
-var K_INITIAL_COINS = 100;
+K_INITIAL_COINS = 100;
 
 Meteor.publish("userData",function() {
     return Meteor.users.find({_id:this.userId},{fields:{questionIds:1,score:1,coins:1}});
@@ -37,7 +37,7 @@ Accounts.onCreateUser(function(options, user) {
     user.questionIds = [];
     user.score = 0;
     user.coins = K_INITIAL_COINS;
-    user.inventory = {decks:['Cards Against Humanity','Starter']};
+    user.inventory = {cards:InventoryManager.openBoosterPacks(5),};
     user.matchingValue = 0;
     user.unansweredHistoriesCount = 0;
     user.unjudgedQuestionsCount = 0;
