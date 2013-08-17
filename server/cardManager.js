@@ -9,6 +9,15 @@ CardManager = {
     nounCards: [],
     adjectiveCards: [],
     allAnswerCards: [],
+    getCardIdMix: function (count) {
+        // Generate booster pack in equal ratios for now.
+        var self = this;
+        var cardIds = [];
+        for (var i = 0; i < count; i++) {
+            cardIds.push(_.first(_.shuffle([self.questionCards, self.answerCards, self.adjectiveCards, self.nounCards][i % 4]))._id);
+        }
+        return cardIds;
+    },
     updateAndShuffleCards: function () {
         var self = this;
         self.questionCards = _.shuffle(Cards.find({type: CARD_TYPE_QUESTION}).fetch());
@@ -33,10 +42,6 @@ CardManager = {
         return _.filter(self.answerCards, function (card) {
             return !_.contains(exclusionIds, card._id);
         });
-    },
-    getCardMixExcluding: function(exclusionIds) {
-        var self = this;
-        return _.filter(_.union(nou))
     },
     getSomeAnswerCardsExcluding: function (exclusionIds, count) {
         var self = this;
