@@ -9,14 +9,11 @@ CardManager = {
     nounCards: [],
     adjectiveCards: [],
     allAnswerCards: [],
+    allCards: [],
     getCardIdMix: function (count) {
         // Generate booster pack in equal ratios for now.
         var self = this;
-        var cardIds = [];
-        for (var i = 0; i < count; i++) {
-            cardIds.push(_.first(_.shuffle([self.questionCards, self.answerCards, self.adjectiveCards, self.nounCards][i % 4]))._id);
-        }
-        return cardIds;
+        return _.pluck(_.shuffle(self.allCards).slice(0,count),'_id');
     },
     updateAndShuffleCards: function () {
         var self = this;
@@ -24,6 +21,7 @@ CardManager = {
         self.answerCards = _.shuffle(Cards.find({type: CARD_TYPE_ANSWER}).fetch());
         self.adjectiveCards = _.shuffle(Cards.find({type: CARD_TYPE_ADJECTIVE}).fetch());
         self.nounCards = _.shuffle(Cards.find({type: CARD_TYPE_NOUN}).fetch());
+        self.allCards = _.shuffle(self.questionCards.concat(self.answerCards).concat(self.adjectiveCards).concat(self.nounCards));
     },
     getQuestionCardsExcluding: function (exclusionIds) {
         var self = this;

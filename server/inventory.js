@@ -8,15 +8,11 @@ K_BOOSTER_PACK_SIZE = 15;
 
 InventoryManager = {
     openBoosterPacks: function (count) {
-
+        return CardManager.getCardIdMix(K_BOOSTER_PACK_SIZE*count);
     }
 };
 
 Meteor.methods({
-    trade: function (commodityId1, commodityQuantity1, partyId1, commodityId2, commodityQuantity2, partyId2, _userId) {
-
-    },
-
     creditBoosterPack: function (_userId) {
         if (!this.userId && !_userId) {
             throw new Meteor.Error(500, "When server calls alchemyCombine, you must impersonate a user.");
