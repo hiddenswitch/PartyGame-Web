@@ -37,7 +37,7 @@ Accounts.onCreateUser(function(options, user) {
     user.questionIds = [];
     user.score = 0;
     user.coins = K_INITIAL_COINS;
-    user.inventory = {cards:InventoryManager.openBoosterPacks(5),};
+    user.inventory = {cards:InventoryManager.openBoosterPacks(5)};
     user.matchingValue = 0;
     user.unansweredHistoriesCount = 0;
     user.unjudgedQuestionsCount = 0;
