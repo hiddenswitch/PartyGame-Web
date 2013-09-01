@@ -1,0 +1,56 @@
+/**
+*
+* Copyright © 2009-2013 Apple Inc.  All rights reserved.
+*
+**/
+
+
+body{margin:0}
+
+
+*{-webkit-user-select:none;-webkit-tap-highlight-color:rgba(0,0,0,0)}input,textarea{-webkit-user-select:auto}
+
+
+.ad-view{position:absolute;top:0;left:0;-webkit-transition-property:-webkit-transform,opacity}
+
+
+body{margin:0}.ad-view{-webkit-box-sizing:border-box}div{border:0 solid transparent}.iap-wrapper{position:absolute;-webkit-transform:translate3d(0,0,0);-webkit-transform-style:preserve-3d}.iap-wrapped{width:100%!important;height:100%!important}
+
+
+.ad-image-view>img{width:100%;height:100%;visibility:hidden}
+
+
+.ad-image-view{overflow:hidden}.ad-image-view>img{position:absolute}.ad-image-view.ad-uses-flex-box{display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-pack:center;-webkit-box-align:center}.ad-image-view.ad-uses-flex-box>img{display:-webkit-box;position:relative}.ad-image-view.ad-placeholder-background[ad-asset-droppable]:not([ad-image]){background-color:rgba(0,0,0,0.25)}
+
+
+.ad-control{-webkit-user-select:none}.ad-control.ad-disabled{opacity:.5}
+
+
+.iap-text-field{font-family:'Helvetica Neue',Arial,sans-serif}.iap-text-field input,.iap-text-field textarea{font-family:inherit;font-size:inherit;text-align:inherit;letter-spacing:inherit;line-height:inherit;vertical-align:inherit;color:inherit;-webkit-box-sizing:border-box;background:0;border:0;resize:none}
+
+
+.ad-waiting-on-display{opacity:0}.ad-waiting-on-display,.ad-waiting-on-display *{pointer-events:none!important}
+
+
+.ad-transition-controller-view>.ad-view{-webkit-backface-visibility:hidden}.ad-waiting-on-display{opacity:0!important}
+
+
+.ad-navigation-controller-view{-webkit-user-select:none}.ad-navigation-controller-view>.ad-navigation-bar,.ad-navigation-controller-view>.ad-toolbar{z-index:1}.ad-navigation-controller-host-view{-webkit-user-select:auto}
+
+
+.iap-view-controller{-webkit-backface-visibility:hidden;z-index:0}#Background{display:none;-webkit-backface-visibility:visible}.ad-transition-controller-view #Background{display:block}.iap-ibooks-default-loading-image{position:absolute;width:100%;height:100%;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-pack:center;-webkit-box-align:center;background-color:white}.iap-ibooks-default-loading-image>img{display:-webkit-box;max-height:100%;max-width:100%;position:relative}
+
+
+.ad-label,.ad-label>div{display:-webkit-box;-webkit-box-pack:center;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis}.ad-label>div{width:100%;-webkit-line-clamp:1;white-space:pre-line;pointer-events:none}.ad-label .frame{-webkit-transition-property:opacity,-webkit-transform;-webkit-transition-timing-function:cubic-bezier(0.25,0.1,0.25,1.0);-webkit-backface-visibility:hidden}
+
+
+.ad-button{background-repeat:no-repeat;background-position:center center}.ad-button>.ad-label{position:relative;width:100%;height:100%}.ad-button>.ad-label>div{display:block;white-space:nowrap}.ad-button.ad-rounded-rect-type,.ad-button.ad-custom-type{display:inline-block;height:37px;-webkit-box-sizing:border-box;font-family:Helvetica;font-weight:bold;font-size:15px;text-align:center;color:#324f85}.ad-button.ad-rounded-rect-type{-webkit-border-radius:10px;min-width:20px;background-color:white;border:1px solid rgba(60%,60%,60%,0.94);padding:0 10px}.ad-button.ad-rounded-rect-type.ad-highlighted{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/table-view-blue-selection.png');background-repeat:repeat-x;border:1px solid #728fbc;color:white}body.ad-HiDPI .ad-button.ad-rounded-rect-type.ad-highlighted{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/table-view-blue-selection@2x.png');-webkit-background-size:1px 43px}.ad-button.ad-detail-disclosure-type{background:url('../plugins/com.apple.iAdProducer.iAdJS/assets/table-view-cell-disclosure-button.png') -9px -5px;width:29px;height:31px}body.ad-HiDPI .ad-button.ad-detail-disclosure-type{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/table-view-cell-disclosure-button@2x.png');-webkit-background-size:44px 88px}.ad-button.ad-detail-disclosure-type.ad-highlighted{background-position-y:-49px}.ad-button.ad-info-light-type{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/button-info-light.png');width:18px;height:19px}body.ad-HiDPI .ad-button.ad-info-light-type{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/button-info-light@2x.png');-webkit-background-size:18px 19px}.ad-button.ad-info-dark-type{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/button-info-dark.png');width:18px;height:19px}body.ad-HiDPI .ad-button.ad-info-dark-type{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/button-info-dark@2x.png');-webkit-background-size:18px 19px}.ad-button.ad-contact-add-type{background:url('../plugins/com.apple.iAdProducer.iAdJS/assets/button-contact-add.png') 0 0;width:29px;height:29px}body.ad-HiDPI .ad-button.ad-contact-add-type{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/button-contact-add@2x.png');-webkit-background-size:29px 58px}.ad-button.ad-contact-add-type.ad-highlighted{background-position-y:-29px}.ad-deletion-accessory-type{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/button-delete-accessory.png');width:29px;height:29px}.ad-deletion-accessory-type>div{background-color:white;width:13px;height:3px;position:absolute;top:0;left:1px;right:0;bottom:0;margin:auto}body.ad-HiDPI .ad-deletion-accessory-type{background-image:url('../plugins/com.apple.iAdProducer.iAdJS/assets/button-delete-accessory@2x.png');-webkit-background-size:29px 29px}
+
+
+.ad-button{background-position:50% 50%;-webkit-background-clip:padding-box!important}.ad-button.ad-custom-type{font-weight:normal}.ad-button>.ad-label.ad-view>div{width:100%;-webkit-line-clamp:1;white-space:pre-line;pointer-events:none}
+
+
+.ad-activity-indicator-view{width:37px;height:37px}.ad-activity-indicator-view .ad-scale-container{-webkit-transform-origin:top left;width:100%;height:100%}.ad-activity-indicator-view .ad-segments-container{width:100%;height:100%;background-size:100% 100%;-webkit-animation-play-state:paused;-webkit-animation-duration:1s;-webkit-animation-iteration-count:infinite;-webkit-animation-fill-mode:forwards;-webkit-animation-timing-function:linear}.ad-activity-indicator-view.ad-animating .ad-segments-container{-webkit-animation-play-state:running}.ad-activity-indicator-view.ad-animating.ad-animation-stepped .ad-segments-container{-webkit-animation-name:ad-activity-indicator-stepped}@-webkit-keyframes ad-activity-indicator-stepped{0%{-webkit-transform:rotate(0deg)}8.32%{-webkit-transform:rotate(0deg)}8.33%{-webkit-transform:rotate(30deg)}16.66%{-webkit-transform:rotate(30deg)}16.67%{-webkit-transform:rotate(60deg)}24.99%{-webkit-transform:rotate(60deg)}25%{-webkit-transform:rotate(90deg)}33.32%{-webkit-transform:rotate(90deg)}33.33%{-webkit-transform:rotate(120deg)}41.66%{-webkit-transform:rotate(120deg)}41.67%{-webkit-transform:rotate(150deg)}49.99%{-webkit-transform:rotate(150deg)}50%{-webkit-transform:rotate(180deg)}58.32%{-webkit-transform:rotate(180deg)}58.33%{-webkit-transform:rotate(210deg)}66.66%{-webkit-transform:rotate(210deg)}66.67%{-webkit-transform:rotate(240deg)}74.99%{-webkit-transform:rotate(240deg)}75%{-webkit-transform:rotate(270deg)}83.32%{-webkit-transform:rotate(270deg)}83.33%{-webkit-transform:rotate(300deg)}91.66%{-webkit-transform:rotate(300deg)}91.67%{-webkit-transform:rotate(330deg)}99.99%{-webkit-transform:rotate(330deg)}100%{-webkit-transform:rotate(360deg)}}.ad-activity-indicator-view.ad-animating.ad-animation-smooth .ad-segments-container{-webkit-animation-name:ad-activity-indicator-smooth}@-webkit-keyframes ad-activity-indicator-smooth{0%{-webkit-transform:rotate(0deg)}100%{-webkit-transform:rotate(360deg)}}.ad-activity-indicator-view .ad-segments-container>div{position:absolute;background-color:white}.ad-activity-indicator-view.ad-gray .ad-segments-container>div{background-color:rgba(0,0,0,0.5)}.ad-activity-indicator-view.ad-custom .ad-segments-container>div{display:none}
+
+
+.iap-shared-view{pointer-events:none}.iap-shared-view .iap-shared-content-view>*{pointer-events:auto}.iap-shared-view:not(.ad-view-did-appear) .iap-shared-content-view>*{pointer-events:none}

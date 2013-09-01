@@ -1,0 +1,7 @@
+page, component, asset, error_level, message, category
+"AnswerQuestionPage","view",,WARN,"The object with outlet ""view"" is using filters on ""Normal (4-inch)"". Filters are not supported in iOS versions prior to 6.0.","Info"
+"AnswerQuestionPage","view",,WARN,"The object with outlet ""view"" is using filters. Filters are not supported in iOS versions prior to 6.0.","Info"
+,,"1-tap-gesture-icon.png",FATAL,"No high-resolution version of ""1-tap-gesture-icon.png"" was provided; the standard-resolution version of this asset will be scaled up for high-resolution displays.","Missing Object"
+,,"1045151_511627272241642_1901294720_n.jpg",FATAL,"No high-resolution version of ""1045151_511627272241642_1901294720_n.jpg"" was provided; the standard-resolution version of this asset will be scaled up for high-resolution displays.","Missing Object"
+,,"binding_dark.png",FATAL,"No high-resolution version of ""binding_dark.png"" was provided; the standard-resolution version of this asset will be scaled up for high-resolution displays.","Missing Object"
+,,"tweed.png",WARN,"The file size of the standard-resolution version of ""tweed.png"" is larger than the file size of the high-resolution version of this asset.","File Exceeds Limit"
