@@ -59,6 +59,10 @@ Meteor.publish("usersInGame",function(gameId) {
 	return Meteor.users.find({_id:{$in:userIds}},{fields:{_id:1,username:1,emails:1,'profile.name':1}});
 });
 
+Meteor.publish("myAvatars",function() {
+    return Avatars.find({userId:this.userId});
+});
+
 Meteor.startup(function () {
     // enable the geospatial index on games and users
     Games._ensureIndex({location:"2d"});
