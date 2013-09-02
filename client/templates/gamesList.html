@@ -2,6 +2,14 @@
     {{#if loggedIn}}
     <ul data-role="listview" data-split-icon="arrow-r" data-divider-theme="c">
         {{> browse}}
+        <li data-theme="c">
+            <center>
+                <div data-role="controlgroup" data-type="horizontal" data-mini="true">
+                    <button data-role="button" data-icon="edit">Answer a Question</button>
+                    <button data-role="button" data-icon="arrow-r">Send a Question</button>
+                </div>
+            </center>
+        </li>
         {{> answerQuestion}}
         {{> judgeQuestion}}
         {{> pendingQuestion}}
@@ -21,7 +29,9 @@
        data-icon="arrow-r">Create an Account</a>
     <a href="#anonymousLogin" data-mini="false" data-role="button"
        data-icon="arrow-r">Play As Guest</a>
-    <p>The Party Game is offensive. So it's fun for the whole family. We won't post anything, we won't steal your information,
+
+    <p>The Party Game is offensive. So it's fun for the whole family. We won't post anything, we won't steal your
+        information,
         and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with
         the Besties XOXO. (Except like the NSA and stuff).</p>
 
