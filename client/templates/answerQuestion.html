@@ -1,9 +1,7 @@
 <template name="answerQuestion">
     {{#each histories}}
     <li data-theme="c"><a href="#history" id="{{_id}}">
-        <h2>{{{text}}}</h2>
-
-        <p>Choose your card...</p></a>
+        <div class="bubble"><p>{{{text}}}</p></div></a>
     </li>
     {{/each}}
 </template>
