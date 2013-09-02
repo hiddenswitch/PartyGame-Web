@@ -3,10 +3,7 @@
  * © 2012 All Rights Reserved
  **/
 
-// Players need to see all possible alchemies.
-Meteor.publish("alchemies",function(){
-    return Alchemies.find();
-});
+
 
 
 AlchemyManager = {

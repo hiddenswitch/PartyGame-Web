@@ -48,6 +48,11 @@ Meteor.publish("cards",function() {
 	return Cards.find({});
 });
 
+// Players need to see all possible alchemies.
+Meteor.publish("alchemies",function(){
+    return Alchemies.find();
+});
+
 Meteor.publish("usersInGame",function(gameId) {
     // privacy concerns. but does not update correctly when gameId changes.
     var userIds = _.pluck(Players.find({gameId:gameId},{fields:{userId:1}}).fetch(),"userId");
