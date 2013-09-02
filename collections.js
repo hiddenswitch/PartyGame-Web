@@ -10,6 +10,7 @@ Votes = new Meteor.Collection("votes");
 Submissions = new Meteor.Collection("submissions");
 Players = new Meteor.Collection("players");
 Chats = new Meteor.Collection("chats");
+Avatars = new Meteor.Collection("avatars");
 
 // Online-only collections
 Questions = new Meteor.Collection("questions");
@@ -106,4 +107,12 @@ Chat = function () {
     this.playerId = 0;
     this.dateTime = 0;
     this.text = "";
+};
+
+Avatar = function() {
+    this.userId = null;
+    this.avatar = {
+        url: null,
+        data: null
+    };
 };
