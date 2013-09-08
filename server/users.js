@@ -5,21 +5,21 @@
 
 K_INITIAL_COINS = 100;
 
-Meteor.publish("userData",function() {
-    return Meteor.users.find({_id:this.userId},{fields:{questionIds:1,score:1,coins:1}});
+Meteor.publish("userData", function () {
+    return Meteor.users.find({_id: this.userId}, {fields: {questionIds: 1, score: 1, coins: 1, services: 1}});
 });
 
 // Configure user profiles
-Accounts.onCreateUser(function(options, user) {
+Accounts.onCreateUser(function (options, user) {
     var bot = false;
     var currentLocation = null;
     if (options.profile) {
-        if (_.has(options.profile,'bot') && options.profile.bot === true) {
-            options.profile = _.omit(options.profile,'bot');
+        if (_.has(options.profile, 'bot') && options.profile.bot === true) {
+            options.profile = _.omit(options.profile, 'bot');
             bot = true;
         }
 
-        if (_.has(options.profile,'location') && options.profile.location !== null) {
+        if (_.has(options.profile, 'location') && options.profile.location !== null) {
             currentLocation = options.profile.location;
         }
 
@@ -37,12 +37,13 @@ Accounts.onCreateUser(function(options, user) {
     user.questionIds = [];
     user.score = 0;
     user.coins = K_INITIAL_COINS;
-    user.inventory = {cards:InventoryManager.openBoosterPacks(5)};
+    user.inventory = {cards: InventoryManager.openBoosterPacks(5)};
     user.matchingValue = 0;
     user.unansweredHistoriesCount = 0;
     user.unjudgedQuestionsCount = 0;
     user.pendingJudgeCount = 0;
     user.location = currentLocation;
+    user.avatar = {url: _.first(_.shuffle(DefaultAvatars))};
 
 
     console.log("new user: {0}".format(JSON.stringify(user)));

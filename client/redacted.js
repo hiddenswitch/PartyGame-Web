@@ -631,7 +631,7 @@ Meteor.startup(function() {
         Meteor.subscribe("usersInGame",Session.get(GAME));
         Meteor.subscribe("players",Session.get(GAME));
         Meteor.subscribe("hand",Session.get(GAME));
-    })
+    });
 
     Deps.autorun(function() {
         Meteor.subscribe("histories");
@@ -640,6 +640,7 @@ Meteor.startup(function() {
         Meteor.subscribe("myJudges");
         Meteor.subscribe("userData");
         Meteor.subscribe("myGames");
+        Meteor.subscribe("fbFriends");
     });
 
 	Accounts.ui.config({

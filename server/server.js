@@ -59,6 +59,11 @@ Meteor.publish("usersInGame",function(gameId) {
 	return Meteor.users.find({_id:{$in:userIds}},{fields:{_id:1,username:1,emails:1,'profile.name':1}});
 });
 
+Meteor.publish("usersInConcern",function(gameIds,historyIds) {
+    var userIdsInGames = _.pluck(Players.find({gameId: {$in: gameIds}}, {fields: {userId: 1}}).fetch(), "userId");
+
+});
+
 Meteor.publish("myAvatars",function() {
     return Avatars.find({userId:this.userId});
 });
