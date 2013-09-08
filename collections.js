@@ -20,6 +20,9 @@ Histories = new Meteor.Collection("history");
 // Alchemies
 Alchemies = new Meteor.Collection("alchemies");
 
+// Facebook integration
+Friends = new Meteor.Collection("fbFriends");
+
 Alchemy = function() {
     this.nounCardId = null;
     this.adjectiveCardId = null;

@@ -14,3 +14,7 @@ random
 stylus
 handlebar-helpers
 leaflet
+standard-app-packages
+npm
+page-js-ie-support
+router
