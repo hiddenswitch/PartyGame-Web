@@ -5,8 +5,31 @@
 
 K_INITIAL_COINS = 100;
 
-Meteor.publish("userData", function () {
-    return Meteor.users.find({_id: this.userId}, {fields: {questionIds: 1, score: 1, coins: 1, services: 1}});
+var MY_USER_FIELDS = {
+    profile: 1,
+    questionIds: 1,
+    score: 1,
+    coins: 1,
+    services: 1,
+    avatar: 1
+};
+
+var OTHER_USER_FIELDS = {
+    score: 1,
+    coins: 1,
+    avatar: 1,
+    'profile.name': 1,
+    emails: 1,
+    username: 1,
+    _id: 1
+};
+
+Meteor.publish("thisUserData", function () {
+    return Meteor.users.find({_id: this.userId}, {fields: MY_USER_FIELDS });
+});
+
+Meteor.publish("otherUserData", function () {
+    return Meteor.users.find({acl: this.userId}, {fields: OTHER_USER_FIELDS});
 });
 
 // Configure user profiles

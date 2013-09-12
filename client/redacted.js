@@ -620,33 +620,6 @@ Meteor.subscribe("cards");
 
 Meteor.startup(function() {
 	Session.set(ERROR,null);
-	
-	Deps.autorun(function() {
-        Meteor.subscribe("localGames",Session.get(LOCATION));
-	});
-
-    Deps.autorun(function() {
-        Meteor.subscribe("submissions",Session.get(GAME));
-        Meteor.subscribe("votesInGame",Session.get(GAME));
-        Meteor.subscribe("usersInGame",Session.get(GAME));
-        Meteor.subscribe("players",Session.get(GAME));
-        Meteor.subscribe("hand",Session.get(GAME));
-    });
-
-    Deps.autorun(function() {
-        Meteor.subscribe("histories");
-        Meteor.subscribe("questions");
-        Meteor.subscribe("myAnswers");
-        Meteor.subscribe("myJudges");
-        Meteor.subscribe("userData");
-        Meteor.subscribe("myGames");
-        Meteor.subscribe("fbFriends");
-    });
-
-	Accounts.ui.config({
-		requestPermissions: {facebook: ['user_likes']},
-		passwordSignupFields: 'USERNAME_AND_EMAIL'
-	});
 		
 	// update current round
     Deps.autorun(function () {
