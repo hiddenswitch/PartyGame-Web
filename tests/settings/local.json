@@ -1,0 +1,11 @@
+{
+    "useBots":true,
+    "facebook":{
+        "appSecret":"546b39b88c006c33d362412df4119b0",
+        "appId":"524013571013561"
+    },
+    "google":{
+        "clientId":"253853968266.apps.googleusercontent.com",
+        "clientSecret":"l4GGLNFGBiGz8bebefmSbkTz"
+    }
+}
