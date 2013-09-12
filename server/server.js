@@ -53,17 +53,6 @@ Meteor.publish("alchemies",function(){
     return Alchemies.find();
 });
 
-Meteor.publish("usersInGame",function(gameId) {
-    // privacy concerns. but does not update correctly when gameId changes.
-    var userIds = _.pluck(Players.find({gameId:gameId},{fields:{userId:1}}).fetch(),"userId");
-	return Meteor.users.find({_id:{$in:userIds}},{fields:{_id:1,username:1,emails:1,'profile.name':1}});
-});
-
-Meteor.publish("usersInConcern",function(gameIds,historyIds) {
-    var userIdsInGames = _.pluck(Players.find({gameId: {$in: gameIds}}, {fields: {userId: 1}}).fetch(), "userId");
-
-});
-
 Meteor.publish("myAvatars",function() {
     return Avatars.find({userId:this.userId});
 });
@@ -171,7 +160,7 @@ Meteor.methods({
             _userId = this.userId;
         }
 
-        var g = Games.findOne({_id:gameId},{fields:{_id:1,open:1}});
+        var g = Games.findOne({_id:gameId},{fields:{_id:1,open:1,userIds:1}});
 
         if (!g)
             throw new Meteor.Error(404,"Cannot join nonexistent game.");
@@ -220,11 +209,17 @@ Meteor.methods({
         // If there is no owner, this first user is now the owner.
         Games.update({_id:gameId,creatorUserId:_userId,$or:[{judgeId:null},{ownerId:null}]},{$set:{ownerId:playerId,judgeId:playerId}});
 
+        // Update local copy of game
+        g.userIds.push(_userId);
+
         // Increment the player count and join the game.
         Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId,playerIds:playerId,playerNames: p.name}, $set:{modified:new Date().getTime()}});
 
-        // Update the heartbeat
-        Meteor.users.update({_id:_userId},{$set:{heartbeat:new Date().getTime()}});
+        // Update the heartbeat and the game ID
+        Meteor.users.update({_id: _userId}, {$set: {heartbeat: new Date().getTime()}, $addToSet: {gameIds: gameId}});
+
+        // Update the ACLs for the users
+        Meteor.users.update({gameIds: gameId}, {$addToSet: {acl: {$each: g.userIds}}}, {multi: true});
 
         // Draw hands for all users
         Meteor.call("drawHands",gameId,K_DEFAULT_HAND_SIZE);
