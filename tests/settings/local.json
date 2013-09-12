@@ -1,7 +1,7 @@
 {
     "useBots":true,
     "facebook":{
-        "appSecret":"546b39b88c006c33d362412df4119b0",
+        "appSecret":"9546b39b88c006c33d362412df4119b0",
         "appId":"524013571013561"
     },
     "google":{
