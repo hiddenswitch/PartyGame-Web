@@ -15,7 +15,7 @@ Template.map.url = function(long,lat,width,height) {
         height*=2;
         zoom = 15;
     }
-    return "http://staticmap.openstreetmap.de/staticmap.php?center={0},{1}&zoom={2}&size={3}x{4}&maptype=mapnik&markers={0},{1},lightblue".format(lat,long,zoom,width,height);
+    return "http://staticmap.openstreetmap.de/staticmap.php?center={0},{1}&zoom={2}&size={3}x{4}&maptype=mapnik".format(lat,long,zoom,width,height);
 };
 
 Template.map.local = function() {
