@@ -4,14 +4,6 @@
  **/
 var URL_TO_CARDS_TSV = "https://dl.dropboxusercontent.com/u/2891540/cards.tsv";
 
-Meteor.startup(function () {
-    // Update cards
-    if (Cards.find({}).count() === 0) {
-        Meteor.call("addCAHCards");
-        Meteor.call("addGoogleCards");
-    }
-});
-
 Meteor.methods({
     addCAHCards: function () {
         // Cards Against Humanity cards
