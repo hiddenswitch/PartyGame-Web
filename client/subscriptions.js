@@ -23,5 +23,6 @@ Meteor.startup(function() {
         Meteor.subscribe("myJudges");
         Meteor.subscribe("myGames");
         Meteor.subscribe("fbFriends");
+        Meteor.subscribe("inventories");
     });
 });

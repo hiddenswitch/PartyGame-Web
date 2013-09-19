@@ -6,30 +6,27 @@
 K_SERVER = "server";
 K_BOOSTER_PACK_SIZE = 15;
 
+INVENTORY_ITEM_TYPE_CARD = 1;
+
 InventoryManager = {
-    openBoosterPacks: function (count) {
-        return CardManager.getCardIdMix(K_BOOSTER_PACK_SIZE*count);
-    }
-};
-
-Meteor.methods({
-    creditBoosterPack: function (_userId) {
-        if (!this.userId && !_userId) {
-            throw new Meteor.Error(500, "When server calls alchemyCombine, you must impersonate a user.");
-        } else if (_userId == null && this.userId) {
-            _userId = this.userId;
+    adjustInventoryQuantity: function (userId, itemType, itemId, deltaQuantity) {
+        var item = {userId: userId, itemType: INVENTORY_ITEM_TYPE_CARD, itemId: itemId};
+        if (Inventories.find(item).count() === 0) {
+            item._id = Inventories.insert(_(item).extend({quantity: deltaQuantity}));
         } else {
-            throw new Meteor.Error(403, "Permission denied.");
+            Inventories.update(item, {$inc: {quantity: deltaQuantity}});
         }
+    },
 
-        var user = Meteor.users.findOne({_id: _userId});
+    openBoosterPacks: function (count) {
+        return CardManager.getCardIdMix(K_BOOSTER_PACK_SIZE * count);
+    },
 
-        if (user == null) {
-            throw new Meteor.Error(404, "User {0} not found.".format(_userId));
-        }
-
+    creditBoosterPack: function (userId) {
         var cardIds = CardManager.getCardIdMix(K_BOOSTER_PACK_SIZE);
 
-        Meteor.users.update({_id: _userId}, {$push: {"inventory.cards": cardIds}});
+        _.each(cardIds, function (cardId) {
+            InventoryManager.adjustInventoryQuantity(userId, INVENTORY_ITEM_TYPE_CARD, cardId, 1);
+        });
     }
-});
+};
