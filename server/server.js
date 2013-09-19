@@ -48,13 +48,12 @@ Meteor.publish("cards",function() {
 	return Cards.find({});
 });
 
-// Players need to see all possible alchemies.
-Meteor.publish("alchemies",function(){
-    return Alchemies.find();
-});
-
 Meteor.publish("myAvatars",function() {
     return Avatars.find({userId:this.userId});
+});
+
+Meteor.publish("inventories",function(){
+    return Inventories.find({userId:this.userId});
 });
 
 Meteor.startup(function () {
@@ -72,6 +71,7 @@ Meteor.startup(function () {
     Submissions._ensureIndex({gameId:1});
     Meteor.users._ensureIndex({heartbeat:-1});
     Meteor.users._ensureIndex({location:"2d"});
+    Inventories._ensureIndex({userId:1, itemType:1});
 });
 
 Meteor.methods({

@@ -17,16 +17,18 @@ Questions = new Meteor.Collection("questions");
 Answers = new Meteor.Collection("answers");
 Histories = new Meteor.Collection("history");
 
-// Alchemies
-Alchemies = new Meteor.Collection("alchemies");
+// Inventory
+Inventories = new Meteor.Collection("inventories");
 
 // Facebook integration
 Friends = new Meteor.Collection("fbFriends");
 
-Alchemy = function() {
-    this.nounCardId = null;
-    this.adjectiveCardId = null;
-    this.text = null;
+Inventory = function() {
+    this.userId = null;
+    // Item depends on the thingy. Could be a card, could be a jazz
+    this.itemType = null;
+    this.itemId = null;
+    this.quantity = 0;
 };
 
 Question = function () {
