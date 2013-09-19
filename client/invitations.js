@@ -5,24 +5,24 @@
 
 // URL handler
 Meteor.Router.add({
-    '/:gameTitle': function(gameTitle) {
-        Session.set("invite",gameTitle);
-        Meteor.defer(function() {
+    '/:gameTitle': function (gameTitle) {
+        Session.set("invite", gameTitle);
+        Meteor.defer(function () {
             $.mobile.changePage('#invitation');
         });
     }
 });
 
 // Template definition
-Template.invitation.title = function() {
+Template.invitation.title = function () {
     return Session.get("invite");
 };
 
 // Client view event handlers
-acceptInvite = function() {
-    Meteor.call("joinOrCreateGameWithTitle",Session.get("invite"),function(e,r2) {
+acceptInvite = function () {
+    Meteor.call("joinOrCreateGameWithTitle", Session.get("invite"), function (e, r2) {
         if (r2) {
-            Session.set(GAME,r2);
+            Session.set(GAME, r2);
             $.mobile.changePage('#roundSummary');
         }
         if (e) {
@@ -32,22 +32,24 @@ acceptInvite = function() {
     });
 };
 
-loginAndAcceptInvite = function() {
-    var nickname = $('anonymousNicknameInvitation').attr('value');
-    createNewAnonymousUser(nickname,function(e,r) {
+loginAndAcceptInvite = function () {
+    var nickname = $('#anonymousNicknameInvitation').attr('value');
+    createNewAnonymousUser(nickname, function (e, r) {
         // Join game
-        if (r) {
-            Meteor.call("joinOrCreateGameWithTitle",Session.get("invite"),function(e,r2) {
-                if (r2) {
-                    Session.set(GAME,r2);
-                    $.mobile.changePage('#roundSummary');
-                }
-                if (e) {
-                    $.mobile.changePage('#home');
-                    setError(e);
-                }
-            });
+        if (e) {
+            return;
         }
+
+        Meteor.call("joinOrCreateGameWithTitle", Session.get("invite"), function (e, r2) {
+            if (r2) {
+                Session.set(GAME, r2);
+                $.mobile.changePage('#roundSummary');
+            }
+            if (e) {
+                $.mobile.changePage('#home');
+                setError(e);
+            }
+        });
     });
 
 };
