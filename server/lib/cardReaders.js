@@ -6,22 +6,18 @@ var URL_TO_CARDS_TSV = "https://dl.dropboxusercontent.com/u/2891540/cards.tsv";
 
 Meteor.methods({
     addCAHCards: function () {
-        // Cards Against Humanity cards
-        var CAHDeck = new Deck();
-        CAHDeck.title = "Cards Against Humanity";
-        CAHDeck.ownerId = "";
-        CAHDeck.description = "The complete Cards Against Humanity questions and answers, licensed Creative Commons" +
-            "2.0 BY-NC-SA.";
-        CAHDeck.price = 0;
-
-        var CAHId = Decks.insert(CAHDeck);
-
         _.each(CAH_QUESTION_CARDS, function (c) {
-            Cards.insert({text: c.replace(/_+/g, K_BLANKS), type: CARD_TYPE_QUESTION, deckId: CAHId});
+            var card = {text: c.replace(/_+/g, K_BLANKS), type: CARD_TYPE_QUESTION, combo: false};
+            if (Cards.find(card).count() === 0) {
+                Cards.insert(card);
+            }
         });
 
         _.each(CAH_ANSWER_CARDS, function (c) {
-            Cards.insert({text: c.replace(/_+/g, K_BLANKS), type: CARD_TYPE_ANSWER, deckId: CAHId});
+            var card = {text: c.replace(/_+/g, K_BLANKS), type: CARD_TYPE_ANSWER, combo: false};
+            if (Cards.find(card).count() === 0) {
+                Cards.insert(card);
+            }
         });
 
     },
