@@ -3,6 +3,7 @@
     "router": {},
     "handlebar-helpers": {},
     "leaflet": {},
-    "npm": {}
+    "npm": {},
+    "iron-router": {}
   }
 }

@@ -5,7 +5,7 @@
 Meteor.startup(function() {
     // Close games that haven't seen any activity for a while, delete games that have been closed for a while
     Meteor.setInterval(function () {
-        Games.update({open:true,$or:[{modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}},{questionCardsCount:{$lt:1}},{answerCardsCount:{$lt:1}}]},{$set:{open:false}},{multi:true},function(e) {
+        Games.update({open:true,$or:[{modified:{$lt:new Date().getTime() - K_HEARTBEAT*100}},{questionCardsCount:{$lt:1}},{answerCardsCount:{$lt:1}}]},{$set:{open:false}},{multi:true},function(e) {
             if (e) {
                 console.log(e);
             }
