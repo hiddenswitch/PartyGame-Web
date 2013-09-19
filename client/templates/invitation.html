@@ -1,11 +1,11 @@
 <template name="invitation">
-    <h3>You have been invited to a game!</h3>
+    <h3>You have been invited to {{title}}!</h3>
     {{#if loggedIn}}
     <a href="#" data-role="button" data-icon="arrow-r" data-theme="b" onclick="acceptInvite()">Accept</a>
     {{else}}
 
-    <label for="anonymousNickname" class="ui-hidden-accessible">Nickname</label>
-    <input type="text" name="anonymousNickname" id="anonymousNickname" value="" placeholder="Nickname"/>
+    <label for="anonymousNicknameInvitation" class="ui-hidden-accessible">Nickname</label>
+    <input type="text" name="anonymousNicknameInvitation" id="anonymousNicknameInvitation" value="" placeholder="Nickname"/>
 
     <a href="#" data-role="button" data-icon="arrow-r" onclick="loginAndAcceptInvite()">Accept</a>
     {{/if}}
