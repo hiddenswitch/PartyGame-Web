@@ -1,7 +1,7 @@
 <template name="browse">
     {{#each games}}
     <li data-theme="c"><a style="background-image: url('{{mapUrl location 640 96}}');" class="openGameLink" href="#roundSummary" id="{{_id}}">
-        <h1 class="localGameTitle">{{#if locationFriendly}}{{locationFriendly.display_name}}{{else}}{{title}}{{/if}}</h1>
+        <h1 class="localGameTitle">{{#if customTitle}}{{title}}{{else}}{{#if locationFriendly}}{{locationFriendly.display_name}}{{else}}{{title}}{{/if}}{{/if}}</h1>
 
         <p class="localGameDescription">{{#each playerNames}}{{this}} {{/each}}</p>
         <span class="ui-li-count">{{players}}</span></a></li>

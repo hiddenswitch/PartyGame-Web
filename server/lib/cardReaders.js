@@ -27,8 +27,6 @@ Meteor.methods({
             return _(['adjective', 'noun', 'result']).object(row.split('\t'));
         });
 
-        console.log(JSON.stringify(deck));
-
         _(deck).each(function (record) {
             var adjective = Cards.findOne({text: record.adjective});
             if (adjective == null) {
@@ -137,8 +135,5 @@ Meteor.methods({
                 cardsCounted++;
             }
         });
-
-        console.log(JSON.stringify({cardsCounted: cardsCounted}));
-
     }
 });

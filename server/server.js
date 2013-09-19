@@ -3,7 +3,7 @@
  */
 
 Meteor.publish("localGames",function(location) {
-    return Games.find(_.extend({open:true,location:null}, location ? {location:{$within:{$center:[[location[0],location[1]],K_LOCAL_DISTANCE]}}} : null),{fields:{_id:1,title:1,players:1,playerNames:1,open:1,round:1,location:1}});
+    return Games.find(_.extend({open:true,location:null}, location ? {location:{$within:{$center:[[location[0],location[1]],K_LOCAL_DISTANCE]}}} : null),{fields:{_id:1,title:1,customTitle:1,players:1,playerNames:1,open:1,round:1,location:1}});
 });
 
 Meteor.publish("questions",function() {
@@ -152,6 +152,28 @@ Meteor.methods({
         }
     },
 
+    joinOrCreateGameWithTitle: function(title) {
+        if (!this.userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        }
+
+        if (title == null || title === "") {
+            throw new Meteor.Error(500, "No title specified.");
+        }
+
+        var g = Games.findOne({title:title, open:true});
+
+        if (g) {
+            return Meteor.call("joinGame", g._id);
+        } else {
+            // create an empty game with the given title
+            var u = Meteor.users.findOne({_id: this.userId});
+            var location = u ? (u.location ? u.location : null) : null;
+            var gameId = Meteor.call("createEmptyGame", title, null, location);
+            return Meteor.call("joinGame",gameId);
+        }
+    },
+
     // Join a game
     joinGame: function(gameId,_userId) {
         if (!this.userId && !_userId) {
@@ -277,8 +299,12 @@ Meteor.methods({
         password = password || "";
         location = location || null;
 
-        if (title=="")
+        var customTitle = true;
+
+        if (title == null || title == "") {
             title = "Game #" + (Games.find({}).count() + 1).toString();
+            customTitle = false;
+        }
 
         var shuffledAnswerCards = _.shuffle(_.pluck(Cards.find({type:CARD_TYPE_ANSWER},{fields:{_id:1}}).fetch(),'_id'));
 
@@ -312,6 +338,7 @@ Meteor.methods({
             userIds:[],
             botLust: true,
             location: location ? [location[0],location[1]] : null,
+            customTitle: customTitle,
             locationFriendly: null
         });
 

@@ -17,5 +17,5 @@ leaflet
 standard-app-packages
 npm
 page-js-ie-support
-router
 http
+router
