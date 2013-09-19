@@ -26,6 +26,85 @@ Meteor.methods({
 
     },
 
+    addComboDecks: function () {
+        var deck = _(Assets.getText('deck_sex_combos').split('\n')).map(function (row) {
+            return _(row.split('\t')).object(['adjective', 'noun', 'result']);
+        });
+
+        _(deck).each(function (record) {
+            var adjective = Cards.findOne({text: record.adjective});
+            if (adjective == null) {
+                adjective = {
+                    deck: "Alchemy",
+                    category: "Sex",
+                    type: CARD_TYPE_ADJECTIVE,
+                    text: record.adjective,
+                    combo: false,
+                    random: Math.random()
+                };
+
+                adjective._id = Cards.insert(adjective);
+            }
+
+            var noun = Cards.findOne({text: record.noun});
+            if (noun == null) {
+                noun = {
+                    deck: "Alchemy",
+                    category: "Sex",
+                    type: CARD_TYPE_NOUN,
+                    text: record.noun,
+                    combo: false,
+                    random: Math.random()
+                };
+
+                noun._id = Cards.insert(noun);
+            }
+
+
+            // Create special combos
+            var result = Cards.findOne({text: record.result});
+            if (result == null) {
+                result = {
+                    deck: "Alchemy",
+                    category: "Sex",
+                    type: CARD_TYPE_NOUN,
+                    text: record.result,
+                    adjectiveId: adjective._id,
+                    nounId: noun._id,
+                    combo: true,
+                    generic: false,
+                    random: Math.random()
+                };
+
+                result._id = Cards.insert(result);
+            }
+        });
+
+        // Create generic combos
+        var nouns = Cards.find({type: CARD_TYPE_NOUN, combo: false}).fetch();
+        var adjectives = Cards.find({type: CARD_TYPE_ADJECTIVE}).fetch();
+        _.each(nouns,function(noun) {
+            _.each(adjectives,function(adjective) {
+                var result = {
+                    deck: "Alchemy",
+                    category: "Sex",
+                    type: CARD_TYPE_NOUN,
+                    text: adjective.text + " " + noun.text,
+                    adjectiveId: adjective._id,
+                    nounId: noun._id,
+                    combo: true,
+                    generic: true,
+                    random: Math.random()
+                };
+
+                // If there does not exist a combo for these cards, insert.
+                if (Cards.find({combo:true, adjectiveId: adjective._id, nounId: noun._id}).count() === 0) {
+                    result._id = Cards.insert(result);
+                }
+            });
+        });
+    },
+
     addGoogleCards: function () {
         Meteor.http.get(URL_TO_CARDS_TSV, function (e, r) {
             if (r) {
