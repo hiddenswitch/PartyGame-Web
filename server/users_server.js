@@ -60,7 +60,6 @@ Accounts.onCreateUser(function (options, user) {
     user.questionIds = [];
     user.score = 0;
     user.coins = K_INITIAL_COINS;
-    user.inventory = {cards: InventoryManager.openBoosterPacks(5)};
     user.matchingValue = 0;
     user.unansweredHistoriesCount = 0;
     user.unjudgedQuestionsCount = 0;
@@ -68,8 +67,10 @@ Accounts.onCreateUser(function (options, user) {
     user.location = currentLocation;
     user.avatar = {url: _.first(_.shuffle(DefaultAvatars))};
 
-
-    console.log("new user: {0}".format(JSON.stringify(user)));
+    // Credit starting cards
+    for (var i = 0; i < 6; i++) {
+        InventoryManager.creditBoosterPack(user._id);
+    }
 
     return user;
 });
