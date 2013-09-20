@@ -1,0 +1,21 @@
+<template name="reviewSubmissions">
+    <h3>
+        {{#isolate}}
+            {{#if isJudge}}
+                {{#if canJudge}}
+                Pick An Answer
+                {{else}}
+                Waiting For More Answers {{playersRemainingCount}}
+                {{/if}}
+            {{else}}
+                {{#if canReveal}}
+                The Judge Is Choosing
+                {{else}}
+                Awaiting Answers {{playersRemainingCount}}
+                {{/if}}
+            {{/if}}
+        {{/isolate}}</h3>
+    <ul id="submissionsList" data-role="listview" data-inset="false" data-theme="c">
+        {{> submissions}}
+    </ul>
+</template>
