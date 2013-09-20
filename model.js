@@ -317,8 +317,9 @@ Meteor.methods({
         if (players && players.length > 0) {
             return players[0]._id;
         } else {
-            Meteor.call("tryCloseGame",gameId);
-            throw new Meteor.Error("currentJudge: There are no players in this game!",{gameId:gameId});
+            if (!Meteor.call("tryCloseGame",gameId)) {
+                throw new Meteor.Error("currentJudge: There are no players in this game!",{gameId:gameId});
+            }
         }
     },
 	

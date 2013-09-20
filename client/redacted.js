@@ -134,35 +134,6 @@ matchMake = function() {
     });
 };
 
-submissionCount = function () {
-    return Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)}).count();
-};
-
-maxSubmissionsCount = function () {
-    var gameId = Session.get(GAME);
-    if (gameId) {
-        return Players.find({gameId:gameId,connected:true}).count()-1;
-    } else {
-        return 0;
-    }
-};
-
-playersCount = function () {
-    var gameId = Session.get(GAME);
-    if (gameId)
-        return Players.find({gameId:gameId}).count();
-    else
-        return 0;
-};
-
-playersRemainingCount = function () {
-    var _maxSubmissionsCount = maxSubmissionsCount();
-    if (_maxSubmissionsCount > 0)
-        return "(" + submissionCount().toString() + "/" + _maxSubmissionsCount.toString() + ")";
-    else
-        return "";
-};
-
 createAndJoinGame = function() {
 	var gameTitle = $('#gameTitle').attr('value');
 	var gamePassword = $('#gamePassword').attr('value');
@@ -346,18 +317,6 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
     }
 };
 
-
-isJudge = function() {
-    var currentGameId = Session.get(GAME);
-    var playerId = getPlayerId(currentGameId,Meteor.userId());
-    var g = Games.findOne({_id:currentGameId});
-
-    if (g && playerId)
-        return (EJSON.equals(playerId, g.judgeId));
-    else
-        return false;
-};
-
 function fastclickSetup() {
     window.addEventListener('load', function () {
         FastClick.attach(document.body);
@@ -389,36 +348,6 @@ registerTemplates = function() {
 	Template.error.error = function() {
 		return Session.get(ERROR);
 	};
-
-
-	Template.judge.isJudge = isJudge;
-
-	Template.judge.judge = function() {
-        var g = Games.findOne({_id:Session.get(GAME)});
-        if (g)
-		    return Meteor.users.findOne({_id:g.judgeId});
-        else
-            return null;
-	}
-
-	Template.judge.judgeEmailAddress = function() {
-        if (playersCount() > 1) {
-            if (isJudge())
-                return "You are the judge!";
-            else {
-                var g = Games.findOne({_id:Session.get(GAME)});
-                if (g)
-                    return playerIdToName(g.judgeId);
-                else
-                    return "";
-            }
-        } else
-            return "Waiting for more players...";
-    }
-
-	Template.judge.rendered = defaultRendered;
-	Template.judge.created = defaultCreated;
-    Template.judge.preserve(defaultPreserve);
 
 	Template.question.question = function() {
 		var gameDoc = Games.findOne({_id:Session.get(GAME)});
@@ -470,21 +399,7 @@ registerTemplates = function() {
 	Template.myGames.created = defaultCreated;
     Template.myGames.preserve(defaultPreserve);
 
-    Template.submissions.isJudge = isJudge;
-    Template.submissions.count = function () {
-        return Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)}).count();
-    };
-	Template.submissions.submissions = function () {
-		return Submissions.find({gameId:Session.get(GAME),round:Session.get(ROUND)});
-	};
 
-    Template.submissions.remaining = function() {
-        return playersCount() - submissionCount();
-    }
-
-    Template.submissions.count = function () {
-        return "(" + submissionCount().toString() + "/" + maxSubmissionsCount().toString() + ")";
-    };
 
 	Template.submissions.events = {
 		'click .submission':function(e) {
@@ -519,10 +434,7 @@ registerTemplates = function() {
 		}
 	}
 
-	Template.submissions.rendered = defaultRendered;
 
-	Template.submissions.created = defaultCreated;
-    Template.submissions.preserve(defaultPreserve);
 
     Template.hand.isJudge = isJudge;
 

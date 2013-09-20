@@ -358,11 +358,10 @@ Meteor.methods({
 
     // Closes the game if it is valid to do so
     tryCloseGame:function(gameId) {
-
-        Games.update(
+        return Games.update(
             gameId === null ?
                 {open:true,$or:[{modified:{$lt:new Date().getTime() - K_HEARTBEAT*20}}, {questionCardsCount:0}, {answerCardsCount:0}]} :
-                {_id:gameId},{$set:{open:false},modified:new Date().getTime()},{multi:gameId === null});
+                {_id:gameId},{$set:{open:false,modified:new Date().getTime()}},{multi:gameId === null});
     }
 });
 
