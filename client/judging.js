@@ -47,7 +47,7 @@ canReveal = function () {
     return submissionsRemaining() <= 0;
 };
 
-canJudge = function() {
+canJudge = function () {
     return canReveal() && isJudge();
 };
 
@@ -99,11 +99,11 @@ Template.submissions.submissions = function () {
     var playersRemainingCountPrecomputed = Players.find({gameId: Session.get(GAME), connected: true}).count() - subs.length - 1;
 
     for (var i = 0; i < playersRemainingCountPrecomputed; i++) {
-        subs.push({submitted:false});
+        subs.push({submitted: false});
     }
 
     return _(subs).map(function (sub) {
-        return _.extend({text:cardIdToText(sub.answerId),submitted:true},sub);
+        return _.extend({text: cardIdToText(sub.answerId), submitted: true}, sub);
     });
 };
 
