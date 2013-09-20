@@ -284,7 +284,7 @@ createNewAnonymousUser = function(nickname,callback) {
     var userIdPadding = Math.random().toString(36).slice(-8);
     var password = Math.random().toString(36).slice(-8);
     nickname = nickname || "Anonymous (" + userIdPadding + ")";
-    Accounts.createUser({username:"Anonymous " + userIdPadding, password:password, profile:{name:nickname,location:Session.get(LOCATION)}},callback)
+    Accounts.createUser({username:nickname + " (Guest " + userIdPadding + ")", password:password, profile:{name:nickname,location:Session.get(LOCATION)}},callback)
 };
 
 questionAndAnswerText = function(questionCardId,answerCardId) {
@@ -356,16 +356,6 @@ isJudge = function() {
         return (EJSON.equals(playerId, g.judgeId));
     else
         return false;
-};
-
-joinGameFromHash = function() {
-    // TODO Create dialog to ask for nickname, then join into game.
-    var url = window.location.href;
-    var gameId = /\?([A-z0-9\-])#+/.exec(url)[1];
-
-    if (!Meteor.user()) {
-
-    }
 };
 
 function fastclickSetup() {
