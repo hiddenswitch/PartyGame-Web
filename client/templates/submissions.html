@@ -1,13 +1,17 @@
 <template name="submissions">
-    {{#if count}}
     {{#each submissions}}
-    {{#if isJudge}}
-    <li><a class="submission" id="{{_id}}" href="#preview">{{{toCard answerId}}}</a></li>
-    {{else}}
-    <li>{{{toCard answerId}}}</li>
-    {{/if}}
+        {{#if canJudge}}
+        <li><a class="submission" id="{{_id}}" href="#preview">{{{text}}}</a></li>
+        {{else}}
+            {{#if canReveal}}
+            <li>{{{text}}}</li>
+            {{else}}
+                {{#if submitted}}
+                <li>(Waiting to reveal...)</li>
+                {{else}}
+                <li>(Waiting for answer...)</li>
+                {{/if}}
+            {{/if}}
+        {{/if}}
     {{/each}}
-    {{else}}
-    <li>No submissions yet.</li>
-    {{/if}}
 </template>
