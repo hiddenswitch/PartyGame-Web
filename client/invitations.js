@@ -18,6 +18,10 @@ Template.invitation.title = function () {
     return Session.get("invite");
 };
 
+Template.invitation.gameExists = function() {
+    return Games.find({title:Session.get("invite")}).count() > 0;
+};
+
 Template.invitation.tagLine = function() {
     return _(_(["For drinking alone or with friends.",
         "Mobile, unless you're driving.",
