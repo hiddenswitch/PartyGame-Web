@@ -18,8 +18,10 @@
             {{#isolate}}
             {{#if gameLastVote}}
             {{#with gameLastVote}}
-            <li data-role="list-divider">{{playerIdToName judgeId}} Picked {{playerIdToName playerId}}'s Card</li>
+            <li data-role="list-divider">{{playerIdToName judgeId}} picked...</li>
             <li>{{{questionAndAnswerText questionId answerId}}}</li>
+            <li data-role="list-divider">Winner</li>
+            <li>{{playerIdToName playerId}}</li>
             {{/with}}
             {{/if}}
             {{/isolate}}
@@ -31,7 +33,7 @@
         </ul>
 
         <div id="scoresCollapsibleInSummary" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="false" data-collapsed="true">
-            <h3>Players</h3>
+            <h3>Scores</h3>
             <ul id="scoresListInSummary" data-role="listview" data-inset="false" data-split-icon="delete">
                 {{> scores}}
             </ul>

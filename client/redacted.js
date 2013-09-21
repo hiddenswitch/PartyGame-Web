@@ -317,6 +317,16 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
     }
 };
 
+canPlay = function(){
+    var g = Games.findOne({_id:Session.get(GAME)},{fields:{open:1,players:1}});
+    var playersConnected = Players.find({gameId:Session.get(GAME),connected:true}).count();
+    if (g && g.open === true & playersConnected >= 2) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
 function fastclickSetup() {
     window.addEventListener('load', function () {
         FastClick.attach(document.body);
@@ -344,6 +354,7 @@ registerTemplates = function() {
         else
             return false;
     });
+    Handlebars.registerHelper("canPlay",canPlay);
 
 	Template.error.error = function() {
 		return Session.get(ERROR);
@@ -522,6 +533,10 @@ Meteor.startup(function() {
         if (game != null) {
             if (game.open === false) {
                 $.mobile.changePage('#gameOver');
+            } else if (!canPlay()) {
+                if ($.mobile.activePage && _.contains(['waitForPlayers','chooseCardFromHand'],$.mobile.activePage.attr('id'))) {
+                    $.mobile.changePage('#roundSummary');
+                }
             } else if (!Session.equals(ROUND,game.round)) {
                 Session.set(ROUND,game.round);
                 if ($.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
