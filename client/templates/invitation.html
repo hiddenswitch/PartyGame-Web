@@ -1,14 +1,17 @@
 <template name="invitation">
-    <p>You have been invited to play a game{{withPlayers}}!</p>
+    <p>{{#if gameExists}}You have been invited to play a game{{withPlayers}}!{{else}}Create the game <span style="font-weight: bold;">{{title}}</span> and invite your friends!{{/if}}</p>
     {{#if loggedIn}}
-    <a href="#" data-role="button" data-icon="arrow-r" data-theme="b" onclick="acceptInvite()">Play Now</a>
+    <a href="#" data-role="button" data-icon="arrow-r" data-theme="b" onclick="acceptInvite()">{{#if gameExists}}Play Now{{else}}Start Game{{/if}}</a>
     {{else}}
 
     <label for="anonymousNicknameInvitation" class="ui-hidden-accessible">Nickname</label>
     <input type="text" name="anonymousNicknameInvitation" id="anonymousNicknameInvitation" value="" placeholder="Nickname"/>
 
-    <a href="#" data-role="button" data-icon="arrow-r" onclick="loginAndAcceptInvite()">Play Now</a>
+    <a href="#" data-role="button" data-icon="arrow-r" onclick="loginAndAcceptInvite()">{{#if gameExists}}Play Now{{else}}Start Game{{/if}}</a>
     {{/if}}
+    {{#unless gameExists}}
+    <label><input data-theme="b" id="allowPublicInvitationCheckbox" type="checkbox" />Worldwide</label>
+    {{/unless}}
     <h3>How To Play</h3>
     <p>Read the question. Pick the funniest answer. A randomly chosen judge compares your answer to others, and picks her favorite. The winner has the most favorites.</p>
     <div style="display: block; background-color: white; text-align: center; position: fixed; bottom: 40px;"><p style="font-style: italic;">PartyGa.me: {{tagLine}}</p></div>
