@@ -18,6 +18,14 @@ Template.invitation.title = function () {
     return Session.get("invite");
 };
 
+Template.invitation.tagLine = function() {
+    return _(_(["For drinking alone or with friends.",
+        "Mobile, unless you're driving.",
+        "Frequently asked questions. Infrequently given answers.",
+        "Free as in speech. Free as in beer.",
+        "A word game for people who can't spell."]).shuffle()).first();
+};
+
 Template.invitation.withPlayers = function() {
     var g = Games.findOne({title:Session.get("invite")});
     if (g && g.playerNames.length > 0) {
