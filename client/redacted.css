@@ -21,7 +21,8 @@ ul[data-role=listview] li img {
 }
 */
 
-#titleText {
+.titleText {
+    font-family: archiveregular, helvetica, sans;
     font-size: 32pt;
     text-align: center;
 }
