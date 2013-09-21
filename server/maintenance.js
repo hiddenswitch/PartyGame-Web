@@ -19,7 +19,7 @@ Meteor.startup(function() {
                 console.log(e);
             }
         });
-    },200*K_HEARTBEAT);
+    },50*K_HEARTBEAT);
 
     // Update player connected status. Bots are always connected
     Meteor.setInterval(function () {
