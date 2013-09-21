@@ -372,15 +372,6 @@ registerTemplates = function() {
     Template.question.preserve(defaultPreserve);
     Template.question.rendered = defaultRendered;
 
-	Template.players.players = function () {
-		var players = _.pluck(Players.find({gameId:Session.get(CURRENT_GAME)}),"userId");
-		return _.map(players, function (o) {return Meteor.users.findOne({_id:o})});
-	};
-
-	Template.players.rendered = defaultRendered;
-	Template.players.created = defaultCreated;
-    Template.players.preserve(defaultPreserve);
-
 	Template.scores.scores = function() {
 		if (!Session.get(GAME))
 			return [];

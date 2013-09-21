@@ -67,7 +67,7 @@ Template.judge.judge = function () {
 }
 
 Template.judge.judgeEmailAddress = function () {
-    if (playersCount() > 1) {
+    if (canPlay()) {
         if (isJudge())
             return "You are the judge!";
         else {
