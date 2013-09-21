@@ -18,6 +18,24 @@ Template.invitation.title = function () {
     return Session.get("invite");
 };
 
+Template.invitation.withPlayers = function() {
+    var g = Games.findOne({title:Session.get("invite")});
+    if (g && g.playerNames.length > 0) {
+
+        return _(g.playerNames).reduce(function(text,name,i) {
+            if (i === g.playerNames.length - 1) {
+                return text + name;
+            } else if (i === g.playerNames.length - 2) {
+                return text + name + ' and ';
+            } else {
+                return text + name + ', ';
+            }
+        }," with ");
+    } else {
+        return "";
+    }
+};
+
 // Client view event handlers
 acceptInvite = function () {
     Meteor.call("joinOrCreateGameWithTitle", Session.get("invite"), function (e, r2) {
