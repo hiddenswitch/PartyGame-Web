@@ -1,3 +1,4 @@
 {
-    "facebook-node-sdk":"0.2.0"
+    "facebook-node-sdk":"0.2.0",
+    "node-xmpp":"0.6.2"
 }
