@@ -30,6 +30,43 @@ ul[data-role=listview] li img {
     padding-bottom: 5px;
 }
 
+.fbListView li {
+    padding-top: 3px !important;
+    padding-bottom: 0 !important;
+    padding-left: 60px !important;
+    padding-right: 10px !important;
+    height: 54px !important;
+    min-height: 54px !important;
+}
+
+/*.fbListView li a {*/
+    /*padding: 0 !important;*/
+/*}*/
+
+/*.fbListView li a label {*/
+    /*border: none;*/
+    /*margin-top: 0;*/
+    /*margin-bottom: 0;*/
+/*}*/
+
+/*.fbListView li fieldset label {*/
+    /*border: none;*/
+    /*margin-top: 0;*/
+/*}*/
+
+/*.fbListView li fieldset label label {*/
+    /*padding: 10px 0 0 10px;*/
+/*}*/
+
+/*.fbListView li div {*/
+    /*padding-top: 0px;*/
+    /*padding-left: 60px;*/
+/*}*/
+
+.hidden-checkbox {
+    display: none;
+}
+
 /*.globalBackground h1 {*/
     /*background-color: white;*/
 /*}*/

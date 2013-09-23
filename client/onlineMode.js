@@ -14,3 +14,19 @@ answerQuestion = function () {
         }
     });
 };
+
+// List of questions you can select from
+Template.questionSelection.questions = function () {
+    return Cards.find({type: CARD_TYPE_QUESTION});
+};
+
+Template.questionSelection.events = {
+    'click a': function (e) {
+        var questionCardId = $(e.currentTarget).attr('id');
+        Session.set("questionCardToSendId",questionCardId);
+    }
+};
+
+Template.friendSelection.friends = function() {
+    return Friends.find();
+};
