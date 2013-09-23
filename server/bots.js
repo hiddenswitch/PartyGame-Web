@@ -25,7 +25,7 @@ Meteor.methods({
             throw new Meteor.Error(503,"You must be an administrator to call this function.");
         }
 
-        size = size || K_PREFERRED_GAME_SIZE;
+        size = size || K_PREFERRED_GAME_SIZE-3;
         var g = Games.findOne({_id:gameId},{fields:{players:1}});
         var joins = 0;
 
