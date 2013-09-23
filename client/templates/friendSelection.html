@@ -1,0 +1,8 @@
+<template name="friendSelection">
+    {{#each friends}}
+    <li>
+        <img src="{{pic_square}}"/>
+        <label><input data-facebook-id="{{_id}}" data-theme="c" type="checkbox" />{{name}}</label>
+    </li>
+    {{/each}}
+</template>

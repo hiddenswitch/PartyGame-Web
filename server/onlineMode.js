@@ -136,23 +136,8 @@ OnlineModeManager = {
 
         // Return this history entry for this user
         return history._id;
-    }
-};
-
-Meteor.startup(function () {
-    // Update and shuffle the cards
-    CardManager.initializeCards();
-    BotManager.keepEntertained();
-});
-
-Meteor.methods({
-    sendQuestion: function (questionCardId, toUserIds, _userId) {
-        if (!this.userId && !_userId) {
-            throw new Meteor.Error(403, "Permission denied.");
-        } else if (this.userId) {
-            _userId = this.userId;
-        }
-
+    },
+    sendQuestion: function (questionCardId, toUserIds, userId) {
         var now = new Date().getTime();
 
         // if the question card doesn't exist, I can't send this question
@@ -171,7 +156,7 @@ Meteor.methods({
         // Create a question
         var question = {
             cardId: questionCardId,
-            judgeId: _userId,
+            judgeId: userId,
             created: now,
             modified: now,
             answerCardIds: [],
@@ -212,6 +197,22 @@ Meteor.methods({
         Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
 
         return question._id;
+    }
+};
+
+Meteor.startup(function () {
+    // Update and shuffle the cards
+    CardManager.initializeCards();
+    BotManager.keepEntertained();
+});
+
+Meteor.methods({
+    sendQuestion: function (questionCardId, toUserIds) {
+        if (!this.userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        }
+
+        return OnlineModeManager.sendQuestion(questionCardId, toUserIds, this.userId);
     },
 
     writeAnswer: function (historyId, answerCardId, _userId) {

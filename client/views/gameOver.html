@@ -7,19 +7,18 @@
     </div>
 
     <div data-role="content">
-        <ul id="winnerList" data-role="listview" data-inset="false" data-divider-theme="a">
+        <ul id="winnerList" data-role="listview" data-inset="false" data-divider-theme="a" data-content-theme="c">
             <li data-role="list-divider">Winner</li>
             {{> winner}}
         </ul>
 
-        <div id="scoresCollapsibleInGameOver" data-role="collapsible" data-theme="a" data-content-theme="a" data-inset="false" data-collapsed="false">
+        <div id="scoresCollapsibleInGameOver" data-role="collapsible" data-theme="a" data-content-theme="c" data-inset="false" data-collapsed="false">
             <h3>Final Scores</h3>
             <ul id="scoresListInGameOver" data-role="listview" data-inset="false" data-split-icon="delete">
                 {{> scores}}
+                <li data-theme="d"><a href="#home">Back</a></li>
             </ul>
         </div>
-
-        <a href="#home" data-role="button">Back</a>
     </div>
     <div data-role="footer" data-position="fixed" data-id="thefooter">
         <h4>{{> connectionError}}</h4>

@@ -97,10 +97,6 @@ loginAnonymously = function() {
     createNewAnonymousUser(nickname,setErrorAndGoHome);
 };
 
-loginWithFacebook = function() {
-	Meteor.loginWithFacebook({},setErrorAndGoHome);
-};
-
 loginWithGoogle = function() {
 	Meteor.loginWithGoogle({},setErrorAndGoHome);
 };
