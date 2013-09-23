@@ -20,7 +20,7 @@ FacebookManager = {
             portrait.onload = function () {
                 ctx.drawImage(this, x * 50, y * 50);
             };
-            portrait.src = friend.picture.data.url;
+            portrait.src = friend.pic_square;
             i++;
         });
     },
@@ -28,4 +28,8 @@ FacebookManager = {
     createPortraitWall: function () {
         return FacebookManager.renderToCanvas(document.width, 960, FacebookManager.portraitWallRenderFunction);
     }
+};
+
+loginWithFacebook = function() {
+    Meteor.loginWithFacebook({requestPermissions:['xmpp_login']},setErrorAndGoHome);
 };

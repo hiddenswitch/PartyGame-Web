@@ -19,6 +19,13 @@ FacebookManager = {
         } else {
             return null;
         }
+    },
+    friends: function(fb) {
+        var query = Meteor.sync(function (done) {
+            fb.api('/me/friends?fields=name,id,picture', done);
+        });
+
+        return query.result.data;
     }
 };
 
@@ -31,12 +38,13 @@ Meteor.publish('fbFriends', function () {
         return;
     }
 
-    var query = Meteor.sync(function (done) {
-        fb.api('/me/friends?fields=name,id,picture', done);
+    var fqlQuery = Meteor.sync(function (done) {
+        var mutualFriendQuery = encodeURIComponent('SELECT uid, name, pic_square, mutual_friend_count FROM user WHERE uid IN (SELECT uid1 FROM friend WHERE uid2 = me()) ORDER BY mutual_friend_count DESC LIMIT 25').replace(/%20/g,'+');
+        fb.api('/fql?q=' + mutualFriendQuery, done);
     });
 
-    _.each(query.result.data, function (friend) {
-        self.added('fbFriends', friend.id, _.omit(friend, 'id'));
+    _.each(fqlQuery.result.data, function (friend) {
+        self.added('fbFriends', friend.uid, _.omit(friend, 'uid'));
     });
 
     self.ready();
