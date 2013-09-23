@@ -60,6 +60,85 @@ BotManager = {
     }
 };
 
+OnlineModeManager = {
+    getQuestionForUser: function (userId) {
+        var now = new Date().getTime();
+
+        var user = Meteor.users.findOne({_id: userId});
+
+        if (user == null) {
+            throw new Meteor.Error(404, "A user with id {0} was not found.".format(userId));
+        }
+
+        // Avoid questions the user already has
+        // TODO: Flatten Histories query for questionAvailable and answerAvailable into one call.
+        var unavailableQuestionCardIds = CardManager.getUnavailableQuestionCardIdsForUser(userId);
+
+        // Do we need to repeat answers?
+        var unavailableAnswerCardIds = CardManager.getUnavailableAnswerCardIdsForUser(userId);
+        var answerCardIds = _.pluck(CardManager.getSomeAnswerCardsExcluding(unavailableAnswerCardIds, K_OPTIONS), '_id');
+
+        // Diagnose if we can't find answer cards
+        if (answerCardIds == null || answerCardIds.length === 0) {
+            // Diagnose
+            if (Cards.find({type: CARD_TYPE_ANSWER}).count() === 0) {
+                throw new Meteor.Error(504, "No answer cards have been loaded into the database.");
+            } else {
+                throw new Meteor.Error(404, "No answer cards found for this user.\nuser: {0}".format(JSON.stringify(user)));
+            }
+        }
+
+        // Try to find a question another user submitted
+        var question = Questions.findOne({cardId: {$nin: unavailableQuestionCardIds}, judgeId: {$ne: userId}, answerId: null, answerCount: {$lte: K_ANSWERS_PER_QUESTION}}, {sort: {answerCount: -1}});
+        var questionCard = null;
+
+        // If no question was found, just assign a question card id.
+        if (question == null) {
+            questionCard = CardManager.getRandomQuestionCardExcluding(unavailableQuestionCardIds);
+
+            // Diagnose if we can't find a question card
+            if (questionCard == null) {
+                // Diagnose
+                if (Cards.find({type: CARD_TYPE_QUESTION}).count() === 0) {
+                    throw new Meteor.Error(504, "No question cards have been loaded into the database.");
+                } else {
+                    throw new Meteor.Error(404, "No question cards found for this user.\nuser: {0}".format(JSON.stringify(user)));
+                }
+            }
+
+            question = {_id: null};
+        } else {
+            // Otherwise, set the question card id to the one specified by the question
+            questionCard = {_id: question.cardId};
+        }
+
+        var history = {
+            userId: userId,
+            questionId: question._id,
+            questionCardId: questionCard._id,
+            answerCardIds: answerCardIds,
+            answerId: null,
+            questionAvailable: false,
+            answersAvailable: false,
+            judged: false,
+            created: now,
+            modified: now
+        };
+
+        // Append the question to the user's list of unanswered questions
+        history._id = Histories.insert(history);
+
+        // Update last action
+        Meteor.users.update({_id: userId}, {$set: {lastAction: now}, $inc: {unansweredHistoriesCount: 1}});
+
+        // Clear old histories
+        Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}});
+
+        // Return this history entry for this user
+        return history._id;
+    }
+};
+
 Meteor.startup(function () {
     // Update and shuffle the cards
     CardManager.initializeCards();
@@ -249,89 +328,12 @@ Meteor.methods({
         return answer._id;
     },
 
-    getQuestionForUser: function (_userId) {
-        if (!this.userId && !_userId) {
-            // voluntary is false because this action was initiated by the server
+    getQuestionForUser: function () {
+        if (!this.userId) {
             throw new Meteor.Error(403, "Permission denied.");
-        } else if (this.userId) {
-            // this action was initiated by a user
-            _userId = this.userId;
         }
 
-        var now = new Date().getTime();
-
-        var user = Meteor.users.findOne({_id: _userId});
-
-        if (user == null) {
-            throw new Meteor.Error(404, "A user with id {0} was not found.".format(_userId));
-        }
-
-        // Avoid questions the user already has
-        // TODO: Flatten Histories query for questionAvailable and answerAvailable into one call.
-        var unavailableQuestionCardIds = CardManager.getUnavailableQuestionCardIdsForUser(_userId);
-
-        // Do we need to repeat answers?
-        var unavailableAnswerCardIds = CardManager.getUnavailableAnswerCardIdsForUser(_userId);
-        var answerCardIds = _.pluck(CardManager.getSomeAnswerCardsExcluding(unavailableAnswerCardIds, K_OPTIONS), '_id');
-
-        // Diagnose if we can't find answer cards
-        if (answerCardIds == null || answerCardIds.length === 0) {
-            // Diagnose
-            if (Cards.find({type: CARD_TYPE_ANSWER}).count() === 0) {
-                throw new Meteor.Error(504, "No answer cards have been loaded into the database.");
-            } else {
-                throw new Meteor.Error(404, "No answer cards found for this user.\nuser: {0}".format(JSON.stringify(user)));
-            }
-        }
-
-        // Try to find a question another user submitted
-        var question = Questions.findOne({cardId: {$nin: unavailableQuestionCardIds}, judgeId: {$ne: _userId}, answerId: null, answerCount: {$lte: K_ANSWERS_PER_QUESTION}}, {sort: {answerCount: -1}});
-        var questionCard = null;
-
-        // If no question was found, just assign a question card id.
-        if (question == null) {
-            questionCard = CardManager.getRandomQuestionCardExcluding(unavailableQuestionCardIds);
-
-            // Diagnose if we can't find a question card
-            if (questionCard == null) {
-                // Diagnose
-                if (Cards.find({type: CARD_TYPE_QUESTION}).count() === 0) {
-                    throw new Meteor.Error(504, "No question cards have been loaded into the database.");
-                } else {
-                    throw new Meteor.Error(404, "No question cards found for this user.\nuser: {0}".format(JSON.stringify(user)));
-                }
-            }
-
-            question = {_id: null};
-        } else {
-            // Otherwise, set the question card id to the one specified by the question
-            questionCard = {_id: question.cardId};
-        }
-
-        var history = {
-            userId: _userId,
-            questionId: question._id,
-            questionCardId: questionCard._id,
-            answerCardIds: answerCardIds,
-            answerId: null,
-            questionAvailable: false,
-            answersAvailable: false,
-            judged: false,
-            created: now,
-            modified: now
-        };
-
-        // Append the question to the user's list of unanswered questions
-        var historyId = Histories.insert(history);
-
-        // Update last action
-        Meteor.users.update({_id: _userId}, {$set: {lastAction: now}, $inc: {unansweredHistoriesCount: 1}});
-
-        // Clear old histories
-        Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
-
-        // Return this history entry for this user
-        return historyId;
+        return OnlineModeManager.getQuestionForUser(this.userId);
     },
 
     pickAnswer: function (answerId, _userId) {
@@ -729,7 +731,7 @@ Meteor.methods({
         var entertainWithQuestions = false;
 
         if (entertainWithQuestions && user.unansweredHistoriesCount < 3) {
-            possibleActions.push(Meteor.call.bind(this, "getQuestionForUser", userId));
+            possibleActions.push(OnlineModeManager.getQuestionForUser.bind(this, userId));
         }
 
         var entertainByAnsweringQuestionOrJudging = true;

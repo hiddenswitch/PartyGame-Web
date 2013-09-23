@@ -1,7 +1,7 @@
 .bubble
 {
     position: relative;
-    width: 80%;
+    width: 85%;
     height: 30px;
     padding: 0px;
     background: white;
@@ -36,7 +36,7 @@
     float: right;
     text-align: right;
     position: relative;
-    width: 80%;
+    width: 85%;
     height: 30px;
     padding: 0px;
     background: white;

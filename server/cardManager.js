@@ -54,7 +54,7 @@ CardManager = {
             }));
         }
 
-        return eligibleAnswerCards.slice(0, 3);
+        return eligibleAnswerCards.slice(0, count);
     },
     getUnavailableQuestionCardIdsForUser: function (userId) {
         var unavailableQuestionCardIds = _.uniq(_.pluck(Histories.find({userId: userId, questionAvailable: false}, {fields: {questionCardId: 1}}).fetch(), 'questionCardId')) || [];
@@ -62,7 +62,7 @@ CardManager = {
         if (unavailableQuestionCardIds.length >= Cards.find({type: CARD_TYPE_QUESTION}).count()) {
             unavailableQuestionCardIds = [];
 
-            Histories.update({userId: _userId, questionAvailable: false}, {$set: {questionAvailable: true}}, {multi: true});
+            Histories.update({userId: userId, questionAvailable: false}, {$set: {questionAvailable: true}}, {multi: true});
         }
 
         return unavailableQuestionCardIds;
@@ -73,7 +73,7 @@ CardManager = {
         if (unavailableAnswerCardIds.length >= CardManager.answerCards.length - K_OPTIONS) {
             unavailableAnswerCardIds = [];
 
-            Histories.update({userId: _userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
+            Histories.update({userId: userId, answersAvailable: false}, {$set: {answersAvailable: true}}, {multi: true});
         }
 
         return unavailableAnswerCardIds;
