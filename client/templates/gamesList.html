@@ -2,14 +2,8 @@
     {{#if loggedIn}}
     <ul data-role="listview" data-split-icon="arrow-r" data-divider-theme="c">
         {{> browse}}
-        <li data-theme="c">
-            <center>
-                <div data-role="controlgroup" data-type="horizontal" data-mini="true">
-                    <button data-role="button" data-icon="edit">Answer a Question</button>
-                    <button data-role="button" data-icon="arrow-r">Send a Question</button>
-                </div>
-            </center>
-        </li>
+        <li data-theme="d"><a href="#" data-icon="edit">Answer a Question</a></li>
+        <li data-theme="f"><a href="#" data-icon="arrow-r">Send a Question</a></li>
         {{> answerQuestion}}
         {{> judgeQuestion}}
         {{> pendingQuestion}}
