@@ -21,6 +21,18 @@ ul[data-role=listview] li img {
 }
 */
 
+.globalBackground {
+    background-image: url('/themes/images/global.png');
+}
+
+/*.globalBackground h1 {*/
+    /*background-color: white;*/
+/*}*/
+
+/*.globalBackground p {*/
+    /*background-color: white;*/
+/*}*/
+
 .titleText {
     font-family: archiveregular, helvetica, sans;
     font-size: 32pt;

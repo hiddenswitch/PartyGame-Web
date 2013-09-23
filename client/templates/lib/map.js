@@ -23,7 +23,7 @@ Template.map.local = function() {
     if (location && location.length == 2) {
         return Template.map.url(location[0],location[1],72,72);
     } else {
-        return '/themes/images/pixel_weave@2x.png';
+        return '/themes/images/global.png';
     }
 };
 
@@ -31,6 +31,6 @@ Handlebars.registerHelper("mapUrl",function(location,width,height){
     if (location && location.length > 0) {
         return Template.map.url(location[0],location[1],width,height);
     } else {
-        return '/themes/images/pixel_weave@2x.png';
+        return '/themes/images/global.png';
     }
 });
