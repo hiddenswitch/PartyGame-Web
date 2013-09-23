@@ -25,6 +25,11 @@ ul[data-role=listview] li img {
     background-image: url('/themes/images/global.png');
 }
 
+.bubbleRow {
+    padding-top: 12px;
+    padding-bottom: 5px;
+}
+
 /*.globalBackground h1 {*/
     /*background-color: white;*/
 /*}*/
