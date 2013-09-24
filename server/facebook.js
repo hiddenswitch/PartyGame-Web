@@ -84,7 +84,7 @@ Meteor.publish('fbFriends', function () {
     }
 
     var fqlQuery = Meteor.sync(function (done) {
-        var mutualFriendQuery = encodeURIComponent('SELECT uid, name, pic_square, mutual_friend_count FROM user WHERE uid IN (SELECT uid1 FROM friend WHERE uid2 = me()) ORDER BY mutual_friend_count DESC LIMIT 25').replace(/%20/g, '+');
+        var mutualFriendQuery = encodeURIComponent('SELECT uid, name, pic_square, mutual_friend_count FROM user WHERE uid IN (SELECT uid1 FROM friend WHERE uid2 = me()) ORDER BY mutual_friend_count DESC LIMIT 80').replace(/%20/g, '+');
         fb.api('/fql?q=' + mutualFriendQuery, done);
     });
 
