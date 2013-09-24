@@ -332,7 +332,7 @@ input.ui-input-text.ui-slider-input {
 
 /* loading icon */
 .ui-icon-loading {
-	background: url(../../../jquery-mobile-flat-ui-theme/src/css/images/ajax-loader.gif);
+	background: url('/themes/images/ajax-loader.gif');
 	background-size: 46px 46px;
 }
 
