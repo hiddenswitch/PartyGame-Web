@@ -31,7 +31,9 @@ FacebookManager = {
 };
 
 loginWithFacebook = function () {
-    Meteor.loginWithFacebook({requestPermissions: ['xmpp_login']}, setErrorAndGoHome);
+    //    Meteor.loginWithFacebook({requestPermissions: ['xmpp_login']}, setErrorAndGoHome);
+    $.mobile.loading('show');
+    loginWithFacebookNative();
 };
 
 loginWithFacebookNative = function() {
@@ -67,7 +69,9 @@ loginWithFacebookNative = function() {
                     console.log(error);
                     console.log(r);
                     if (r) {
-                        Meteor.loginWithToken(r.token);
+                        Meteor.loginWithToken(r.token,function(e,r) {
+                            $.mobile.loading('hide');
+                        });
                     }
                 });
             });
