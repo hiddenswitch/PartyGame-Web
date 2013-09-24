@@ -38,15 +38,22 @@ FacebookManager = {
         var accessToken = u.services.facebook.accessToken;
         var uid = u.services.facebook.id;
 
-        Meteor.sync(function(done) {
+        Meteor.sync(function (done) {
             // Create client
             try {
                 var xmpp = Meteor.require('node-xmpp');
-                var client = new xmpp.Client({
+                var login = {
                     jid: '-' + uid + '@chat.facebook.com',
                     api_key: Meteor.settings.facebook.appId,
                     secret_key: Meteor.settings.facebook.appSecret,
                     access_token: accessToken
+                };
+                var client = new xmpp.Client(login);
+
+
+                client.on('error', function(e) {
+                    console.log(login);
+                    console.log(e);
                 });
 
                 client.on('online', function () {
@@ -96,11 +103,12 @@ Meteor.publish('fbFriends', function () {
 });
 
 Meteor.methods({
-    inviteFriendsToGame:function(fbIds,message) {
-        FacebookManager.sendMessageToUsers(FacebookManager.fb(FacebookManager.accessToken(this.userId)),message,this.userId,fbIds);
+    inviteFriendsToGame: function (fbIds, message) {
+        console.log("Inviting friends: {0} message: {1}".format(fbIds,message));
+        FacebookManager.sendMessageToUsers(FacebookManager.fb(FacebookManager.accessToken(this.userId)), message, this.userId, fbIds);
     },
-    facebookLoginWithAccessToken: function(fbUser, accessToken) {
-        var options, serviceData, userId;
+    facebookLoginWithAccessToken: function (fbUser, accessToken) {
+        var options, serviceData;
         serviceData = {
             id: fbUser.id,
             accessToken: accessToken,

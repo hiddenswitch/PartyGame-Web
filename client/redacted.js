@@ -10,7 +10,7 @@ ERROR = "currentError";
 PREVIEW_CARD = "currentPreviewCard";
 LOCATION = "location";
 IS_LOGGED_IN = "isLoggedIn";
-IS_CORDOVA = "isCordova";
+IS_CORDOVA = "cordova";
 
 K_HIDDEN_TEXT_STRING = "(Hidden)";
 
@@ -24,6 +24,7 @@ setError = function(err,r) {
 	if (err) {
 		Session.set(ERROR,err.reason);
 		console.log(err);
+        console.trace();
 	}
 };
 
@@ -130,6 +131,7 @@ matchMake = function() {
     });
 };
 
+
 createAndJoinGame = function() {
 	var gameTitle = $('#gameTitle').attr('value');
 	var gamePassword = $('#gamePassword').attr('value');
@@ -138,29 +140,51 @@ createAndJoinGame = function() {
 		Session.set(ERROR,"Cannot create a game with an empty title!");
 		return;
 	}
-	
+
+    function createAndJoinGameCallback (callbackOnCreateGame) {
+        Meteor.call("createEmptyGame",gameTitle,"",location,function(e,r){
+            if (r) { // new game id returned
+                if (callbackOnCreateGame != null) {
+                    callbackOnCreateGame(r);
+                }
+
+                Meteor.call("joinGame",r,function(e2,r2){
+                    if (r2) {
+                        Session.set(GAME,r2);
+                    }
+                    if (e2) {
+                        Session.set(ERROR,e2.reason || e.reason + ", " + e2.reason);
+                        console.log(e2);
+                        $.mobile.changePage('#home');
+                    }
+                });
+            }
+            if (e) {
+                $.mobile.changePage('#home');
+                setError(e);
+            }
+        });
+        $.mobile.changePage('#roundSummary');
+    }
+
+    if (hasFacebook()) {
+        friendsSelectedCallback = function(facebookIds) {
+            createAndJoinGameCallback(function(gameId) {
+                Meteor.call("inviteFriendsToGame",facebookIds,"Hey, join my party.game: " + Meteor.absoluteUrl(gameTitle));
+                console.log("Invited friends to " + gameId);
+            });
+        };
+
+        $.mobile.changePage('#pickFriends');
+    } else {
+        createAndJoinGameCallback();
+    }
+
 	// reenable password when there's a way to join a game with passwords
     var location = Session.get(LOCATION);
 
-	Meteor.call("createEmptyGame",gameTitle,"",location,function(e,r){
-		if (r) { // new game id returned
-			Meteor.call("joinGame",r,function(e2,r2){
-				if (r2) {
-					Session.set(GAME,r2);
-				}
-				if (e2) {
-					Session.set(ERROR,e2.reason || e.reason + ", " + e2.reason);
-					console.log(e2);
-                    $.mobile.changePage('#home');
-				}
-			});
-		}
-        if (e) {
-            $.mobile.changePage('#home');
-            setError(e);
-        }
-	});
-    $.mobile.changePage('#roundSummary');
+
+
 };
 
 playerIdForUserId = function(userId,gameId) {
