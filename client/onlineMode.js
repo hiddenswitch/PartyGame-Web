@@ -23,10 +23,23 @@ Template.questionSelection.questions = function () {
 Template.questionSelection.events = {
     'click a': function (e) {
         var questionCardId = $(e.currentTarget).attr('id');
-        Session.set("questionCardToSendId",questionCardId);
+        Session.set("questionCardToSendId", questionCardId);
     }
 };
 
-Template.friendSelection.friends = function() {
+// Callback for friend selection
+friendsSelectedCallback = null;
+
+// Event handler for invite button on friends selected
+friendSelected = function () {
+    var invitedFriendIds = _.map($('.facebookFriendBox:checked()'), function (e) {
+        return $(e).attr('data-facebook-id')
+    });
+
+    friendsSelectedCallback(invitedFriendIds);
+};
+
+// List friend selection friends
+Template.friendSelection.friends = function () {
     return Friends.find();
 };
