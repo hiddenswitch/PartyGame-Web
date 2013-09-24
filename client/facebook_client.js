@@ -50,8 +50,7 @@ loginWithFacebookNative = function() {
         if (!window.fbInitialized) {
             FB.init({
                 appId      : '524013571013561', // App ID from the App Dashboard
-                channelUrl : '//localhost:3000/channel.html', // Channel File for x-domain communication for localhost debug
-                // channelUrl : '//yoururl.com/channel.html', // Channel File for x-domain communication
+                channelUrl : Meteor.absoluteUrl('channel.html'), // Channel File for x-domain communication for localhost debug
                 status     : true, // check the login status upon init?
                 cookie     : true, // set sessions cookies to allow your server to access the session?
                 xfbml      : true  // parse XFBML tags on this page?
