@@ -98,5 +98,20 @@ Meteor.publish('fbFriends', function () {
 Meteor.methods({
     inviteFriendsToGame:function(fbIds,message) {
         FacebookManager.sendMessageToUsers(FacebookManager.fb(FacebookManager.accessToken(this.userId)),message,this.userId,fbIds);
+    },
+    facebookLoginWithAccessToken: function(fbUser, accessToken) {
+        var options, serviceData, userId;
+        serviceData = {
+            id: fbUser.id,
+            accessToken: accessToken,
+            email: fbUser.email
+        };
+        options = {
+            profile: {
+                name: fbUser.name
+            }
+        };
+
+        return Accounts.updateOrCreateUserFromExternalService('facebook', serviceData, options);
     }
 });
