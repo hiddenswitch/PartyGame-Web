@@ -51,7 +51,7 @@ FacebookManager = {
                 var client = new xmpp.Client(login);
 
 
-                client.on('error', function(e) {
+                client.on('error', function (e) {
                     console.log(login);
                     console.log(e);
                 });
@@ -91,7 +91,7 @@ Meteor.publish('fbFriends', function () {
     }
 
     var fqlQuery = Meteor.sync(function (done) {
-        var mutualFriendQuery = encodeURIComponent('SELECT uid, name, pic_square, mutual_friend_count FROM user WHERE uid IN (SELECT uid1 FROM friend WHERE uid2 = me()) ORDER BY mutual_friend_count DESC LIMIT 80').replace(/%20/g, '+');
+        var mutualFriendQuery = encodeURIComponent('SELECT uid, name, pic_square, mutual_friend_count FROM user WHERE uid IN (SELECT uid1 FROM friend WHERE uid2 = me()) ORDER BY name ASC LIMIT 200').replace(/%20/g, '+');
         fb.api('/fql?q=' + mutualFriendQuery, done);
     });
 
@@ -104,7 +104,7 @@ Meteor.publish('fbFriends', function () {
 
 Meteor.methods({
     inviteFriendsToGame: function (fbIds, message) {
-        console.log("Inviting friends: {0} message: {1}".format(fbIds,message));
+        console.log("Inviting friends: {0} message: {1}".format(fbIds, message));
         FacebookManager.sendMessageToUsers(FacebookManager.fb(FacebookManager.accessToken(this.userId)), message, this.userId, fbIds);
     },
     facebookLoginWithAccessToken: function (fbUser, accessToken) {
