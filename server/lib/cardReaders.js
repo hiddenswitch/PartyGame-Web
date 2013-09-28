@@ -8,14 +8,14 @@ Meteor.methods({
     addCAHCards: function () {
         _.each(CAH_QUESTION_CARDS, function (c) {
             var card = {text: c.replace(/_+/g, K_BLANKS), type: CARD_TYPE_QUESTION, combo: false};
-            if (Cards.find(card).count() === 0) {
+            if (Cards.find({text: card.text}).count() === 0) {
                 Cards.insert(card);
             }
         });
 
         _.each(CAH_ANSWER_CARDS, function (c) {
             var card = {text: c.replace(/_+/g, K_BLANKS), type: CARD_TYPE_ANSWER, combo: false};
-            if (Cards.find(card).count() === 0) {
+            if (Cards.find({text: card.text}).count() === 0) {
                 Cards.insert(card);
             }
         });
@@ -79,8 +79,8 @@ Meteor.methods({
         // Create generic combos
         var nouns = Cards.find({type: CARD_TYPE_NOUN, combo: false}).fetch();
         var adjectives = Cards.find({type: CARD_TYPE_ADJECTIVE}).fetch();
-        _.each(nouns,function(noun) {
-            _.each(adjectives,function(adjective) {
+        _.each(nouns, function (noun) {
+            _.each(adjectives, function (adjective) {
                 var result = {
                     deck: "Alchemy",
                     category: "Sex",
@@ -94,7 +94,7 @@ Meteor.methods({
                 };
 
                 // If there does not exist a combo for these cards, insert.
-                if (Cards.find({combo:true, adjectiveId: adjective._id, nounId: noun._id}).count() === 0) {
+                if (Cards.find({combo: true, adjectiveId: adjective._id, nounId: noun._id}).count() === 0) {
                     result._id = Cards.insert(result);
                 }
             });
