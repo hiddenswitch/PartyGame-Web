@@ -10,16 +10,6 @@ var botPlayers = 0;
 var tickRate = 800;
 
 Meteor.methods({
-    populate:function(population) {
-        if (this.userId) {
-            throw new Meteor.Error(503,"You must be an administrator to call this function.");
-        }
-
-        for (var i = 0; i < population; i++ ) {
-            Meteor.call("botJoinOrCreateGame");
-        }
-    },
-
     fillGameWithBots:function(gameId,size) {
         if (this.userId) {
             throw new Meteor.Error(503,"You must be an administrator to call this function.");
@@ -41,17 +31,17 @@ Meteor.methods({
     },
 
     botJoinOrCreateGame:function(botId) {
-//        if (this.userId) {
-//            throw new Meteor.Error(503,"You must be an administrator to call this function.");
-//        }
-//
-//        var gameId = Meteor.call("findGameWithFewPlayers",5);
-//        botId = botId || Meteor.call("getOnlineBotUser");
-//        if (gameId) {
-//            return Meteor.call("botJoinGame",gameId,botId);
-//        } else {
-//            return Meteor.call("createEmptyBotGameAndJoin",botId);
-//        }
+        if (this.userId) {
+            throw new Meteor.Error(503,"You must be an administrator to call this function.");
+        }
+
+        var gameId = Meteor.call("findGameWithFewPlayers",5);
+        botId = botId || Meteor.call("getOnlineBotUser");
+        if (gameId) {
+            return Meteor.call("botJoinGame",gameId,botId);
+        } else {
+            return Meteor.call("createEmptyBotGameAndJoin",botId);
+        }
     },
 
     createEmptyBotGameAndJoin:function(botId) {
