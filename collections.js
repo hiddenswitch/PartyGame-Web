@@ -33,6 +33,7 @@ Inventory = function() {
 
 Question = function () {
     this.judgeId = null;
+    this.historyId = null;
     this.cardId = null;
     this.created = new Date().getTime();
     this.modified = new Date().getTime();
