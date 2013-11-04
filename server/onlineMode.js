@@ -40,23 +40,21 @@ BotManager = {
     entertainmentDelay: 800,
     tick: 0,
     keepEntertained: function () {
-        Meteor.setInterval(function () {
-            _.each(Meteor.users.find({
-                bot: false,
-                $or: [
-                    {unjudgedQuestionsCount: {$gt: Random.choice([0, 1, 2, 3])}},
-                    {unansweredHistoriesCount: {$lt: Random.choice([0, 1, 2, 3])}},
-                    {pendingJudgeCount: {$lt: Random.choice([0, 1, 2, 3])}}
-                ]}, {fields: {_id: 1}}).fetch(),
-                function (user) {
-                    Meteor.defer(function () {
-                        Meteor.call("onlineBotPlayWithUser", user._id);
-                    });
-                });
+        _.each(Meteor.users.find({
+            bot: false,
+            $or: [
+                {unjudgedQuestionsCount: {$gt: Random.choice([0, 1, 2, 3])}},
+                {unansweredHistoriesCount: {$lt: Random.choice([0, 1, 2, 3])}},
+                {pendingJudgeCount: {$lt: Random.choice([0, 1, 2, 3])}}
+            ]}, {fields: {_id: 1}}).fetch(),
+            function (user) {
+                Meteor.call("onlineBotPlayWithUser", user._id);
+            });
 
-            Meteor.call("botsEvaluate", BotManager.tick);
-            BotManager.tick++;
-        }, BotManager.entertainmentDelay);
+        Meteor.call("botsEvaluate", BotManager.tick);
+        BotManager.tick++;
+
+        Meteor.setTimeout(BotManager.keepEntertained, BotManager.entertainmentDelay);
     }
 };
 
