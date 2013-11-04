@@ -50,14 +50,6 @@ getPlayerId = function(gameId,userId) {
     } else {
         return null;
     }
-}
-
-cardIdToText = function(cardId) {
-    var c = Cards.findOne({_id:cardId});
-    if (c)
-        return c.text;
-    else
-        return "(Waiting for players to submit...)";
 };
 
 /*
