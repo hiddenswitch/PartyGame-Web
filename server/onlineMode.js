@@ -197,34 +197,12 @@ OnlineModeManager = {
         Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
 
         return question._id;
-    }
-};
-
-Meteor.startup(function () {
-    // Update and shuffle the cards
-    CardManager.initializeCards();
-    BotManager.keepEntertained();
-});
-
-Meteor.methods({
-    sendQuestion: function (questionCardId, toUserIds) {
-        if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
-        }
-
-        return OnlineModeManager.sendQuestion(questionCardId, toUserIds, this.userId);
     },
 
-    writeAnswer: function (historyId, answerCardId, _userId) {
-        if (!this.userId && !_userId) {
-            throw new Meteor.Error(403, "Permission denied.");
-        } else if (this.userId) {
-            _userId = this.userId;
-        }
-
+    writeAnswer: function (historyId, answerCardId, userId) {
         var now = new Date().getTime();
 
-        var history = Histories.findOne({_id: historyId, answerId: null, judged: false, userId: _userId});
+        var history = Histories.findOne({_id: historyId, answerId: null, judged: false, userId: userId});
 
         // if the history doesn't exist, how am I supposed to ascertain a valid question card id
         if (history == null) {
@@ -289,7 +267,7 @@ Meteor.methods({
             winner: null,
             winningAnswerId: null,
             score: null,
-            userId: _userId,
+            userId: userId,
             judgeId: null,
             created: now,
             modified: now
@@ -302,10 +280,10 @@ Meteor.methods({
         question.answerCount++;
 
         // update this player's question matching value for judge assignment
-        Meteor.call("updateUserMatchingValue", _userId);
+        Meteor.call("updateUserMatchingValue", userId);
 
         // Update the user's last action, and add the questions they have answered
-        Meteor.users.update({_id: _userId}, {
+        Meteor.users.update({_id: userId}, {
             $set: {lastAction: now},
             $push: {questionIds: question._id},
             $inc: {unjudgedQuestionsCount: 1, unansweredHistoriesCount: -1}
@@ -322,28 +300,14 @@ Meteor.methods({
 
         // if the question has reached the number of answers needed for judging, assign it a judge if it needs one
         if (question.answerCount >= question.minimumAnswerCount && question.judgeId === null) {
-            Meteor.call("assignJudgeToQuestion", question._id, _userId);
+            OnlineModeManager.assignJudgeToQuestion(question._id, userId);
         }
 
         // return the id of the answer
         return answer._id;
     },
 
-    getQuestionForUser: function () {
-        if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
-        }
-
-        return OnlineModeManager.getQuestionForUser(this.userId);
-    },
-
-    pickAnswer: function (answerId, _userId) {
-        if (!this.userId && !_userId) {
-            throw new Meteor.Error(403, "Permission denied.");
-        } else if (this.userId) {
-            _userId = this.userId;
-        }
-
+    pickAnswer: function (answerId, userId) {
         var now = new Date().getTime();
 
         // get the associated answer
@@ -365,11 +329,11 @@ Meteor.methods({
         }
 
         // is a judge assigned to this question?
-        var judgeId = question.judgeId || Meteor.call("assignJudgeToQuestion", question._id, _userId);
+        var judgeId = question.judgeId || OnlineModeManager.assignJudgeToQuestion(question._id, userId);
 
         // Am I the judge for this question?
-        if (judgeId !== _userId) {
-            throw new Meteor.Error(403, "User with id {0} is not the judge for this question.".format(_userId));
+        if (judgeId !== userId) {
+            throw new Meteor.Error(403, "User with id {0} is not the judge for this question.".format(userId));
         }
 
         // Have enough people answered this question?
@@ -378,8 +342,8 @@ Meteor.methods({
         }
 
         // Score the answer
-        var winningScore = Meteor.call("getWinningScore", question._id, answerId, _userId) || K_ANSWERS_PER_QUESTION + 1;
-        var losingScore = Meteor.call("getLosingScore", question._id, _userId) || 1;
+        var winningScore = Meteor.call("getWinningScore", question._id, answerId, userId) || K_ANSWERS_PER_QUESTION + 1;
+        var losingScore = Meteor.call("getLosingScore", question._id, userId) || 1;
 
         // set this answer as the winning answer
         Questions.update({_id: question._id}, {$set: {answerId: answerId, modified: now}});
@@ -401,35 +365,15 @@ Meteor.methods({
         Meteor.users.update({_id: question.judgeId}, {$inc: {pendingJudgeCount: -1}});
 
         // reward judging bonus
-        var judgingBonus = Meteor.call("getJudgingBonus", question._id, answerId, _userId, _userId);
+        var judgingBonus = Meteor.call("getJudgingBonus", question._id, answerId, userId);
 
-        Meteor.users.update({_id: _userId}, {$inc: {coins: judgingBonus}, $set: {lastAction: now}});
+        Meteor.users.update({_id: userId}, {$inc: {coins: judgingBonus}, $set: {lastAction: now}});
 
         // return the question id on success
         return question._id;
     },
 
-    getWinningScore: function (questionId, answerId, _userId) {
-        // for now, just return the number of answers for this question + 1.
-        return _.extend({answerCount: K_ANSWERS_PER_QUESTION + 1}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
-    },
-
-    getLosingScore: function (questionId, _userId) {
-        return 1;
-    },
-
-    getJudgingBonus: function (questionId, answerId, judgeId, _userId) {
-        // return the number of answers for this question
-        return _.extend({answerCount: K_ANSWERS_PER_QUESTION}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
-    },
-
-    assignJudgeToQuestion: function (questionId, _userId) {
-        if (!this.userId && !_userId) {
-            throw new Meteor.Error(403, "Permission denied.");
-        } else if (this.userId) {
-            _userId = this.userId;
-        }
-
+    assignJudgeToQuestion: function (questionId, userId) {
         // find the question. it must not already be answered or have an existing judge
         var question = Questions.findOne({_id: questionId, answerId: null});
 
@@ -484,6 +428,68 @@ Meteor.methods({
 
         // return the id of the assigned user
         return eligibleUser._id;
+    }
+};
+
+Meteor.startup(function () {
+    // Update and shuffle the cards
+    CardManager.initializeCards();
+    BotManager.keepEntertained();
+});
+
+Meteor.methods({
+    sendQuestion: function (questionCardId, toUserIds) {
+        if (!this.userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        }
+
+        return OnlineModeManager.sendQuestion(questionCardId, toUserIds, this.userId);
+    },
+
+    writeAnswer: function (historyId, answerCardId) {
+        if (!this.userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        }
+
+        return OnlineModeManager.writeAnswer(historyId, answerCardId, this.userId);
+    },
+
+    getQuestionForUser: function () {
+        if (!this.userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        }
+
+        return OnlineModeManager.getQuestionForUser(this.userId);
+    },
+
+    pickAnswer: function (answerId) {
+        if (!this.userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        }
+
+        return OnlineModeManager.pickAnswer(answerId, this.userId);
+    },
+
+    getWinningScore: function (questionId, answerId, _userId) {
+        // for now, just return the number of answers for this question + 1.
+        return _.extend({answerCount: K_ANSWERS_PER_QUESTION + 1}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
+    },
+
+    getLosingScore: function (questionId, _userId) {
+        return 1;
+    },
+
+    getJudgingBonus: function (questionId, answerId, judgeId) {
+        // return the number of answers for this question
+        return _.extend({answerCount: K_ANSWERS_PER_QUESTION}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
+    },
+
+    assignJudgeToQuestion: function (questionId) {
+        if (!this.userId) {
+            throw new Meteor.Error(403, "Permission denied.");
+        }
+
+        return OnlineModeManager.assignJudgeToQuestion(questionId, this.userId);
     },
 
     updateUserMatchingValue: function (_userId) {
@@ -660,7 +666,7 @@ Meteor.methods({
 
         // if the question has reached the number of answers needed for judging, assign it a judge if it needs one
         if (question.answerCount >= question.minimumAnswerCount && question.judgeId === null) {
-            Meteor.call("assignJudgeToQuestion", question._id, botId);
+            OnlineModeManager.assignJudgeToQuestion(question._id, botId);
         }
 
         // return the id of the answer
@@ -699,7 +705,7 @@ Meteor.methods({
         var answerId = _.first(_.shuffle(_.pluck(Answers.find({questionId: questionId}, {fields: {_id: 1}}).fetch(), "_id")));
 
         // Pick this answer.
-        if (Meteor.call("pickAnswer", answerId, botId) !== questionId) {
+        if (OnlineModeManager.pickAnswer(answerId, botId) !== questionId) {
             throw new Meteor.Error(500, "Picking an answer failed for answerId {0}.".format(answerId));
         }
 
