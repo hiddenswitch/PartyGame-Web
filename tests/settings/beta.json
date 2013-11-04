@@ -1,4 +1,5 @@
 {
+    "rejoinGames":false,
     "useBots":true,
     "facebook":{
         "appSecret":"f5000a9580291b4b263016db8f0e52e3",

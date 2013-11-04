@@ -100,17 +100,19 @@ Meteor.methods({
             botsNotInGame:Meteor.users.find({bot:true,inGame:false}).count()
         };
 
-        var botJoinGame = function(bot) {
-            o.botRejoins += Meteor.call("botJoinOrCreateGame",bot._id);
-        };
-        // Find bots whose period is up
+        if (Meteor.settings.rejoinGames) {
+            var botJoinGame = function(bot) {
+                o.botRejoins += Meteor.call("botJoinOrCreateGame",bot._id);
+            };
+            // Find bots whose period is up
 
-        // De-synchronize the bot process
-        var botsNotInGame = Meteor.users.find({bot:true,inGame:false},{fields:{_id:1}}).fetch();
+            // De-synchronize the bot process
+            var botsNotInGame = Meteor.users.find({bot:true,inGame:false},{fields:{_id:1}}).fetch();
 
-        _.each(botsNotInGame,function(bot) {
-            botJoinGame(bot);
-        });
+            _.each(botsNotInGame,function(bot) {
+                botJoinGame(bot);
+            });
+        }
 
         var bots = Meteor.users.find({bot:true,inGame:true,"profile.period":tick % 20}).fetch();
 //        console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
