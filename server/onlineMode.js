@@ -755,12 +755,9 @@ Meteor.methods({
                 [user.location[0], user.location[1]],
                 0.01
             ]}}}, {fields: {_id: 1}}).count())
-            : (Games.find({open: true}).count());
+            : (Games.find({location: null, open: true}).count());
 
         if (localGamesCount === 0) {
-//            var slightlyDifferentLocation = [].concat(user.location);
-//            slightlyDifferentLocation[0]+=Math.random()*.001-0.0005;
-//            slightlyDifferentLocation[1]+=Math.random()*.001-0.0005;
             possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingLocalGame", userId, user.location));
         }
 

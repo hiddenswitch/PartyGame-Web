@@ -11,7 +11,7 @@ Template.pendingQuestion.pendingAnswers = function () {
 
     return _.map(answers, function (answer) {
         return _.extend(answer, {
-            questionText: cardIdToText(Questions.findOne({_id: answer.questionId}, {fields: {cardId: 1}, reactive: false, limit:1}).cardId),
+            questionText: cardIdToText(Questions.findOne({_id: answer.questionId}, {fields: {cardId: 1}, reactive: false}).cardId),
             answerText: cardIdToText(answer.cardId)});
     });
 };
