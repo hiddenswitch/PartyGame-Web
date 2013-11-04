@@ -40,14 +40,13 @@ BotManager = {
     entertainmentDelay: 800,
     tick: 0,
     keepEntertained: function () {
-        _.each(Meteor.users.find({
+        Meteor.users.find({
             bot: false,
             $or: [
                 {unjudgedQuestionsCount: {$gt: Random.choice([0, 1, 2, 3])}},
                 {unansweredHistoriesCount: {$lt: Random.choice([0, 1, 2, 3])}},
                 {pendingJudgeCount: {$lt: Random.choice([0, 1, 2, 3])}}
-            ]}, {fields: {_id: 1}}).fetch(),
-            function (user) {
+            ]}, {fields: {_id: 1}}).forEach(function (user) {
                 Meteor.call("onlineBotPlayWithUser", user._id);
             });
 
