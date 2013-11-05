@@ -6,7 +6,7 @@
 K_ANSWERS_PER_QUESTION = 6;
 K_24_HOURS = 24 * 60 * 60 * 1000;
 K_10_MINUTES = 10 * 60 * 1000;
-K_OPTIONS = 3;
+K_OPTIONS = 6;
 K_INITIAL_COINS = 100;
 
 JudgeManager = {
@@ -134,20 +134,66 @@ OnlineModeManager = {
         // Return this history entry for this user
         return history._id;
     },
-    sendQuestion: function (questionCardId, toUserIds, userId) {
+
+    /**
+     * Sends a question to the given users, which are documents of the form
+     * _id (meteor user id)
+     * {_id: meteor user id} or
+     * {"services.facebook.id": facebook id}
+     * @param questionCardId
+     * @param toUsers
+     * @param userId
+     * @returns {*}
+     */
+    sendQuestion: function (questionCardId, toUsers, userId) {
         var now = new Date().getTime();
 
         // if the question card doesn't exist, I can't send this question
         if (Cards.find({_id: questionCardId}).count() === 0) {
-            throw new Meteor.Error(404, "Question card with id {0} does not exist.".format(history.questionCardId));
+            throw new Meteor.Error(404, "Question card with id {0} does not exist.".format(questionCardId));
         }
 
-        // if users are specified, check that they exist
-        if (toUserIds != null && toUserIds.length > 0 && Meteor.users.find({_id: {$in: toUserIds}}).count() !== toUserIds.length) {
-            throw new Meteor.Error(504, "Some or all user IDs could not be found. {0}".format(JSON.stringify(toUserIds)));
-        } else if (toUserIds == null || toUserIds.length === 0) {
+        // wrap plain id
+        toUsers = _.map(toUsers,function(u) {
+            if (typeof(u) === "string") {
+                return {_id: u};
+            } else {
+                return u;
+            }
+        });
+
+        // Ignore the existing user
+        toUsers = _.reject(toUsers,function(u) {
+            return u._id === userId;
+        });
+
+        // Create phantom accounts for Facebook users lacking a meteor account
+        var facebookToUserIds = _.map(Meteor.users.find({"services.facebook.id": _.compact(_.pluck(toUsers, "services.facebook.id"))}, {fields: {"services.facebook.id": 1, _id: 1}}).fetch(), function (u) {
+            return {_id: u._id, "services.facebook.id": u.services.facebook.id};
+        });
+
+        var missingUsers = _.filter(toUsers, function (u) {
+            if (!_.has(u, "services.facebook.id") && _.has(u, "_id")) {
+                return false;
+            }
+
+            var u_fbId = _.findWhere(facebookToUserIds, {"services.facebook.id": u["services.facebook.id"]});
+            return u_fbId == null;
+        });
+
+        var updatedUsers = _.map(missingUsers, function (u) {
+            return {_id: Accounts.updateOrCreateUserFromExternalService("facebook", {id: u.services.facebook.id})};
+        });
+
+        toUsers = _.uniq(_.pluck(_.filter(toUsers,function (u) {
+            return _.has(u, "_id");
+        }).concat(updatedUsers, facebookToUserIds), "_id"));
+
+        if (toUsers != null && toUsers.length === 0 /*&& Meteor.users.find({_id: {$in: toUsers}}).count() !== toUsers.length */) {
+            throw new Meteor.Error(504, "Some or all user IDs could not be found");
+        } else if (toUsers == null || toUsers.length === 0) {
             // Set it to an empty array
-            toUserIds = [];
+            toUsers = [];
         }
 
         // Create a question
@@ -166,12 +212,12 @@ OnlineModeManager = {
         question._id = Questions.insert(question);
 
         // If users were specified, create histories for them
-        var histories = _.map(toUserIds, function (userId) {
+        var histories = _.map(toUsers, function (u) {
             return {
-                userId: userId,
+                userId: u,
                 questionId: question._id,
                 questionCardId: questionCardId,
-                answerCardIds: _.pluck(CardManager.getSomeAnswerCardsExcluding(CardManager.getUnavailableAnswerCardIdsForUser(userId), K_OPTIONS), '_id'),
+                answerCardIds: _.pluck(CardManager.getSomeAnswerCardsExcluding(CardManager.getUnavailableAnswerCardIdsForUser(u), K_OPTIONS), '_id'),
                 answerId: null,
                 questionAvailable: false,
                 answersAvailable: false,
@@ -181,6 +227,7 @@ OnlineModeManager = {
             };
         });
 
+        console.log(JSON.stringify(histories));
 
         // Append the question to the users' list of unanswered questions
         _.each(histories, function (history) {
@@ -188,7 +235,7 @@ OnlineModeManager = {
         });
 
         // Update last action
-        Meteor.users.update({_id: {$in: toUserIds}}, {$inc: {unansweredHistoriesCount: 1}}, {multi: true});
+        Meteor.users.update({_id: {$in: toUsers}}, {$inc: {unansweredHistoriesCount: 1}}, {multi: true});
 
         // Clear old histories
         Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
