@@ -154,7 +154,7 @@ OnlineModeManager = {
         }
 
         // wrap plain id
-        toUsers = _.map(toUsers,function(u) {
+        toUsers = _.map(toUsers, function (u) {
             if (typeof(u) === "string") {
                 return {_id: u};
             } else {
@@ -163,7 +163,7 @@ OnlineModeManager = {
         });
 
         // Ignore the existing user
-        toUsers = _.reject(toUsers,function(u) {
+        toUsers = _.reject(toUsers, function (u) {
             return u._id === userId;
         });
 
@@ -227,8 +227,6 @@ OnlineModeManager = {
             };
         });
 
-        console.log(JSON.stringify(histories));
-
         // Append the question to the users' list of unanswered questions
         _.each(histories, function (history) {
             var historyId = Histories.insert(history);
@@ -236,6 +234,7 @@ OnlineModeManager = {
 
         // Update last action
         Meteor.users.update({_id: {$in: toUsers}}, {$inc: {unansweredHistoriesCount: 1}}, {multi: true});
+        Meteor.users.update({_id: userId}, {$inc: {pendingJudgeCount: 1}});
 
         // Clear old histories
         Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
