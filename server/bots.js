@@ -118,7 +118,7 @@ Meteor.methods({
             });
         }
 
-        var bots = Meteor.users.find({bot:true,inGame:true,"profile.period":tick % 20}).fetch();
+        var bots = Meteor.users.find({bot:true,inGame:true,period:tick % 20}).fetch();
 //        console.log("Evaluating " + (bots ? bots.length : 0).toString() + " bots...");
         if (bots && bots.length > 0) {
             // Determine the state of the game, and perform the relevant action
