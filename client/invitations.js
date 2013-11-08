@@ -5,7 +5,7 @@
 
 // URL handler
 Meteor.Router.add({
-    '/:gameTitle': function (gameTitle) {
+    '/g/:gameTitle': function (gameTitle) {
         Session.set("invite", gameTitle);
         Meteor.defer(function () {
             $.mobile.changePage('#invitation');
