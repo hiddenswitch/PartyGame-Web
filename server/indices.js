@@ -17,5 +17,7 @@ Meteor.startup(function () {
     Submissions._ensureIndex({gameId: 1});
     Meteor.users._ensureIndex({heartbeat: -1});
     Meteor.users._ensureIndex({location: "2d"});
-    Inventories._ensureIndex({userId: 1, itemType: 1});
+    Answers._ensureIndex({questionId: 1});
+    Histories._ensureIndex({questionId: 1});
+    Inventories._ensureIndex({userId: 1, itemType: 1, itemId: 1});
 });

@@ -12,6 +12,8 @@ CARD_TYPE_ANSWER = 2; // card of type answer
 CARD_TYPE_ADJECTIVE = 10;
 CARD_TYPE_NOUN = 20;
 
+INVENTORY_ITEM_TYPE_CARD = 1;
+
 // Error messages.
 E_NO_MORE_CARDS = "No more cards.";
 E_GAME_OVER = "The game is over.";

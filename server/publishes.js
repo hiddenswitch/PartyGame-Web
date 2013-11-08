@@ -10,7 +10,10 @@ Meteor.publish("localGames", function (location) {
 });
 
 Meteor.publish("questions", function () {
-    return Questions.find({judgeId: this.userId});
+    return Questions.find({$or: [
+        {judgeId: this.userId},
+        {userIds: this.userId}
+    ]});
 });
 
 Meteor.publish("histories", function () {
