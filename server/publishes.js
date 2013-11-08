@@ -37,9 +37,7 @@ Meteor.publish("players", function (gameId) {
     return Players.find({gameId: gameId});
 });
 
-var SUBMISSIONS = "submissions";
-
-Meteor.publish(SUBMISSIONS, function (gameId) {
+Meteor.publish("submissions", function (gameId) {
     return Submissions.find({gameId: gameId}, {fields: {_id: 1, gameId: 1, answerId: 1, round: 1}});
 });
 
