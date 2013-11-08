@@ -23,6 +23,10 @@ Inventories = new Meteor.Collection("inventories");
 // Facebook integration
 Friends = new Meteor.Collection("fbFriends");
 
+/**
+ * Creates a new inventory item. The data field contains useful information about this inventory item.
+ * @constructor
+ */
 Inventory = function() {
     this.userId = null;
     // Item depends on the thingy. Could be a card, could be a jazz
