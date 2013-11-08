@@ -213,6 +213,7 @@ OnlineModeManager = {
             created: now,
             modified: now,
             answerCardIds: [],
+            userIds: toUsers,
             answerCount: 0,
             answerId: null,
             judgeAssigned: now,
@@ -227,7 +228,6 @@ OnlineModeManager = {
                 userId: u,
                 questionId: question._id,
                 questionCardId: questionCardId,
-                answerCardIds: _.pluck(CardManager.getSomeAnswerCardsExcluding(CardManager.getUnavailableAnswerCardIdsForUser(u), K_OPTIONS), '_id'),
                 answerId: null,
                 questionAvailable: false,
                 answersAvailable: false,
@@ -260,6 +260,11 @@ OnlineModeManager = {
         // if the history doesn't exist, how am I supposed to ascertain a valid question card id
         if (history == null) {
             throw new Meteor.Error(404, "You can't answer a card to a question that hasn't been assigned to you, a question that has already been answered, or a question that has already been judged!\nhistoryId: {0}\nanswerCardId: {1}".format(historyId, answerCardId));
+        }
+
+        // check that the user owns this card
+        if (Inventories.find({userId:userId, itemType: INVENTORY_ITEM_TYPE_CARD, itemId: answerCardId, quantity: {$gt: 0}}).count() === 0) {
+            throw new Meteor.Error(403, "You can't answer a question with the card {0} you do not own.".format(answerCardId));
         }
 
         // check that the question and answer cards exist
@@ -298,6 +303,7 @@ OnlineModeManager = {
                     answerCount: 0,
                     answerId: null,
                     judgeAssigned: null,
+                    userIds:[],
                     minimumAnswerCount: K_ANSWERS_PER_QUESTION
                 };
 
@@ -307,7 +313,7 @@ OnlineModeManager = {
             Histories.update({_id: history._id}, {$set: {questionId: question._id}});
         } else {
             if (Answers.find({questionId: history.questionId, cardId: answerCardId}).count() !== 0) {
-                throw new Meteor.Error(503, "The question with ID {0} already contains this answer {1}".format(history.questionId, answerCardId));
+                throw new Meteor.Error(503, "The question {0} already contains the answer {1}".format(history.questionId, answerCardId));
             }
 
             question = Questions.findOne({_id: history.questionId});
@@ -344,6 +350,7 @@ OnlineModeManager = {
 
         Questions.update({_id: question._id}, {
             $push: {answerCardIds: answerCardId},
+            $addToSet: {userIds: userId},
             $inc: {answerCount: 1},
             $set: {modified: now}
         });
@@ -835,6 +842,7 @@ Meteor.methods({
             created: now,
             modified: now,
             answerCardIds: [],
+            userIds: [],
             answerCount: 0,
             answerId: null,
             judgeAssigned: null,

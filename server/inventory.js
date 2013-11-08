@@ -6,8 +6,6 @@
 K_SERVER = "server";
 K_BOOSTER_PACK_SIZE = 15;
 
-INVENTORY_ITEM_TYPE_CARD = 1;
-
 InventoryManager = {
     adjustInventoryQuantity: function (userId, itemType, itemId, deltaQuantity) {
         var item = {userId: userId, itemType: INVENTORY_ITEM_TYPE_CARD, itemId: itemId};
