@@ -54,6 +54,16 @@ BotManager = {
         BotManager.tick++;
 
         Meteor.setTimeout(BotManager.keepEntertained, BotManager.entertainmentDelay);
+    },
+    extendUserDocumentWithBotSettings: function (user) {
+        var userSchemaExtension = {};
+
+        userSchemaExtension.inGame = false;
+        userSchemaExtension.bot = true;
+        userSchemaExtension.judgeTheseQuestionIds = [];
+        userSchemaExtension.location = null;
+
+        return _.extend(user, userSchemaExtension);
     }
 };
 
@@ -603,26 +613,6 @@ Meteor.methods({
                 period: Math.floor(Random.fraction() * 20)
             }
         });
-
-        var userSchemaExtension = {};
-
-        userSchemaExtension.inGame = false;
-        userSchemaExtension.heartbeat = now;
-        userSchemaExtension.lastAction = now;
-        userSchemaExtension.questionIds = [];
-        userSchemaExtension.score = 0;
-        userSchemaExtension.bot = true;
-        userSchemaExtension.bored = false;
-        userSchemaExtension.coins = K_INITIAL_COINS;
-        userSchemaExtension.inventory = {decks: ['Cards Against Humanity', 'Starter']};
-        userSchemaExtension.matchingValue = 0;
-        userSchemaExtension.judgeTheseQuestionIds = [];
-        userSchemaExtension.unansweredHistoriesCount = 0;
-        userSchemaExtension.unjudgedQuestionsCount = 0;
-        userSchemaExtension.pendingJudgeCount = 0;
-        userSchemaExtension.location = null;
-
-        Meteor.users.update({_id: botId}, {$set: userSchemaExtension});
 
         return botId;
     },

@@ -5,17 +5,17 @@
 Accounts.loginServiceConfiguration.remove({});
 
 Accounts.loginServiceConfiguration.insert({
-  service: "facebook",
-  appId: Meteor.settings.facebook.appId,
-  clientId: Meteor.settings.facebook.appId,
-  secret: Meteor.settings.facebook.appSecret,
-  appSecret: Meteor.settings.facebook.appSecret
+    service: "facebook",
+    appId: Meteor.settings.facebook.appId,
+    clientId: Meteor.settings.facebook.appId,
+    secret: Meteor.settings.facebook.appSecret,
+    appSecret: Meteor.settings.facebook.appSecret
 });
 
 Accounts.loginServiceConfiguration.insert({
-  service: "google",
-  clientId: Meteor.settings.google.clientId,
-  clientSecret: Meteor.settings.google.clientSecret
+    service: "google",
+    clientId: Meteor.settings.google.clientId,
+    clientSecret: Meteor.settings.google.clientSecret
 });
 
 K_INITIAL_COINS = 100;
@@ -81,6 +81,10 @@ Accounts.onCreateUser(function (options, user) {
     user.pendingJudgeCount = 0;
     user.location = currentLocation;
     user.avatar = {url: _.first(_.shuffle(DefaultAvatars))};
+
+    if (bot) {
+        user = BotManager.extendUserDocumentWithBotSettings(user);
+    }
 
     // Credit starting cards
     for (var i = 0; i < 6; i++) {
