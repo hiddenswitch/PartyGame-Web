@@ -2,6 +2,11 @@
     "useFql":false,
     "rejoinGames":false,
     "useBots":true,
+    "public":{
+        "facebook":{
+            "appId":"524013571013561"
+        }
+    },
     "facebook":{
         "appSecret":"2534aa63fd9dbe165d1a284842f46d2a",
         "appId":"214415182026572"
