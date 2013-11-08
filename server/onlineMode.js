@@ -604,15 +604,16 @@ Meteor.methods({
             }
         }
 
-        var botId = Accounts.createUser({
+        var botId = Accounts.createUser(BotManager.extendUserDocumentWithBotSettings({
             username: nickname,
             email: userIdPadding + "@redactedonline.com",
             password: password,
             profile: {
-                name: nickname,
-                period: Math.floor(Random.fraction() * 20)
-            }
-        });
+                name: nickname
+            },
+            bot: true,
+            period: Math.floor(Random.fraction() * 20)
+        }));
 
         return botId;
     },
