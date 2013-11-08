@@ -30,7 +30,3 @@ InventoryManager = {
         });
     }
 };
-
-Meteor.methods({
-
-});
