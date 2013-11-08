@@ -7,9 +7,7 @@ Template.historyAnswers.created = defaultCreated;
 Template.historyAnswers.preserve(defaultPreserve);
 
 Template.historyAnswers.answers = function () {
-    return _.map(_.extend({answerCardIds: []}, Session.get("history")).answerCardIds, function (answerCardId) {
-        return {_id: answerCardId, text: cardIdToText(answerCardId)};
-    });
+    return Inventories.find({itemType:INVENTORY_ITEM_TYPE_CARD, quantity: {$gt: 0}});
 };
 
 Template.historyAnswers.events = {

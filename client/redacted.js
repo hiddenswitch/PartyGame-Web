@@ -354,7 +354,7 @@ function fastclickSetup() {
 }
 
 registerTemplates = function() {
-    Handlebars.registerHelper("toCard",cardIdToText);
+    Handlebars.registerHelper("cardIdToText",cardIdToText);
 	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
 	Handlebars.registerHelper("playerIdToName",playerIdToName);
     Handlebars.registerHelper("loggedIn",loggedIn);
