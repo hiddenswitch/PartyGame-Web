@@ -170,7 +170,7 @@ createAndJoinGame = function() {
     if (hasFacebook()) {
         friendsSelectedCallback = function(facebookIds) {
             createAndJoinGameCallback(function(gameId) {
-                Meteor.call("inviteFriendsToGame",facebookIds,"Hey, join my party.game: " + Meteor.absoluteUrl(gameTitle));
+                Meteor.call("inviteFriendsToGame",facebookIds,"Hey, join my PartyGa.me: " + Meteor.absoluteUrl('g/' + gameTitle));
                 console.log("Invited friends to " + gameId);
             });
         };
