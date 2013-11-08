@@ -100,8 +100,12 @@ Meteor.methods({
             botsNotInGame:Meteor.users.find({bot:true,inGame:false}).count()
         };
 
+        var botJoinGame = function(bot) {
+            return;
+        };
+
         if (Meteor.settings.rejoinGames) {
-            var botJoinGame = function(bot) {
+            botJoinGame = function(bot) {
                 o.botRejoins += Meteor.call("botJoinOrCreateGame",bot._id);
             };
             // Find bots whose period is up
