@@ -133,7 +133,7 @@ matchMake = function() {
 
 
 createAndJoinGame = function() {
-	var gameTitle = $('#gameTitle').attr('value');
+	var gameTitle = encodeURIComponent($('#gameTitle').attr('value'));
 	var gamePassword = $('#gamePassword').attr('value');
 	
 	if (!gameTitle || gameTitle == "") {
