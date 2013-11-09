@@ -178,7 +178,7 @@ OnlineModeManager = {
         });
 
         // Create phantom accounts for Facebook users lacking a meteor account
-        var facebookToUserIds = _.map(Meteor.users.find({"services.facebook.id": _.compact(_.pluck(toUsers, "services.facebook.id"))}, {fields: {"services.facebook.id": 1, _id: 1}}).fetch(), function (u) {
+        var facebookToUserIds = _.map(Meteor.users.find({"services.facebook.id": {$in: _.compact(_.pluck(toUsers, "services.facebook.id"))}}, {fields: {"services.facebook.id": 1, _id: 1}}).fetch(), function (u) {
             return {_id: u._id, "services.facebook.id": u.services.facebook.id};
         });
 
@@ -192,7 +192,7 @@ OnlineModeManager = {
         });
 
         var updatedUsers = _.map(missingUsers, function (u) {
-            return {_id: Accounts.updateOrCreateUserFromExternalService("facebook", {id: u.services.facebook.id})};
+            return {_id: Accounts.updateOrCreateUserFromExternalService("facebook", {id: u["services.facebook.id"]}).id};
         });
 
         toUsers = _.uniq(_.pluck(_.filter(toUsers,function (u) {
@@ -213,7 +213,7 @@ OnlineModeManager = {
             created: now,
             modified: now,
             answerCardIds: [],
-            userIds: toUsers,
+            userIds: _.uniq(toUsers.concat(userId)),
             answerCount: 0,
             answerId: null,
             judgeAssigned: now,
@@ -263,7 +263,7 @@ OnlineModeManager = {
         }
 
         // check that the user owns this card
-        if (Inventories.find({userId:userId, itemType: INVENTORY_ITEM_TYPE_CARD, itemId: answerCardId, quantity: {$gt: 0}}).count() === 0) {
+        if (Inventories.find({userId: userId, itemType: INVENTORY_ITEM_TYPE_CARD, itemId: answerCardId, quantity: {$gt: 0}}).count() === 0) {
             throw new Meteor.Error(403, "You can't answer a question with the card {0} you do not own.".format(answerCardId));
         }
 
@@ -303,7 +303,7 @@ OnlineModeManager = {
                     answerCount: 0,
                     answerId: null,
                     judgeAssigned: null,
-                    userIds:[],
+                    userIds: [],
                     minimumAnswerCount: K_ANSWERS_PER_QUESTION
                 };
 
@@ -327,7 +327,8 @@ OnlineModeManager = {
             winningAnswerId: null,
             score: null,
             userId: userId,
-            judgeId: null,
+            /* Allow other users to see this answer by concatenating the userId to the question's userIds */
+            userIds: _.uniq(question.userIds.concat([userId])),
             created: now,
             modified: now
         };
@@ -353,6 +354,11 @@ OnlineModeManager = {
             $addToSet: {userIds: userId},
             $inc: {answerCount: 1},
             $set: {modified: now}
+        });
+
+        // Concern userId with the other answers.
+        Answers.update({questionId: question._id}, {
+            $addToSet: {userIds: userId}
         });
 
         // Update the history object with the answer Id
