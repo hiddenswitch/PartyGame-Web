@@ -4,7 +4,7 @@
  **/
 Meteor.startup(function() {
     Accounts.ui.config({
-        requestPermissions: {facebook: ['user_likes']},
+        requestPermissions: {facebook: ['email','xmpp_login']},
         passwordSignupFields: 'USERNAME_AND_EMAIL'
     });
 });
