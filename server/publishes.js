@@ -20,12 +20,8 @@ Meteor.publish("histories", function () {
     return Histories.find({userId: this.userId});
 });
 
-Meteor.publish("myAnswers", function () {
-    return Answers.find({userId: this.userId});
-});
-
-Meteor.publish("myJudges", function () {
-    return Answers.find({judgeId: this.userId});
+Meteor.publish("answers", function () {
+    return Answers.find({userIds: this.userId});
 });
 
 Meteor.publish("hand", function (gameId) {

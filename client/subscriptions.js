@@ -19,8 +19,7 @@ Meteor.startup(function() {
         Meteor.subscribe("otherUserData");
         Meteor.subscribe("histories");
         Meteor.subscribe("questions");
-        Meteor.subscribe("myAnswers");
-        Meteor.subscribe("myJudges");
+        Meteor.subscribe("answers");
         Meteor.subscribe("myGames");
         Meteor.subscribe("fbFriends");
         Meteor.subscribe("inventories");
