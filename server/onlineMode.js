@@ -163,6 +163,11 @@ OnlineModeManager = {
             throw new Meteor.Error(404, "Question card with id {0} does not exist.".format(questionCardId));
         }
 
+        // Check that the user owns this card
+        if (!InventoryManager.userOwnsCard(userId, questionCardId)) {
+            throw new Meteor.Error(403, "You can't send a question with the card {0} you do not own.".format(questionCardId));
+        }
+
         // wrap plain id
         toUsers = _.map(toUsers, function (u) {
             if (typeof(u) === "string") {
@@ -247,7 +252,7 @@ OnlineModeManager = {
         Meteor.users.update({_id: userId}, {$inc: {pendingJudgeCount: 1}});
 
         // Clear old histories
-        Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}}, {multi: true});
+        Histories.remove({questionAvailable: true, answerAvailable: true, answerId: {$ne: null}});
 
         return question._id;
     },
@@ -263,7 +268,7 @@ OnlineModeManager = {
         }
 
         // check that the user owns this card
-        if (Inventories.find({userId: userId, itemType: INVENTORY_ITEM_TYPE_CARD, itemId: answerCardId, quantity: {$gt: 0}}).count() === 0) {
+        if (!InventoryManager.userOwnsCard(userId, answerCardId)) {
             throw new Meteor.Error(403, "You can't answer a question with the card {0} you do not own.".format(answerCardId));
         }
 
