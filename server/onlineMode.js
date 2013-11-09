@@ -391,7 +391,7 @@ OnlineModeManager = {
         }
 
         if (question.answerId !== null) {
-            throw new Meteor.Error(500, "The question with id {0} already has an answer with id {1}".format(question._id, question.answerId));
+            throw new Meteor.Error(500, "The question with id {0} has already been judged, and the winner is answer {1}".format(question._id, question.answerId));
         }
 
         // is a judge assigned to this question?
