@@ -1,5 +1,7 @@
 <template name="historyAnswers">
     {{#each answers}}
-    <li data-icon="arrow-r"><a id="{{itemId}}" href="#">{{{cardIdToText itemId}}}</a></li>
+        {{#if isAnswerCard itemId}}
+        <li data-icon="arrow-r"><a id="{{itemId}}" href="#">{{{cardIdToText itemId}}}</a></li>
+        {{/if}}
     {{/each}}
 </template>

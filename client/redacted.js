@@ -173,18 +173,15 @@ createAndJoinGame = function() {
                 Meteor.call("inviteFriendsToGame",facebookIds,"Hey, join my PartyGa.me: " + Meteor.absoluteUrl('g/' + gameTitle));
                 console.log("Invited friends to " + gameId);
             });
+
+            // Clear out the callback when done.
+            friendsSelectedCallback = null;
         };
 
         $.mobile.changePage('#pickFriends');
     } else {
         createAndJoinGameCallback();
     }
-
-	// reenable password when there's a way to join a game with passwords
-    var location = Session.get(LOCATION);
-
-
-
 };
 
 playerIdForUserId = function(userId,gameId) {

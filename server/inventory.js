@@ -26,5 +26,14 @@ InventoryManager = {
         _.each(cardIds, function (cardId) {
             InventoryManager.adjustInventoryQuantity(userId, INVENTORY_ITEM_TYPE_CARD, cardId, 1);
         });
+    },
+
+    /**
+     * Returns true if the user owns the specified card
+     * @param userId
+     * @param cardId
+     */
+    userOwnsCard: function(userId, cardId) {
+        return Inventories.find({userId: userId, itemType: INVENTORY_ITEM_TYPE_CARD, itemId: cardId, quantity: {$gt: 0}}).count() > 0;
     }
 };
