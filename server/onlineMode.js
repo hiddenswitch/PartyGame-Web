@@ -197,8 +197,16 @@ OnlineModeManager = {
         });
 
         var updatedUsers = _.map(missingUsers, function (u) {
-            return {_id: Accounts.updateOrCreateUserFromExternalService("facebook", {id: u["services.facebook.id"]}).id};
+            return {_id: Accounts.updateOrCreateUserFromExternalService("facebook", {id: u["services.facebook.id"]}).id, "services.facebook.id": u["services.facebook.id"]};
         });
+
+        var userIdToFbId = _.filter(_.uniq(_.filter(toUsers,function (u) {
+            return _.has(u, "_id");
+        }).concat(updatedUsers, facebookToUserIds)), function (u) {
+            return _.has(u, "services.facebook.id") && _.has(u, "_id");
+        });
+
+        userIdToFbId = _.object(_.pluck(userIdToFbId, '_id'), _.pluck(userIdToFbId, 'services.facebook.id'));
 
         toUsers = _.uniq(_.pluck(_.filter(toUsers,function (u) {
             return _.has(u, "_id");
@@ -243,8 +251,22 @@ OnlineModeManager = {
         });
 
         // Append the question to the users' list of unanswered questions
+        // and send a Facebook message inviting them to play
+        var user = Meteor.users.findOne({_id: userId});
+        var userFb = null;
+        if (_.has(user.services, 'facebook') && user.services.facebook.accessToken != null) {
+            userFb = FacebookManager.fb(user.services.facebook.accessToken);
+        }
+
+        console.log(JSON.stringify(userIdToFbId));
         _.each(histories, function (history) {
-            var historyId = Histories.insert(history);
+            history._id = Histories.insert(history);
+            // Message the user over facebook if they have a Facebook account.
+            if (userFb != null && _(userIdToFbId).has(history.userId)) {
+                var message = Cards.findOne({_id: history.questionCardId}).text + " — answer here: " + Meteor.absoluteUrl("i/" + history._id);
+                console.log(message);
+                FacebookManager.sendMessageToUsers(userFb, message, userId, userIdToFbId[history.userId]['services.facebook.id']);
+            }
         });
 
         // Update last action
