@@ -167,7 +167,7 @@ Meteor.methods({
         Games.update({_id:gameId},{$inc: {players:1}, $addToSet:{userIds:_userId,playerIds:playerId,playerNames: p.name}, $set:{modified:new Date().getTime()}});
 
         // Update the heartbeat and the game ID
-        Meteor.users.update({_id: _userId}, {$set: {heartbeat: new Date().getTime()}, $addToSet: {gameIds: gameId}});
+        Meteor.users.update({_id: _userId}, {$set: {inGame:false, heartbeat: new Date().getTime()}, $addToSet: {gameIds: gameId}});
 
         // Update the ACLs for the users
         Meteor.users.update({gameIds: gameId}, {$addToSet: {acl: {$each: g.userIds}}}, {multi: true});
