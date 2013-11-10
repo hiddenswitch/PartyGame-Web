@@ -4,12 +4,12 @@
     "useBots":true,
     "public":{
         "facebook":{
-            "appId":"1418289265061445"
+            "appId":"312971028843579"
         }
     },
     "facebook":{
-        "appSecret":"f5000a9580291b4b263016db8f0e52e3",
-        "appId":"1418289265061445"
+        "appSecret":"a17aa0c8c752370d42372f172e053e53",
+        "appId":"312971028843579"
     },
     "google":{
         "clientId":"253853968266.apps.googleusercontent.com",
