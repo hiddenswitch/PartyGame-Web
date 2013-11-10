@@ -30,7 +30,7 @@ setError = function(err,r) {
 
 setErrorAndGoHome = function (err,r) {
 	setError(err,r);
-	
+
 	$.mobile.changePage('#home');
 };
 
@@ -60,7 +60,7 @@ closeThisGame = function() {
 		console.log("Not in a game.");
 		return;
 	}
-	
+
 	Meteor.call("closeGame",Session.get(GAME),setError);
 };
 
@@ -69,7 +69,7 @@ kickThisPlayer = function(kickId) {
 		console.log("Not in a game.");
 		return;
 	}
-	
+
 	Meteor.call("kickPlayer",Session.get(GAME),kickId,function(err,r) {
 		setError(err);
 		if (r)
@@ -82,14 +82,14 @@ quitThisGame = function() {
 		console.log("Not in a game.");
 		return;
 	}
-	
+
 	Meteor.call("quitGame",Session.get(GAME),setError);
 };
 
 login = function() {
 	var loginUsernameOrEmail = $('#loginUsernameOrEmail').attr('value');
 	var password = $('#loginPassword').attr('value');
-	
+
 	Meteor.loginWithPassword(loginUsernameOrEmail,password,setErrorAndGoHome);
 };
 
@@ -110,7 +110,7 @@ signUp = function() {
 		Session.set(ERROR,"You are already logged in!");
 		return;
 	}
-	
+
 	var username = $('#signUpUsername').attr('value');
 	var email = $('#signUpEmail').attr('value');
 	var password = $('#signUpPassword').attr('value');
@@ -138,14 +138,14 @@ matchMake = function() {
 createAndJoinGame = function() {
 	var gameTitle = encodeURIComponent($('#gameTitle').attr('value'));
 	var gamePassword = $('#gamePassword').attr('value');
-	
+
 	if (!gameTitle || gameTitle == "") {
 		Session.set(ERROR,"Cannot create a game with an empty title!");
 		return;
 	}
 
     function createAndJoinGameCallback (callbackOnCreateGame) {
-        Meteor.call("createEmptyGame",gameTitle,"",location,function(e,r){
+        Meteor.call("createEmptyGame",gameTitle,"",Session.get(LOCATION),function(e,r){
             if (r) { // new game id returned
                 if (callbackOnCreateGame != null) {
                     callbackOnCreateGame(r);
@@ -537,7 +537,7 @@ Meteor.subscribe("cards");
 
 Meteor.startup(function() {
 	Session.set(ERROR,null);
-		
+
 	// update current round
     Deps.autorun(function () {
         var game = Games.findOne({_id:Session.get(GAME)},{fields:{round:1,judgeId:1}});
@@ -568,7 +568,7 @@ Meteor.startup(function() {
             Session.set(IS_LOGGED_IN,Meteor.userId())
         };
     });
-	
+
 	// clear error after 5 seconds
     Deps.autorun(function () {
 		var currentError = Session.get(ERROR);
