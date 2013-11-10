@@ -35,13 +35,9 @@ hasFacebook = function() {
     return u && u.services && u.services.facebook;
 };
 
-loginWithFacebook = function () {
-////    if (Session.get(IS_CORDOVA)) {
-//        $.mobile.loading('show');
-//        loginWithFacebookNative();
-////    } else {
-        Meteor.loginWithFacebook({requestPermissions: ['email,xmpp_login']}, setErrorAndGoHome);
-//    }
+loginWithFacebook = function (callback) {
+    callback = callback || setErrorAndGoHome;
+    Meteor.loginWithFacebook({requestPermissions: ['email,xmpp_login']}, callback);
 };
 
 loginWithFacebookNative = function () {
