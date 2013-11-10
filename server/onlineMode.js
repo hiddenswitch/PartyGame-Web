@@ -252,20 +252,12 @@ OnlineModeManager = {
 
         // Append the question to the users' list of unanswered questions
         // and send a Facebook message inviting them to play
-        var user = Meteor.users.findOne({_id: userId});
-        var userFb = null;
-        if (_.has(user.services, 'facebook') && user.services.facebook.accessToken != null) {
-            userFb = FacebookManager.fb(user.services.facebook.accessToken);
-        }
-
-        console.log(JSON.stringify(userIdToFbId));
         _.each(histories, function (history) {
             history._id = Histories.insert(history);
             // Message the user over facebook if they have a Facebook account.
-            if (userFb != null && _(userIdToFbId).has(history.userId)) {
+            if (_(userIdToFbId).has(history.userId)) {
                 var message = Cards.findOne({_id: history.questionCardId}).text + " — answer here: " + Meteor.absoluteUrl("i/" + history._id);
-                console.log(message);
-                FacebookManager.sendMessageToUsers(userFb, message, userId, userIdToFbId[history.userId]['services.facebook.id']);
+                FacebookManager.sendMessageToUsers(message, userId, [userIdToFbId[history.userId]['services.facebook.id']]);
             }
         });
 
