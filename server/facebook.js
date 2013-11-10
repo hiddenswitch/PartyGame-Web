@@ -61,6 +61,7 @@ FacebookManager = {
                     client.send(new xmpp.Element('presence'));
 
                     _.each(fbUids, function (toUid) {
+                        console.log("-" + toUid + "@chat.facebook.com");
                         client.send(FacebookManager.messageStanza(xmpp, "-" + toUid + "@chat.facebook.com", message));
                     });
 

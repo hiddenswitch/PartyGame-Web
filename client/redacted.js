@@ -93,13 +93,16 @@ login = function() {
 	Meteor.loginWithPassword(loginUsernameOrEmail,password,setErrorAndGoHome);
 };
 
+loginAnonymouslyCallback = null;
+
 loginAnonymously = function() {
     var nickname = $('#anonymousNickname').attr('value');
-    createNewAnonymousUser(nickname,setErrorAndGoHome);
+    createNewAnonymousUser(nickname,loginAnonymouslyCallback || setErrorAndGoHome);
 };
 
-loginWithGoogle = function() {
-	Meteor.loginWithGoogle({},setErrorAndGoHome);
+loginWithGoogle = function(callback) {
+    callback = callback || setErrorAndGoHome;
+	Meteor.loginWithGoogle({}, callback);
 };
 
 signUp = function() {
