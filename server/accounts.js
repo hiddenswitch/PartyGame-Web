@@ -51,17 +51,6 @@ Meteor.publish("otherUserData", function () {
  * Sets up a new user, regardless of whether they are a real user or a bot.
  */
 Accounts.onCreateUser(function (options, user) {
-    var currentLocation = null;
-    if (options.profile) {
-        if (_.has(options.profile, 'location') && options.profile.location !== null) {
-            currentLocation = options.profile.location;
-        }
-
-        user.profile = options.profile;
-    } else {
-        user.profile = {};
-    }
-
     var now = new Date().getTime();
 
     user.bored = false;
@@ -74,8 +63,14 @@ Accounts.onCreateUser(function (options, user) {
     user.unansweredHistoriesCount = 0;
     user.unjudgedQuestionsCount = 0;
     user.pendingJudgeCount = 0;
-    user.location = currentLocation;
     user.avatar = {url: _.first(_.shuffle(DefaultAvatars))};
+
+    var currentLocation = null;
+    if (options.profile) {
+        user = _.extend(user,options.profile);
+    } else {
+        user.profile = {};
+    }
 
     // Credit starting cards
     for (var i = 0; i < 6; i++) {
