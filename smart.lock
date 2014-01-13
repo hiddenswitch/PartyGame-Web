@@ -6,7 +6,9 @@
       "handlebar-helpers": {},
       "leaflet": {},
       "npm": {},
-      "iron-router": {}
+      "iron-router": {},
+      "http-methods": {},
+      "http-publish": {}
     },
     "packages": {
       "router": {
@@ -33,6 +35,16 @@
         "git": "https://github.com/EventedMind/iron-router.git",
         "tag": "v0.6.2",
         "commit": "ce56e58b45624dce992490f3a1c10f10d3948bae"
+      },
+      "http-methods": {
+        "git": "https://github.com/CollectionFS/Meteor-http-methods.git",
+        "branch": "master",
+        "commit": "1da8dedddceebcfff8ceb6371aaff4a38668cf6a"
+      },
+      "http-publish": {
+        "git": "https://github.com/CollectionFS/Meteor-http-publish.git",
+        "tag": "v0.0.4",
+        "commit": "2d6481ccef0a30e01a72affad2e1ce1d931ad253"
       },
       "page-js-ie-support": {
         "git": "https://github.com/tmeasday/meteor-page-js-ie-support.git",
