@@ -40,8 +40,6 @@ BotManager = {
     entertainmentDelay: 800,
     tick: 0,
     keepEntertained: function () {
-        //console.log(JSON.stringify(Meteor.users.find({}).fetch()));
-
         var users = Meteor.users.find({
             bot: {$ne: true},
             $or: [
@@ -49,14 +47,11 @@ BotManager = {
                 {unansweredHistoriesCount: {$lt: 3}},
                 {pendingJudgeCount: {$lt: 2}}
             ]}, {fields: {_id: 1}}).fetch();
-        console.log("users count {0}".format(users.length));
         _.each(users, function (user) {
             Meteor.call("onlineBotPlayWithUser", user._id);
         });
 
-        Meteor.call("botsEvaluate", BotManager.tick);
         BotManager.tick++;
-        console.log("tick " + BotManager.tick);
         Meteor.setTimeout(BotManager.keepEntertained, BotManager.entertainmentDelay);
     },
     extendUserDocumentWithBotSettings: function (profile) {
