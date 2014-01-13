@@ -39,15 +39,15 @@ Meteor.startup(function () {
         return Submissions.find({gameId: this.query.gameId}, {fields: {_id: 1, gameId: 1, answerId: 1, round: 1}});
     });
 
-    Meteor.publish(Votes, function () {
+    HTTP.publish(Votes, function () {
         return Votes.find({gameId: this.query.gameId});
     });
 
-    Meteor.publish(Avatars, function () {
+    HTTP.publish(Avatars, function () {
         return Avatars.find({userId: this.userId});
     });
 
-    Meteor.publish(Inventories, function () {
+    HTTP.publish(Inventories, function () {
         return Inventories.find({userId: this.userId});
     });
 });
