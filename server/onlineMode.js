@@ -51,6 +51,9 @@ BotManager = {
             Meteor.call("onlineBotPlayWithUser", user._id);
         });
 
+        // Tick the party mode bots
+        PartyModeBots.botsEvaluate(BotManager.tick);
+
         BotManager.tick++;
         Meteor.setTimeout(BotManager.keepEntertained, BotManager.entertainmentDelay);
     },
@@ -844,8 +847,8 @@ Meteor.methods({
         var ownerBotId = Meteor.call("getOnlineBotUser");
         var gameId = Meteor.call("createEmptyGame", "", "", location, ownerBotId);
 
-        Meteor.call("botJoinGame", gameId, ownerBotId);
-        Meteor.call("fillGameWithBots", gameId, 6);
+        PartyModeBots.botJoinGame(gameId, ownerBotId);
+        PartyModeBots.fillGameWithBots(gameId, 6);
 
         return gameId;
     },
