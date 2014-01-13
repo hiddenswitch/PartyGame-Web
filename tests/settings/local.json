@@ -7,6 +7,12 @@
             "appId":"524013571013561"
         }
     },
+    "apns": {
+        "key": "apns/key.pem",
+        "certificate": "apns/aps_development.pem",
+        "gateway": "gateway.sandbox.push.apple.com",
+        "debug": true
+    },
     "facebook":{
         "appSecret":"9546b39b88c006c33d362412df4119b0",
         "appId":"524013571013561"

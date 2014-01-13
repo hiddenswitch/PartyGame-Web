@@ -4,6 +4,7 @@
  **/
 // Define routes
 Meteor.startup(function () {
+    // Collections
     HTTP.publish(Cards, function () {
         return Cards.find({});
     });
@@ -50,4 +51,7 @@ Meteor.startup(function () {
     HTTP.publish(Inventories, function () {
         return Inventories.find({userId: this.userId});
     });
+
+    // Methods
+
 });
