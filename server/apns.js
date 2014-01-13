@@ -62,8 +62,8 @@ Meteor.methods({
     },
 
     sendNotification: function (query, notification) {
-        checkAdmin(this.userId);
+//        checkAdmin(this.userId);
 
-        NotificationService.sendNotification(query, notification);
+//        NotificationService.sendNotification(query, notification);
     }
 });
