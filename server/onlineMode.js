@@ -40,22 +40,26 @@ BotManager = {
     entertainmentDelay: 800,
     tick: 0,
     keepEntertained: function () {
-        _.each(Meteor.users.find({
-            bot: false,
+        //console.log(JSON.stringify(Meteor.users.find({}).fetch()));
+
+        var users = Meteor.users.find({
+            bot: {$ne: true},
             $or: [
-                {unjudgedQuestionsCount: {$gt: Random.choice([0, 1, 2, 3])}},
-                {unansweredHistoriesCount: {$lt: Random.choice([0, 1, 2, 3])}},
-                {pendingJudgeCount: {$lt: Random.choice([0, 1, 2, 3])}}
-            ]}, {fields: {_id: 1}}).fetch(), function (user) {
+                {unjudgedQuestionsCount: {$gt: 1}},
+                {unansweredHistoriesCount: {$lt: 3}},
+                {pendingJudgeCount: {$lt: 2}}
+            ]}, {fields: {_id: 1}}).fetch();
+        console.log("users count {0}".format(users.length));
+        _.each(users, function (user) {
             Meteor.call("onlineBotPlayWithUser", user._id);
         });
 
         Meteor.call("botsEvaluate", BotManager.tick);
         BotManager.tick++;
-
+        console.log("tick " + BotManager.tick);
         Meteor.setTimeout(BotManager.keepEntertained, BotManager.entertainmentDelay);
     },
-    extendUserDocumentWithBotSettings: function (user) {
+    extendUserDocumentWithBotSettings: function (profile) {
         var userSchemaExtension = {};
 
         userSchemaExtension.inGame = false;
@@ -63,7 +67,7 @@ BotManager = {
         userSchemaExtension.judgeTheseQuestionIds = [];
         userSchemaExtension.location = null;
 
-        return _.extend(user, userSchemaExtension);
+        return _.extend(profile, userSchemaExtension);
     }
 };
 
@@ -636,16 +640,16 @@ Meteor.methods({
             }
         }
 
-        var botId = Accounts.createUser(BotManager.extendUserDocumentWithBotSettings({
+        var botId = Accounts.createUser({
             username: nickname,
             email: userIdPadding + "@redactedonline.com",
             password: password,
-            profile: {
-                name: nickname
-            },
-            bot: true,
-            period: Math.floor(Random.fraction() * 20)
-        }));
+            profile: BotManager.extendUserDocumentWithBotSettings({
+                name: nickname,
+                bot: true,
+                period: Math.floor(Random.fraction() * 20)
+            })
+        });
 
         return botId;
     },
@@ -782,7 +786,7 @@ Meteor.methods({
         return answerId;
     },
 
-    // For a given user, generate an answer or judge event with a bot
+// For a given user, generate an answer or judge event with a bot
     onlineBotPlayWithUser: function (userId) {
         if (this.userId) {
             throw new Meteor.Error(503, "You must be an administrator to call this function.");
@@ -801,7 +805,7 @@ Meteor.methods({
 
         var possibleActions = [];
 
-        var entertainWithQuestions = false;
+        var entertainWithQuestions = true;
 
         if (entertainWithQuestions && user.unansweredHistoriesCount < 3) {
             possibleActions.push(OnlineModeManager.getQuestionForUser.bind(this, userId));
@@ -813,7 +817,7 @@ Meteor.methods({
             possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByAnsweringOrJudging", userId));
         }
 
-        var entertainWithJudgement = false;
+        var entertainWithJudgement = true;
 
         if (entertainWithJudgement && user.pendingJudgeCount < 2) {
             possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingAQuestionToJudge", userId));
@@ -930,5 +934,4 @@ Meteor.methods({
 
         return null;
     }
-
 });
