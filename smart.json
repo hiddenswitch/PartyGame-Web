@@ -4,6 +4,8 @@
     "handlebar-helpers": {},
     "leaflet": {},
     "npm": {},
-    "iron-router": {}
+    "iron-router": {},
+    "http-methods": {},
+    "http-publish": {}
   }
 }

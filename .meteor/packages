@@ -18,4 +18,4 @@ standard-app-packages
 npm
 page-js-ie-support
 http
-router
+http-publish
