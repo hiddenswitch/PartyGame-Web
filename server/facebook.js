@@ -120,19 +120,35 @@ Meteor.methods({
         console.log("Inviting friends: {0} message: {1}".format(fbIds, message));
         FacebookManager.sendMessageToUsers(FacebookManager.fb(FacebookManager.accessToken(this.userId)), message, this.userId, fbIds);
     },
-    facebookLoginWithAccessToken: function (fbUser, accessToken) {
+    /**
+     * Login to Meteor with a Facebook access token
+     * @param id Your Facebook user Id
+     * @param email Your Email, or null if a user email was not provided
+     * @param name Your Facebook name
+     * @param accessToken Your Facebook access token
+     * @returns {*}
+     */
+    facebookLoginWithAccessToken: function (id, email, name, accessToken) {
+        email = email || "-" + id + "@facebook.com";
         var options, serviceData;
         serviceData = {
-            id: fbUser.id,
+            id: id,
             accessToken: accessToken,
-            email: fbUser.email
+            email: email
         };
         options = {
             profile: {
-                name: fbUser.name
+                name: name
             }
         };
 
-        return Accounts.updateOrCreateUserFromExternalService('facebook', serviceData, options);
+        // Returns a token you can use to login
+        var loginResult = Accounts.updateOrCreateUserFromExternalService('facebook', serviceData, options);
+
+        // Login the user
+        this.setUserId(loginResult.id);
+
+        // Return the token and the user id
+        return loginResult;
     }
 });
