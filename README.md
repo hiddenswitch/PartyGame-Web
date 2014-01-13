@@ -374,3 +374,235 @@ Only the server knows which cards are in the deck.
 ]
 ```
 
+`/api/submissions?token=user_token&gameId=game` - Lists all the answers currently pending to be judged.
+
+```json
+[
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 0,
+        "answerId": "q9RDtZomN9PwioWBc",
+        "_id": "eBYmMGYTQtkkCjmRm"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 0,
+        "answerId": "gLozNmrbESvWPiPEm",
+        "_id": "6yjEm62k8i8GrKgNt"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 0,
+        "answerId": "w8mDTsjrCqSmsLoEB",
+        "_id": "QX3z64ER89e4XZxMM"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 0,
+        "answerId": "axmNuLo73j9GSkMZX",
+        "_id": "gi4j2xkLKSx6Xr6Ma"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 0,
+        "answerId": "iENLG2YXsnPpzXJK4",
+        "_id": "T7hA93YTggWJXnbTA"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 0,
+        "answerId": "hfpQKzhp2RX7vzPFC",
+        "_id": "TuJPn2YXdqdZYPieH"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 1,
+        "answerId": "KyhGpiBvnokabBmwb",
+        "_id": "xNesRh3HiW4fHzeu2"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 1,
+        "answerId": "E9xkSNA5sxf62mF77",
+        "_id": "cNLtfnpS7CKnJCW9D"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 1,
+        "answerId": "ShhKtXeg8KRCqHpyz",
+        "_id": "J7TmQ8Ec6Zqu9zC3E"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 1,
+        "answerId": "LTmK2CHTmnQkWHv2r",
+        "_id": "GCkEkLrK5Zx72wawD"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 1,
+        "answerId": "sP9GRFagRMqJytFBz",
+        "_id": "qqxqiLbfsPTx8AnTj"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 1,
+        "answerId": "NYYqXmJrNJDXF7P87",
+        "_id": "W7QSfBR95n2zfzjxd"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 2,
+        "answerId": "Di8rL3uCgfgNxFnEv",
+        "_id": "nRKwMhtA3sxbiEe9h"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 2,
+        "answerId": "xm5R7uhDxtP95dx6i",
+        "_id": "y5MZePFmuNmtBsHkz"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 2,
+        "answerId": "z83vHfcBF73KyryKH",
+        "_id": "wF5wi8jA5vC4NdRbk"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 2,
+        "answerId": "5vToPws9dEJbLAj7N",
+        "_id": "Z7yuZqghxCztE5ci4"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 2,
+        "answerId": "GKBBbMSvAe9wSDXBy",
+        "_id": "SRSukJfhvMg9yBFB4"
+    }
+]
+```
+
+`/api/votes?token=user_token&gameId=game_id` - Lists a history of all the judges votes. Used to calculate scores.
+
+```json
+[
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 0,
+        "judgeId": "eGPmNhv7tHF7pDzmc",
+        "playerId": "KxPzF36StPZkd4b7h",
+        "questionId": "4zz8hq3t8PQNdoT4m",
+        "answerId": "w8mDTsjrCqSmsLoEB",
+        "_id": "KmxCBAcSevHmQCL6r"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 1,
+        "judgeId": "kLD6hjsrYsFHJGnwn",
+        "playerId": "KxPzF36StPZkd4b7h",
+        "questionId": "CL2GAsFd78q47r9bM",
+        "answerId": "LTmK2CHTmnQkWHv2r",
+        "_id": "zCZvQAokcpG5ejYgL"
+    },
+    {
+        "gameId": "smTZRDkrKAer27E8r",
+        "round": 2,
+        "judgeId": "c6PFDm3yyPbstrFDn",
+        "playerId": "kLD6hjsrYsFHJGnwn",
+        "questionId": "YiRs9MmCcmTtBJi9Z",
+        "answerId": "5vToPws9dEJbLAj7N",
+        "_id": "BAydmoPhTx4ThuW8F"
+    }
+]
+```
+
+`/api/inventories?token=user_token` - Lists all the cards the user owns. Represents a library, and not in use in PartyMode.
+
+###### Invetories Enum
+
+`INVENTORY_ITEM_TYPE_CARD = 1;`
+
+###### Sample Data
+
+```json
+[
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "2dGpvuBLHCDw8LjsH",
+        "quantity": 1,
+        "_id": "o77wdiHEFsjA7PLdj"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "2hYzeL7GtcxfSwwGd",
+        "quantity": 1,
+        "_id": "QHhM9NLseQ9EMrKke"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "2j3LX4HStveZCKF9c",
+        "quantity": 1,
+        "_id": "wjHwMKt6CDHdoankZ"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "2knYpJShMC629Qmvh",
+        "quantity": 1,
+        "_id": "rF3GBfT3h2AQundWP"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "3NahqHJ7Ybs536XNZ",
+        "quantity": 1,
+        "_id": "vEkqTNnMJPdYQwwNf"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "4HoK4RijoKWnXwibB",
+        "quantity": 1,
+        "_id": "7Qrc9b2DrJyerpkW7"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "53rikKi8h2yFEBwmJ",
+        "quantity": 1,
+        "_id": "pE5EvJXnwcF8rfSEM"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "62wdyr88ZEQd3bQsf",
+        "quantity": 1,
+        "_id": "9vNDcurpjXYebFXDE"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "6FPuPJYeeEnwhE24M",
+        "quantity": 1,
+        "_id": "45Xom6JvDfg3uay6K"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "7SEygFhJ9uFnLogZn",
+        "quantity": 1,
+        "_id": "q4bDJ9Hj2ujS85EjP"
+    },
+    {
+        "userId": "WtWcjhxwuheaLwWxv",
+        "itemType": 1,
+        "itemId": "84aTafPE7BK3tMZus",
+        "quantity": 1,
+        "_id": "zFW7wQ5ZBBzAZvzs5"
+    }
+]
+```
