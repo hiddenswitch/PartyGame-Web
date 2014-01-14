@@ -15,14 +15,7 @@ Meteor.startup(function () {
             }
         });
 
-        Meteor.call("clean", function (e, r) {
-            if (r) {
-                console.log(r);
-            }
-            if (e) {
-                console.log(e);
-            }
-        });
+        Maintenance.clean();
     }, 50 * K_HEARTBEAT);
 
     // Update player connected status. Bots are always connected
@@ -34,7 +27,7 @@ Meteor.startup(function () {
 
         // Update the judges
         _.each(Games.find({open: true}, {fields: {_id: 1, judgeId: 1}}).fetch(), function (g) {
-            var gameCurrentJudge = Meteor.call("currentJudge", g._id);
+            var gameCurrentJudge = Party.currentJudge(g._id);
             if (g.judgeId !== gameCurrentJudge) {
                 Games.update({_id: g._id}, {$set: {judgeId: gameCurrentJudge}});
             }
@@ -43,7 +36,7 @@ Meteor.startup(function () {
     }, 2 * K_HEARTBEAT);
 });
 
-Meteor.methods({
+Maintenance = {
     clean: function () {
         console.log("Cleaning...");
         var o = {};
@@ -72,4 +65,4 @@ Meteor.methods({
 
         return o;
     }
-});
+};
