@@ -4,13 +4,6 @@
  **/
 Party = {
     submitAnswerCard: function (gameId, answerId, playerId, userId) {
-        if (!this.userId && !userId) {
-            throw new Meteor.Error(500, "When server calls" + " submitAnswerCard" + ", you must impersonate a user. userId: "
-                + (this.userId ? this.userId.toString() : "none") + ", _userId: " + (userId ? userId.toString() : "none"));
-        } else if (this.userId) {
-            userId = this.userId;
-        }
-
         var game = Games.findOne({_id: gameId});
 
         if (!game)

@@ -35,7 +35,7 @@ PartyModeBots = {
 
         botId = botId || Meteor.call("getOnlineBotUser");
 
-        var gameId = Meteor.call("createEmptyGame", "", "", null, botId);
+        var gameId = Party.createEmptyGame("", "", null, botId);
 
         if (gameId) {
             return PartyModeBots.botJoinGame(gameId, botId);
@@ -54,7 +54,7 @@ PartyModeBots = {
         }
 
         // Join the specified game.
-        if (Meteor.call("joinGame", gameId, botId)) {
+        if (Party.joinGame(gameId, botId)) {
             // Update the bot's quantity of inGames
             Meteor.users.update({_id: botId}, {$set: {inGame: true}});
             return 1;
@@ -122,8 +122,8 @@ PartyModeBots = {
                                     // Judge a random card
                                     submissionsCursor.rewind();
                                     try {
-                                        Meteor.call("pickWinner", game._id, _.first(_.shuffle(submissionsCursor.fetch()))._id, bot._id);
-                                        Meteor.call("finishRound", game._id);
+                                        Party.pickWinner(game._id, _.first(_.shuffle(submissionsCursor.fetch()))._id, bot._id);
+                                        Party.finishRound(game._id);
                                     } catch (meteorException) {
                                         o.tryAgains++;
                                     }
@@ -135,11 +135,11 @@ PartyModeBots = {
                             if (Submissions.find({playerId: player._id, gameId: game._id, round: game.round}).count() === 0) {
                                 var hand = Hands.find({playerId: player._id, gameId: game._id}, {_id: 1, cardId: 1}).fetch();
                                 if (hand == null || hand.length < K_DEFAULT_HAND_SIZE) {
-                                    Meteor.call("drawHands", game._id);
+                                    Party.drawHands(game._id);
                                     o.botDrewHands++;
                                 } else {
                                     var answerId = _.first(_.shuffle(hand)).cardId;
-                                    Meteor.call("submitAnswerCard",
+                                    Party.submitAnswerCard(
                                         game._id,
                                         answerId,
                                         player._id,
