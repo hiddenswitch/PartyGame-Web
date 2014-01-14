@@ -67,9 +67,13 @@ getPlayerId = function (gameId, userId) {
 
 Meteor.methods({
     // Submit a card for voting
-    submitAnswerCard: function (gameId, answerId, playerId) {
-        if (!this.isSimulation) {
-            return Party.submitAnswerCard(gameId, answerId, playerId, this.userId);
+    submitAnswerCard: function (gameId, answerId) {
+        if (this.userId == null) {
+            throw new Meteor.Error(503, "Permission denied.");
+        }
+
+        if (Meteor.isServer) {
+            return Party.submitAnswerCard(gameId, answerId, this.userId);
         }
 
         var game = Games.findOne({_id: gameId});
@@ -77,7 +81,7 @@ Meteor.methods({
         if (!game.open)
             return;
 
-        playerId = playerId || getPlayerId(gameId, this.userId);
+        var playerId = getPlayerId(gameId, this.userId);
 
         var submission = Submissions.findOne({gameId: gameId, playerId: playerId, round: game.round});
 
@@ -97,7 +101,11 @@ Meteor.methods({
 
     // Pick a winner
     pickWinner: function (gameId, submissionId) {
-        if (!this.isSimulation) {
+        if (this.userId == null) {
+            throw new Meteor.Error(503, "Permission denied.");
+        }
+
+        if (Meteor.isServer) {
             return Party.pickWinner(gameId, submissionId, this.userId);
         }
 
@@ -141,7 +149,7 @@ Meteor.methods({
     // Remove submitted hands from the committed round and increment the round number.
     // Close the game if there are no more question cards left.
     finishRound: function (gameId) {
-        if (!this.isSimulation) {
+        if (Meteor.isServer) {
             return Party.finishRound(gameId);
         }
 
@@ -154,7 +162,7 @@ Meteor.methods({
         // the game is over. only score screen will display.
             return gameId;
 
-        if (Votes.find({gameId: gameId, round: game.round}).count() < 1 && !this.isSimulation)
+        if (Votes.find({gameId: gameId, round: game.round}).count() < 1 && Meteor.isServer)
             throw new Meteor.Error(500, "The judge hasn't voted yet. Cannot finish round.");
 
         if (Submissions.find({gameId: gameId, round: game.round}).count() < Players.find({gameId: gameId, connected: true}).count() - 1) {
@@ -183,13 +191,10 @@ Meteor.methods({
         if (game.questionCards && game.questionCards.length > 0 && game.answerCards && game.answerCards.length > 0) {
             var questionCardId = game.questionCards.pop();
 
-            var nextJudge = Meteor.call("currentJudge", game._id);
+            var nextJudge = Party.currentJudge(game._id);
 
             // increment round
             Games.update({_id: gameId}, {$set: {questionId: questionCardId, modified: new Date().getTime(), judgeId: nextJudge}, $inc: {round: 1, questionCardsCount: -1}, $pop: {questionCards: 1}});
-
-            // draw new cards
-            Meteor.call("drawHands", gameId, K_DEFAULT_HAND_SIZE);
         } else {
             // Close the game
             Games.update({_id: gameId}, {$set: {open: false}});
@@ -202,118 +207,44 @@ Meteor.methods({
 
     // Kick a player
     kickPlayer: function (gameId, kickId) {
-        if (!this.isSimulation) {
-            Party.kickPlayer(gameId, kickId, this.userId);
+        if (this.userId == null) {
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
-        var game = Games.findOne({_id: gameId});
-
-        if (!game)
-            throw new Meteor.Error(404, "No game found to kick from.");
-
-        var kickId = getPlayerId(gameId, kickId);
-        var playerId = getPlayerId(gameId, this.userId);
-
-        var userIdOfKickedPlayer = Players.findOne({_id: kickId}).userId;
-
-        if (!EJSON.equals(game.ownerId, playerId))
-            throw new Meteor.Error(403, "You are not the owner of this game. Cannot kick players.");
-
-        if (EJSON.equals(playerId, kickId))
-            throw new Meteor.Error(403, "You cannot kick yourself from your own game.");
-
-        Players.remove({_id: kickId});
-        Games.update({_id: gameId}, {$inc: {players: -1}, $pullAll: {userIds: userIdOfKickedPlayer}, $set: {modified: new Date().getTime()}});
-        return gameId;
+        if (Meteor.isServer) {
+            return Party.kickPlayer(gameId, kickId, this.userId);
+        }
     },
 
 
     // Quit a game
     quitGame: function (gameId) {
-        if (!Meteor.isSimulation) {
-            Party.quitGame(gameId, this.userId);
+        if (this.userId == null) {
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
-        var game = Games.findOne({_id: gameId}, {fields: {_id: 1, open: 1, ownerId: 1, judgeId:1, players: 1}});
-
-        if (!game)
-            throw new Meteor.Error(404, "No game found to quit from.");
-
-        var open = game.open;
-
-        if (Players.find({gameId: gameId}).count() === 1) {
-            open = false;
-        }
-
-        var ownerId = game.ownerId;
-
-        // If the owner is quitting his own game, assign a new player as the owner
-        if (EJSON.equals(game.ownerId,this.userId) && game.players.length > 1) {
-            ownerId = Players.findOne({gameId: gameId, _id: {$ne: game.ownerId}})._id;
-        }
-
-        Players.update({gameId: gameId, userId: this.userId}, {$set: {connected: false, open: false}});
-
-        return Games.update({_id: gameId}, {$inc: {players: -1}, $pull: {userIds: this.userId}, $set: {open: open, judgeId: game.judgeId, ownerId: ownerId, modified: new Date().getTime()}});
-    },
-
-    // Gets the current judge
-    // Use the user's number of times voted to fairly pick the next judge
-    // Use the user's index in the game.users array to pick the user who connected earliest
-    // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
-    // connects or disconnects.
-    currentJudge: function (gameId) {
-        var players = Players.find({gameId: gameId, connected: true, open: true}, {fields: {_id: 1}, sort: {voted: 1}, limit: 1}).fetch();
-
-        if (players && players.length > 0) {
-            return players[0]._id;
-        } else {
-            if (!Meteor.call("tryCloseGame", gameId)) {
-                throw new Meteor.Error("currentJudge: There are no players in this game!", {gameId: gameId});
-            }
+        if (Meteor.isServer) {
+            return Party.quitGame(gameId, this.userId);
         }
     },
 
     // Close the game
-    closeGame: function (gameId, _userId) {
-        if (!this.userId && !_userId) {
-            throw new Meteor.Error(500, "When server calls" + " closeGame" + ", you must impersonate a user.");
-        } else if (this.userId) {
-            _userId = this.userId;
+    closeGame: function (gameId) {
+        if (this.userId == null) {
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
-        var game = Games.findOne({_id: gameId});
-
-        if (!game)
-            throw new Meteor.Error(404, "closeGame: Cannot find game to end.", {gameId: gameId});
-
-        var playerId = getPlayerId(gameId, _userId);
-
-        if (!EJSON.equals(game.ownerId, playerId))
-            throw new Meteor.Error(403, "You aren't the owner of the game. You can't close it.");
-
-        if (!game.open)
-            throw new Meteor.Error(500, "This game is already closed.");
-
-        Games.update({_id: gameId}, {$set: {open: false, modified: new Date().getTime()}});
-        return gameId;
+        if (Meteor.isServer) {
+            return Party.closeGame(gameId, this.userId);
+        }
     },
 
     heartbeat: function (currentLocation) {
         if (!this.userId)
             return;
 
-        currentLocation = currentLocation || null;
-
-        var d = new Date().getTime();
-
-        // update heartbeat for the given user
-        Players.update({userId: this.userId, connected: false}, {$set: {connected: true, location: currentLocation ? [currentLocation[0], currentLocation[1]] : null}}, {multi: true});
-        Meteor.users.update({_id: this.userId}, {$set: {heartbeat: new Date().getTime()}});
-        if (currentLocation !== null && currentLocation.length > 0) {
-            Meteor.users.update({_id: this.userId}, {$set: {location: [currentLocation[0], currentLocation[1]]}});
+        if (Meteor.isServer) {
+            Party.heartbeat(currentLocation, this.userId);
         }
-
-        return d;
     }
 });

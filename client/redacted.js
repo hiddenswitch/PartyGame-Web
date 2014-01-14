@@ -476,6 +476,7 @@ registerTemplates = function() {
 			previewYes = function() {
 				Meteor.call("submitAnswerCard",Session.get(GAME),answerId,function(e,r) {
 					if (r) {
+                        console.log(r);
 						Session.set(SUBMISSION,r);
                         $.mobile.changePage('#waitForPlayers');
 					}

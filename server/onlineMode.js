@@ -845,7 +845,7 @@ Meteor.methods({
         var now = new Date().getTime();
 
         var ownerBotId = Meteor.call("getOnlineBotUser");
-        var gameId = Meteor.call("createEmptyGame", "", "", location, ownerBotId);
+        var gameId = Party.createEmptyGame("", "", location, ownerBotId);
 
         PartyModeBots.botJoinGame(gameId, ownerBotId);
         PartyModeBots.fillGameWithBots(gameId, 6);
