@@ -79,4 +79,22 @@ Meteor.startup(function () {
         }];
     })));
 
+    HTTP.methods({
+        "/api/docs": function () {
+            var out = "API Summary\n" +
+                "===========\n" +
+                "\n" +
+                _.map(Party,function (method, methodName) {
+                    var methodArgumentNames = argumentNames(method);
+
+                    return "`/api/" + methodName + "?" + _.map(methodArgumentNames,function (argumentName) {
+                        argumentName = argumentName == "userId" ? "token" : argumentName;
+                        return argumentName + "=" + argumentName.toUpperCase();
+                    }).join('&') + '`';
+                }).join('\n\n');
+            var markdown = Meteor.require("markdown").markdown;
+            return markdown.toHTML(out);
+        }
+    });
+
 });
