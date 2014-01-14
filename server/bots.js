@@ -111,22 +111,21 @@ PartyModeBots = {
                             // If the bot is the judge and all the submissions are in, choose a random answer card. Be a little efficient about it.
                             if (isJudge) {
                                 // Get the submissions for this game
-                                var submissionsCursor = Submissions.find({gameId: player.gameId, round: game.round}, {fields: {_id: 1}});
+                                var submissionsCursor = Submissions.find({gameId: player.gameId, round: game.round, playerId: {$ne: player._id}}, {fields: {_id: 1}});
                                 var submissionsCount = submissionsCursor.count();
 
                                 // Get the number of connected players
                                 var connectedPlayersCount = Players.find({gameId: player.gameId, connected: true, open: true}).count();
 
                                 // If it's possible to judge, judge.
-                                if (submissionsCount >= connectedPlayersCount - 1) {
+                                if (submissionsCount >= connectedPlayersCount - 1 && submissionsCount !== 0) {
                                     // Judge a random card
                                     submissionsCursor.rewind();
-                                    try {
-                                        Party.pickWinner(game._id, _.first(_.shuffle(submissionsCursor.fetch()))._id, bot._id);
-                                        Party.finishRound(game._id);
-                                    } catch (meteorException) {
-                                        o.tryAgains++;
-                                    }
+                                    Party.pickWinner(game._id,
+                                        _.first(_.shuffle(submissionsCursor.fetch()))._id,
+                                        bot._id);
+                                    Party.finishRound(game._id);
+
                                 }
                                 o.botVotes++;
                                 o.botActions++;
@@ -142,7 +141,6 @@ PartyModeBots = {
                                     Party.submitAnswerCard(
                                         game._id,
                                         answerId,
-                                        player._id,
                                         bot._id);
                                     o.botSubmittedCards++;
                                 }
