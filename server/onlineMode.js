@@ -39,7 +39,7 @@ JudgeManager = {
 BotManager = {
     entertainmentDelay: 800,
     tick: 0,
-    keepEntertained: function () {
+    _startup: function () {
         var users = Meteor.users.find({
             bot: {$ne: true},
             $or: [
@@ -48,14 +48,14 @@ BotManager = {
                 {pendingJudgeCount: {$lt: 2}}
             ]}, {fields: {_id: 1}}).fetch();
         _.each(users, function (user) {
-            Meteor.call("onlineBotPlayWithUser", user._id);
+            OnlineModeBots.onlineBotPlayWithUser(user._id);
         });
 
         // Tick the party mode bots
         PartyModeBots.botsEvaluate(BotManager.tick);
 
         BotManager.tick++;
-        Meteor.setTimeout(BotManager.keepEntertained, BotManager.entertainmentDelay);
+        Meteor.setTimeout(BotManager._startup, BotManager.entertainmentDelay);
     },
     extendUserDocumentWithBotSettings: function (profile) {
         var userSchemaExtension = {};
@@ -66,6 +66,316 @@ BotManager = {
         userSchemaExtension.location = null;
 
         return _.extend(profile, userSchemaExtension);
+    }
+};
+
+OnlineModeBots = {
+    getOnlineBotUser: function () {
+        var now = new Date().getTime();
+
+        // returns the id of a bot user.
+        var bot = Meteor.users.findOne({bot: true, lastAction: {$lt: now - K_10_MINUTES}, inGame: false}, {limit: 1, sort: {lastAction: 1}});
+
+        if (bot == null) {
+            // Create a bot
+            bot = {_id: OnlineModeBots.createOnlineBot()};
+        }
+
+        if (bot._id == null) {
+            throw new Meteor.Error(503, "An administrator must review this error. Error code 0x1BFA");
+        }
+
+        return bot._id;
+    },
+
+    createOnlineBot: function () {
+        var now = new Date().getTime();
+
+        var userIdPadding = Random.id();
+        var password = Random.id();
+        var foundName = false;
+
+        // Only try 10 names before giving up and using a random name
+        for (var i = 0; !foundName || i < 10; i++) {
+            var nickname = ShuffledBotNames.length > 0 ? ShuffledBotNames.pop() : "Anonymous " + userIdPadding;
+            if (Meteor.users.find({username: nickname}).count() === 0) {
+                foundName = true;
+            }
+        }
+
+        var botId = Accounts.createUser({
+            username: nickname,
+            email: userIdPadding + "@redactedonline.com",
+            password: password,
+            profile: BotManager.extendUserDocumentWithBotSettings({
+                name: nickname,
+                bot: true,
+                period: Math.floor(Random.fraction() * 20)
+            })
+        });
+
+        return botId;
+    },
+
+    onlineBotAppendAnswer: function (questionId, botId, answerCardId) {
+        var now = new Date().getTime();
+
+        // TODO: Specify situations for bot logic when arguments are untrusted
+        var trusted = true;
+
+        // Perform checks if untrusted
+        if (!trusted) {
+            if (Meteor.users.find({_id: botId, bot: true}).count() === 0) {
+                throw new Meteor.Error(404, "Bot with id {0} not found.".format(botId));
+            }
+
+            // Trust that question exists in a server-only function
+            if (questionId == null) {
+                throw new Meteor.Error(504, "Null question id provided.");
+            }
+        }
+
+        // Find or create this question with the given cardId which doesn't already have this answer
+        var question = Questions.findOne({
+            _id: questionId,
+            answerId: null,
+            // The question doesn't already have this answer attached to it
+            answerCardIds: {$ne: answerCardId}
+        }, {limit: 1});
+
+        // TODO: Diagnose in detail
+        if (question == null) {
+            throw new Meteor.Error(504, "Question with id {0} not found, already answered or already contains this answerCardId.".format(questionId));
+        }
+
+        if (answerCardId == null) {
+            // Get a random answer card to use.
+            answerCardId = _.first(CardManager.getSomeAnswerCardsExcluding(question.answerCardIds, 1))._id;
+        }
+
+        if (answerCardId == null) {
+            throw new Meteor.Error(504, "An answer card was not found for question id {0} and answer card ids {1}.".format(questionId, question.answerCardIds));
+        }
+
+        // Assign the answer to the question
+        var answer = {
+            cardId: answerCardId,
+            questionId: questionId,
+            winner: null,
+            winningAnswerId: null,
+            score: null,
+            userId: botId,
+            judgeId: null,
+            created: now,
+            modified: now
+        };
+
+        answer._id = Answers.insert(answer);
+
+        // Update our local copy to avoid a database query.
+        question.answerCardIds.push(answerCardId);
+        question.answerCount++;
+
+        // update this player's question matching value for judge assignment
+        OnlineModeManager.updateUserMatchingValue(botId);
+
+        // Update the user's last action, and add the questions they have answered
+        Meteor.users.update({_id: botId}, {
+            $set: {lastAction: now},
+            $push: {questionIds: question._id}
+        });
+
+        Questions.update({_id: question._id}, {
+            $push: {answerCardIds: answerCardId},
+            $inc: {answerCount: 1},
+            $set: {modified: now}
+        });
+
+        // Bots do not have history yet.
+
+        // if the question has reached the number of answers needed for judging, assign it a judge if it needs one
+        if (question.answerCount >= question.minimumAnswerCount && question.judgeId === null) {
+            OnlineModeManager.assignJudgeToQuestion(question._id, botId);
+        }
+
+        // return the id of the answer
+        return answer._id;
+    },
+
+    onlineBotJudgeQuestion: function (questionId, botId, coerce) {
+        // TODO: Specify situations for bot logic when arguments are untrusted
+        var trusted = true;
+
+        // Perform checks if untrusted
+        if (!trusted) {
+            if (Meteor.users.find({_id: botId, bot: true}).count() === 0) {
+                throw new Meteor.Error(404, "Bot with id {0} not found.".format(botId));
+            }
+
+            // Trust that question exists in a server-only function
+            if (questionId == null) {
+                throw new Meteor.Error(504, "Null question id provided.");
+            }
+
+            if (Questions.find({_id: questionId, answerId: null, judgeId: botId}).count() === 0) {
+                throw new Meteor.Error(504, "Question with id {0} cannot be found, is already answered or this bot is not the judge.");
+            }
+        }
+
+        if (coerce) {
+            JudgeManager.setJudge(questionId, botId, true);
+        }
+
+        // Choose an answer at random
+        var answerId = _.first(_.shuffle(_.pluck(Answers.find({questionId: questionId}, {fields: {_id: 1}}).fetch(), "_id")));
+
+        // Pick this answer.
+        if (OnlineModeManager.pickAnswer(answerId, botId) !== questionId) {
+            throw new Meteor.Error(500, "Picking an answer failed for answerId {0}.".format(answerId));
+        }
+
+        // Pop off this question as something the bot has to judge
+        Meteor.users.update({_id: botId}, {$pop: {judgeTheseQuestionIds: questionId}});
+
+        // return the answerId we chose
+        return answerId;
+    },
+
+// For a given user, generate an answer or judge event with a bot
+    onlineBotPlayWithUser: function (userId) {
+        if (this.userId) {
+            throw new Meteor.Error(503, "You must be an administrator to call this function.");
+        }
+
+        if (userId == null) {
+            throw new Meteor.Error(504, "Null user id specified.");
+        }
+
+        // Play with the user
+        var user = Meteor.users.findOne({_id: userId});
+
+        if (user.bot === true) {
+            throw new Meteor.Error(504, "Invalid user.");
+        }
+
+        var possibleActions = [];
+
+        var entertainWithQuestions = true;
+
+        if (entertainWithQuestions && user.unansweredHistoriesCount < 3) {
+            possibleActions.push(OnlineModeManager.getQuestionForUser.bind(this, userId));
+        }
+
+        var entertainByAnsweringQuestionOrJudging = true;
+
+        if (entertainByAnsweringQuestionOrJudging && user.unjudgedQuestionsCount > 0) {
+            possibleActions.push(OnlineModeBots.onlineBotPlayWithUserByAnsweringOrJudging.bind(this, userId));
+        }
+
+        var entertainWithJudgement = true;
+
+        if (entertainWithJudgement && user.pendingJudgeCount < 2) {
+            possibleActions.push(OnlineModeBots.onlineBotPlayWithUserByCreatingAQuestionToJudge.bind(this,userId));
+        }
+
+        var localGamesCount = (user.location != null && user.location.length == 2 && user.location[0] && user.location[1]) ?
+            (Games.find({open: true, location: {$within: {$center: [
+                [user.location[0], user.location[1]],
+                0.01
+            ]}}}, {fields: {_id: 1}}).count())
+            : (Games.find({location: null, open: true}).count());
+
+        if (localGamesCount === 0) {
+            possibleActions.push(OnlineModeBots.onlineBotPlayWithUserByCreatingLocalGame.bind(userId, user.location));
+        }
+
+        if (possibleActions.length !== 0) {
+            return Random.choice(possibleActions)();
+        }
+    },
+
+    onlineBotPlayWithUserByCreatingLocalGame: function (userId, location) {
+        var now = new Date().getTime();
+
+        var ownerBotId = OnlineModeBots.getOnlineBotUser();
+        var gameId = Party.createEmptyGame("", "", location, ownerBotId);
+
+        PartyModeBots.botJoinGame(gameId, ownerBotId);
+        PartyModeBots.fillGameWithBots(gameId, 6);
+
+        return gameId;
+    },
+
+    onlineBotPlayWithUserByCreatingAQuestionToJudge: function (userId) {
+        var now = new Date().getTime();
+
+        var unavailableQuestionCardIds = CardManager.getUnavailableQuestionCardIdsForUser(userId);
+
+        // Generate something for the user to judge
+        var question = {
+            cardId: CardManager.getRandomQuestionCardExcluding(unavailableQuestionCardIds)._id,
+            judgeId: null,
+            created: now,
+            modified: now,
+            answerCardIds: [],
+            userIds: [],
+            answerCount: 0,
+            answerId: null,
+            judgeAssigned: null,
+            minimumAnswerCount: K_ANSWERS_PER_QUESTION
+        };
+
+        question._id = Questions.insert(question);
+
+        // Make bots submit answers
+        for (; question.answerCount < question.minimumAnswerCount; question.answerCount++) {
+            OnlineModeBots.onlineBotAppendAnswer(question._id, OnlineModeBots.getOnlineBotUser());
+        }
+
+        // Coerce the player as the judge
+        JudgeManager.setJudge(question._id, userId, true);
+
+        return {
+            userId: userId,
+            reason: "player {0} assigned to judge {1}".format(userId, question._id),
+            method: "setJudge",
+            result: question._id
+        };
+    },
+
+    onlineBotPlayWithUserByAnsweringOrJudging: function (userId) {
+        var waitingAnswer = Answers.findOne({userId: userId, winningAnswerId: null}, {limit: 1, fields: {questionId: 1, _id: 1}, sort: {modified: 1}});
+
+        // If an answer is associated with an unjudged question, diagnose
+        if (waitingAnswer != null) {
+            var question = Questions.findOne({_id: waitingAnswer.questionId});
+
+            if (question == null) {
+                throw new Meteor.Error(504, "Question id {0} not found, associated with waitingAnswer {1}.".format(waitingAnswer.questionId, waitingAnswer._id));
+            }
+
+            // Are there insufficient answers? If so, answer this question too
+            if (question.answerCount < question.minimumAnswerCount) {
+                return {
+                    userId: userId,
+                    reason: "insufficient answers for questionId {0}".format(waitingAnswer.questionId),
+                    method: "onlineBotAppendAnswer",
+                    result: OnlineModeBots.onlineBotAppendAnswer(waitingAnswer.questionId, OnlineModeBots.getOnlineBotUser())
+                };
+            } else {
+                // If the question was assigned to a bot, judge the question
+                if (Meteor.users.find({_id: question.judgeId, bot: true}).count() > 0) {
+                    return {
+                        userId: userId,
+                        reason: "question id {0} not yet judged".format(waitingAnswer.questionId),
+                        method: "onlineBotJudgeQuestion",
+                        result: OnlineModeBots.onlineBotJudgeQuestion(waitingAnswer.questionId, question.judgeId)
+                    };
+                }
+            }
+        }
+
+        return null;
     }
 };
 
@@ -361,7 +671,7 @@ OnlineModeManager = {
         question.answerCount++;
 
         // update this player's question matching value for judge assignment
-        Meteor.call("updateUserMatchingValue", userId);
+        OnlineModeManager.updateUserMatchingValue(userId);
 
         // Update the user's last action, and add the questions they have answered
         Meteor.users.update({_id: userId}, {
@@ -429,8 +739,8 @@ OnlineModeManager = {
         }
 
         // Score the answer
-        var winningScore = Meteor.call("getWinningScore", question._id, answerId, userId) || K_ANSWERS_PER_QUESTION + 1;
-        var losingScore = Meteor.call("getLosingScore", question._id, userId) || 1;
+        var winningScore = OnlineModeManager.getWinningScore(question._id, answerId, userId) || K_ANSWERS_PER_QUESTION + 1;
+        var losingScore = OnlineModeManager.getLosingScore(question._id, userId) || 1;
 
         // set this answer as the winning answer
         Questions.update({_id: question._id}, {$set: {answerId: answerId, modified: now}});
@@ -452,7 +762,7 @@ OnlineModeManager = {
         Meteor.users.update({_id: question.judgeId}, {$inc: {pendingJudgeCount: -1}});
 
         // reward judging bonus
-        var judgingBonus = Meteor.call("getJudgingBonus", question._id, answerId, userId);
+        var judgingBonus = OnlineModeManager.getJudgingBonus(question._id, answerId, userId);
 
         Meteor.users.update({_id: userId}, {$inc: {coins: judgingBonus}, $set: {lastAction: now}});
 
@@ -497,7 +807,7 @@ OnlineModeManager = {
         if (eligibleUser == null) {
             assignedQuestionToBot = true;
 
-            eligibleUser = {_id: Meteor.call("getOnlineBotUser"), lastAction: now};
+            eligibleUser = {_id: OnlineModeBots.getOnlineBotUser(), lastAction: now};
         }
 
         // Did we find a bot? If not, diagnose.
@@ -515,14 +825,36 @@ OnlineModeManager = {
 
         // return the id of the assigned user
         return eligibleUser._id;
+    },
+
+    updateUserMatchingValue: function (userId) {
+        // For now, this is equal to the number of unanswered judgements the user has assigned to him
+        var judgementsAssigned = Questions.find({judgeId: userId, answerId: null}).count();
+
+        Meteor.users.update({_id: userId}, {
+            $set: {matchingValue: judgementsAssigned}
+        });
+
+        // return the judgement rank of this user
+        return judgementsAssigned;
+    },
+
+    getWinningScore: function (questionId, answerId, userId) {
+        // for now, just return the number of answers for this question + 1.
+        return _.extend({answerCount: K_ANSWERS_PER_QUESTION + 1}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
+    },
+
+    getLosingScore: function (questionId, userId) {
+        return 1;
+    },
+
+    getJudgingBonus: function (questionId, answerId, judgeId) {
+        // return the number of answers for this question
+        return _.extend({answerCount: K_ANSWERS_PER_QUESTION}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
     }
 };
 
-Meteor.startup(function () {
-    // Update and shuffle the cards
-    CardManager.initializeCards();
-    BotManager.keepEntertained();
-});
+Meteor.startup(BotManager._startup);
 
 Meteor.methods({
     sendQuestion: function (questionCardId, toUserIds) {
@@ -557,379 +889,11 @@ Meteor.methods({
         return OnlineModeManager.pickAnswer(answerId, this.userId);
     },
 
-    getWinningScore: function (questionId, answerId, _userId) {
-        // for now, just return the number of answers for this question + 1.
-        return _.extend({answerCount: K_ANSWERS_PER_QUESTION + 1}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
-    },
-
-    getLosingScore: function (questionId, _userId) {
-        return 1;
-    },
-
-    getJudgingBonus: function (questionId, answerId, judgeId) {
-        // return the number of answers for this question
-        return _.extend({answerCount: K_ANSWERS_PER_QUESTION}, Questions.findOne({_id: questionId}, {fields: {answerCount: 1}, limit: 1})).answerCount;
-    },
-
     assignJudgeToQuestion: function (questionId) {
         if (!this.userId) {
             throw new Meteor.Error(403, "Permission denied.");
         }
 
         return OnlineModeManager.assignJudgeToQuestion(questionId, this.userId);
-    },
-
-    updateUserMatchingValue: function (_userId) {
-        if (!this.userId && !_userId) {
-            throw new Meteor.Error(403, "Permission denied.");
-        } else if (this.userId) {
-            _userId = this.userId;
-        }
-
-        // For now, this is equal to the number of unanswered judgements the user has assigned to him
-        var judgementsAssigned = Questions.find({judgeId: _userId, answerId: null}).count();
-
-        Meteor.users.update({_id: _userId}, {
-            $set: {matchingValue: judgementsAssigned}
-        });
-
-        // return the judgement rank of this user
-        return judgementsAssigned;
-    },
-
-    getOnlineBotUser: function () {
-        if (this.userId) {
-            throw new Meteor.Error(503, "You must be an administrator to call this function.");
-        }
-
-        var now = new Date().getTime();
-
-        // returns the id of a bot user.
-        var bot = Meteor.users.findOne({bot: true, lastAction: {$lt: now - K_10_MINUTES}, inGame: false}, {limit: 1, sort: {lastAction: 1}});
-
-        if (bot == null) {
-            // Create a bot
-            bot = {_id: Meteor.call("createOnlineBot")};
-        }
-
-        if (bot._id == null) {
-            throw new Meteor.Error(503, "An administrator must review this error. Error code 0x1BFA");
-        }
-
-        return bot._id;
-    },
-
-    createOnlineBot: function () {
-        if (this.userId) {
-            throw new Meteor.Error(503, "You must be an administrator to call this function.");
-        }
-
-        var now = new Date().getTime();
-
-        var userIdPadding = Random.id();
-        var password = Random.id();
-        var foundName = false;
-
-        // Only try 10 names before giving up and using a random name
-        for (var i = 0; !foundName || i < 10; i++) {
-            var nickname = ShuffledBotNames.length > 0 ? ShuffledBotNames.pop() : "Anonymous " + userIdPadding;
-            if (Meteor.users.find({username: nickname}).count() === 0) {
-                foundName = true;
-            }
-        }
-
-        var botId = Accounts.createUser({
-            username: nickname,
-            email: userIdPadding + "@redactedonline.com",
-            password: password,
-            profile: BotManager.extendUserDocumentWithBotSettings({
-                name: nickname,
-                bot: true,
-                period: Math.floor(Random.fraction() * 20)
-            })
-        });
-
-        return botId;
-    },
-
-    onlineBotAppendAnswer: function (questionId, botId, answerCardId) {
-        if (this.userId) {
-            throw new Meteor.Error(503, "You must be an administrator to call this function.");
-        }
-
-        var now = new Date().getTime();
-
-        // TODO: Specify situations for bot logic when arguments are untrusted
-        var trusted = true;
-
-        // Perform checks if untrusted
-        if (!trusted) {
-            if (Meteor.users.find({_id: botId, bot: true}).count() === 0) {
-                throw new Meteor.Error(404, "Bot with id {0} not found.".format(botId));
-            }
-
-            // Trust that question exists in a server-only function
-            if (questionId == null) {
-                throw new Meteor.Error(504, "Null question id provided.");
-            }
-        }
-
-        // Find or create this question with the given cardId which doesn't already have this answer
-        var question = Questions.findOne({
-            _id: questionId,
-            answerId: null,
-            // The question doesn't already have this answer attached to it
-            answerCardIds: {$ne: answerCardId}
-        }, {limit: 1});
-
-        // TODO: Diagnose in detail
-        if (question == null) {
-            throw new Meteor.Error(504, "Question with id {0} not found, already answered or already contains this answerCardId.".format(questionId));
-        }
-
-        if (answerCardId == null) {
-            // Get a random answer card to use.
-            answerCardId = _.first(CardManager.getSomeAnswerCardsExcluding(question.answerCardIds, 1))._id;
-        }
-
-        if (answerCardId == null) {
-            throw new Meteor.Error(504, "An answer card was not found for question id {0} and answer card ids {1}.".format(questionId, question.answerCardIds));
-        }
-
-        // Assign the answer to the question
-        var answer = {
-            cardId: answerCardId,
-            questionId: questionId,
-            winner: null,
-            winningAnswerId: null,
-            score: null,
-            userId: botId,
-            judgeId: null,
-            created: now,
-            modified: now
-        };
-
-        answer._id = Answers.insert(answer);
-
-        // Update our local copy to avoid a database query.
-        question.answerCardIds.push(answerCardId);
-        question.answerCount++;
-
-        // update this player's question matching value for judge assignment
-        Meteor.call("updateUserMatchingValue", botId);
-
-        // Update the user's last action, and add the questions they have answered
-        Meteor.users.update({_id: botId}, {
-            $set: {lastAction: now},
-            $push: {questionIds: question._id}
-        });
-
-        Questions.update({_id: question._id}, {
-            $push: {answerCardIds: answerCardId},
-            $inc: {answerCount: 1},
-            $set: {modified: now}
-        });
-
-        // Bots do not have history yet.
-
-        // if the question has reached the number of answers needed for judging, assign it a judge if it needs one
-        if (question.answerCount >= question.minimumAnswerCount && question.judgeId === null) {
-            OnlineModeManager.assignJudgeToQuestion(question._id, botId);
-        }
-
-        // return the id of the answer
-        return answer._id;
-    },
-
-    onlineBotJudgeQuestion: function (questionId, botId, coerce) {
-        if (this.userId) {
-            throw new Meteor.Error(503, "You must be an administrator to call this function.");
-        }
-
-        // TODO: Specify situations for bot logic when arguments are untrusted
-        var trusted = true;
-
-        // Perform checks if untrusted
-        if (!trusted) {
-            if (Meteor.users.find({_id: botId, bot: true}).count() === 0) {
-                throw new Meteor.Error(404, "Bot with id {0} not found.".format(botId));
-            }
-
-            // Trust that question exists in a server-only function
-            if (questionId == null) {
-                throw new Meteor.Error(504, "Null question id provided.");
-            }
-
-            if (Questions.find({_id: questionId, answerId: null, judgeId: botId}).count() === 0) {
-                throw new Meteor.Error(504, "Question with id {0} cannot be found, is already answered or this bot is not the judge.");
-            }
-        }
-
-        if (coerce) {
-            JudgeManager.setJudge(questionId, botId, true);
-        }
-
-        // Choose an answer at random
-        var answerId = _.first(_.shuffle(_.pluck(Answers.find({questionId: questionId}, {fields: {_id: 1}}).fetch(), "_id")));
-
-        // Pick this answer.
-        if (OnlineModeManager.pickAnswer(answerId, botId) !== questionId) {
-            throw new Meteor.Error(500, "Picking an answer failed for answerId {0}.".format(answerId));
-        }
-
-        // Pop off this question as something the bot has to judge
-        Meteor.users.update({_id: botId}, {$pop: {judgeTheseQuestionIds: questionId}});
-
-        // return the answerId we chose
-        return answerId;
-    },
-
-// For a given user, generate an answer or judge event with a bot
-    onlineBotPlayWithUser: function (userId) {
-        if (this.userId) {
-            throw new Meteor.Error(503, "You must be an administrator to call this function.");
-        }
-
-        if (userId == null) {
-            throw new Meteor.Error(504, "Null user id specified.");
-        }
-
-        // Play with the user
-        var user = Meteor.users.findOne({_id: userId});
-
-        if (user.bot === true) {
-            throw new Meteor.Error(504, "Invalid user.");
-        }
-
-        var possibleActions = [];
-
-        var entertainWithQuestions = true;
-
-        if (entertainWithQuestions && user.unansweredHistoriesCount < 3) {
-            possibleActions.push(OnlineModeManager.getQuestionForUser.bind(this, userId));
-        }
-
-        var entertainByAnsweringQuestionOrJudging = true;
-
-        if (entertainByAnsweringQuestionOrJudging && user.unjudgedQuestionsCount > 0) {
-            possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByAnsweringOrJudging", userId));
-        }
-
-        var entertainWithJudgement = true;
-
-        if (entertainWithJudgement && user.pendingJudgeCount < 2) {
-            possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingAQuestionToJudge", userId));
-        }
-
-        var localGamesCount = (user.location != null && user.location.length == 2 && user.location[0] && user.location[1]) ?
-            (Games.find({open: true, location: {$within: {$center: [
-                [user.location[0], user.location[1]],
-                0.01
-            ]}}}, {fields: {_id: 1}}).count())
-            : (Games.find({location: null, open: true}).count());
-
-        if (localGamesCount === 0) {
-            possibleActions.push(Meteor.call.bind(this, "onlineBotPlayWithUserByCreatingLocalGame", userId, user.location));
-        }
-
-        if (possibleActions.length !== 0) {
-            return Random.choice(possibleActions)();
-        }
-    },
-
-    onlineBotPlayWithUserByCreatingLocalGame: function (userId, location) {
-        if (this.userId) {
-            throw new Meteor.Error(503, "You must be an administrator to call this function.");
-        }
-
-        var now = new Date().getTime();
-
-        var ownerBotId = Meteor.call("getOnlineBotUser");
-        var gameId = Party.createEmptyGame("", "", location, ownerBotId);
-
-        PartyModeBots.botJoinGame(gameId, ownerBotId);
-        PartyModeBots.fillGameWithBots(gameId, 6);
-
-        return gameId;
-    },
-
-    onlineBotPlayWithUserByCreatingAQuestionToJudge: function (userId) {
-        if (this.userId) {
-            throw new Meteor.Error(503, "You must be an administrator to call this function.");
-        }
-
-        var now = new Date().getTime();
-
-        var unavailableQuestionCardIds = CardManager.getUnavailableQuestionCardIdsForUser(userId);
-
-        // Generate something for the user to judge
-        var question = {
-            cardId: CardManager.getRandomQuestionCardExcluding(unavailableQuestionCardIds)._id,
-            judgeId: null,
-            created: now,
-            modified: now,
-            answerCardIds: [],
-            userIds: [],
-            answerCount: 0,
-            answerId: null,
-            judgeAssigned: null,
-            minimumAnswerCount: K_ANSWERS_PER_QUESTION
-        };
-
-        question._id = Questions.insert(question);
-
-        // Make bots submit answers
-        for (; question.answerCount < question.minimumAnswerCount; question.answerCount++) {
-            Meteor.call("onlineBotAppendAnswer", question._id, Meteor.call("getOnlineBotUser"));
-        }
-
-        // Coerce the player as the judge
-        JudgeManager.setJudge(question._id, userId, true);
-
-        return {
-            userId: userId,
-            reason: "player {0} assigned to judge {1}".format(userId, question._id),
-            method: "setJudge",
-            result: question._id
-        };
-    },
-
-    onlineBotPlayWithUserByAnsweringOrJudging: function (userId) {
-        if (this.userId) {
-            throw new Meteor.Error(503, "You must be an administrator to call this function.");
-        }
-
-        var waitingAnswer = Answers.findOne({userId: userId, winningAnswerId: null}, {limit: 1, fields: {questionId: 1, _id: 1}, sort: {modified: 1}});
-
-        // If an answer is associated with an unjudged question, diagnose
-        if (waitingAnswer != null) {
-            var question = Questions.findOne({_id: waitingAnswer.questionId});
-
-            if (question == null) {
-                throw new Meteor.Error(504, "Question id {0} not found, associated with waitingAnswer {1}.".format(waitingAnswer.questionId, waitingAnswer._id));
-            }
-
-            // Are there insufficient answers? If so, answer this question too
-            if (question.answerCount < question.minimumAnswerCount) {
-                return {
-                    userId: userId,
-                    reason: "insufficient answers for questionId {0}".format(waitingAnswer.questionId),
-                    method: "onlineBotAppendAnswer",
-                    result: Meteor.call("onlineBotAppendAnswer", waitingAnswer.questionId, Meteor.call("getOnlineBotUser"))
-                };
-            } else {
-                // If the question was assigned to a bot, judge the question
-                if (Meteor.users.find({_id: question.judgeId, bot: true}).count() > 0) {
-                    return {
-                        userId: userId,
-                        reason: "question id {0} not yet judged".format(waitingAnswer.questionId),
-                        method: "onlineBotJudgeQuestion",
-                        result: Meteor.call("onlineBotJudgeQuestion", waitingAnswer.questionId, question.judgeId)
-                    };
-                }
-            }
-        }
-
-        return null;
     }
 });
