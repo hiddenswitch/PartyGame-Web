@@ -22,8 +22,8 @@ PartyModeBots = {
     },
 
     botJoinOrCreateGame: function (botId) {
-        var gameId = Meteor.call("findGameWithFewPlayers", 5);
-        botId = botId || Meteor.call("getOnlineBotUser");
+        var gameId = Party.findGameWithFewPlayers(5);
+        botId = botId || OnlineModeBots.getOnlineBotUser();
         if (gameId) {
             return PartyModeBots.botJoinGame(gameId, botId);
         } else {
@@ -32,8 +32,7 @@ PartyModeBots = {
     },
 
     createEmptyBotGameAndJoin: function (botId) {
-
-        botId = botId || Meteor.call("getOnlineBotUser");
+        botId = botId || OnlineModeBots.getOnlineBotUser();
 
         var gameId = Party.createEmptyGame("", "", null, botId);
 
@@ -47,7 +46,7 @@ PartyModeBots = {
 
     botJoinGame: function (gameId, botId) {
         // Get a bot
-        botId = botId || Meteor.call("getOnlineBotUser");
+        botId = botId || OnlineModeBots.getOnlineBotUser();
         if (!botId) {
             console.log("Could not create a bot.");
             return;

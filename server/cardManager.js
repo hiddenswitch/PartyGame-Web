@@ -78,7 +78,7 @@ CardManager = {
 
         return unavailableAnswerCardIds;
     },
-    initializeCards: function () {
+    _startup: function () {
         // Update cards
         Meteor.call("addGoogleCards");
         Meteor.call("addCAHCards");
@@ -88,3 +88,5 @@ CardManager = {
         Meteor.setInterval(CardManager.updateAndShuffleCards, K_10_MINUTES);
     }
 };
+
+Meteor.startup(CardManager._startup);
