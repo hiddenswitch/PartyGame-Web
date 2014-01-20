@@ -28,6 +28,10 @@ Meteor.publish("hand", function (gameId) {
     return Hands.find({userId: this.userId, gameId: gameId});
 });
 
+Meteor.publish("allHands", function () {
+    return Hands.find({userId: this.userId});
+});
+
 Meteor.publish("myGames", function () {
     return Games.find({userIds: this.userId}, {fields: {password: 0, questionCards: 0, answerCards: 0}});
 });
