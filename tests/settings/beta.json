@@ -1,6 +1,6 @@
 {
     "useFql":false,
-    "rejoinGames":false,
+    "rejoinGames":true,
     "useBots":true,
     "public":{
         "facebook":{
