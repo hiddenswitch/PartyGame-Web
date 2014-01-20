@@ -2,7 +2,7 @@
 Lets the serve know you're connected in real time. `location` is an array of `[float latitude, float longitude]`.
 
 `findAnyGame`
-Returns a `_id` of an open game.
+Returns a `_id` of an open game. Returns `null` if no game is found.
 
 `createEmptyGame` - `title`, `password`, `location`
 Returns the `_id` of a new game with the given title, password and location of form `[float latitude, float longitude]`. You still have to join the game after you create an empty one.
