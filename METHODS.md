@@ -1,3 +1,5 @@
+##### PartyMode
+
 `heartbeat` (`location`)
 
 Lets the serve know you're connected in real time. `location` is an array of `[float latitude, float longitude]`.
@@ -25,3 +27,11 @@ If you're the judge, picks the card `answerId` among the `submissions` as the wi
 `finishRound` (`gameId`)
 
 Ends the round, drawing new hands and incrementing the `game` document with `_id` `gameId` 's `round`. Called by anyone when there exists a `vote` document for the round.
+
+##### Economic
+
+`combineCardsForUser` (`adjectiveCardId`, `nounCardId`)
+
+Combines an adjective and noun in the user's inventory by card IDs.
+
+##### OnlineMode
