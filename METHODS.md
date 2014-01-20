@@ -1,6 +1,6 @@
 `heartbeat` (`location`)
 
-Lets the serve know you're connected in real time. `location` is an array of `[float latitude, float longitude]`.
+Lets the server know the client is connected in real time. `location` is an array of `[float latitude, float longitude]`.
 
 `findAnyGame`
 
