@@ -1,5 +1,9 @@
 ##### PartyMode
 
+`loginWithIDFV` (`idfvToken`)
+
+Logs into Meteor with an IDFV token, the result of `[[UIDevice currentDevice] identifierForVendor]`.
+
 `heartbeat` (`location`)
 
 Lets the server know the client is connected in real time. `location` is an array of `[float latitude, float longitude]`.
