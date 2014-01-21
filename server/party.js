@@ -341,7 +341,7 @@ Party = {
         var g = Games.findOne({title: title});
 
         if (g) {
-            return Party.joinGame(g._id, userId);
+            return {playerId: Party.joinGame(g._id, userId), gameId: g._id};
         } else {
             throw new Meteor.Error(404, "A game named " + title + " was not found.");
         }
@@ -355,17 +355,22 @@ Party = {
         var g = Games.findOne({title: title, open: true});
 
         if (g) {
-            return Party.joinGame(g._id, userId);
+            return {playerId: Party.joinGame(g._id, userId), gameId: g._id}
         } else {
             // create an empty game with the given title
             var u = Meteor.users.findOne({_id: userId});
             var location = u ? (u.location ? u.location : null) : null;
             var gameId = Meteor.call("createEmptyGame", title, null, location);
-            return Party.joinGame(gameId, userId);
+            return {playerId: Party.joinGame(gameId, userId), gameId: gameId}
         }
     },
 
-    // Join a game
+    /**
+     * Joins a game.
+     * @param gameId
+     * @param userId
+     * @returns {String} Returns the player id.
+     */
     joinGame: function (gameId, userId) {
         var g = Games.findOne({_id: gameId}, {fields: {_id: 1, open: 1, userIds: 1}});
 
@@ -375,21 +380,24 @@ Party = {
         if (!g.open)
             throw new Meteor.Error(403, "The game is closed, cannot join.");
 
-        // If this user is already in the game, update the connected status and return.
-        if (Players.find({gameId: gameId, userId: userId}).count() > 0) {
+        // If this user is already in the game, update the connected status and return the playerId
+        var thisPlayer = Players.findOne({gameId: gameId, userId: userId});
+
+        if (thisPlayer != null) {
             Players.update({gameId: gameId, userId: userId}, {$set: {connected: true}});
-            return gameId;
+            return thisPlayer._id;
         }
+
 
         // Otherwise, join the game by adding to the players list, updating the heartbeat, and incrementing the players
         // count.
-        var p = new Player();
+        thisPlayer = new Player();
 
-        p.open = true;
-        p.userId = userId;
-        p.gameId = gameId;
-        p.voted = new Date().getTime();
-        p.connected = true;
+        thisPlayer.open = true;
+        thisPlayer.userId = userId;
+        thisPlayer.gameId = gameId;
+        thisPlayer.voted = new Date().getTime();
+        thisPlayer.connected = true;
 
         var getUserName = function (id) {
             var u = Meteor.users.findOne({_id: id});
@@ -409,9 +417,9 @@ Party = {
             return "Anomyous (" + id + ")";
         };
 
-        p.name = getUserName(userId);
+        thisPlayer.name = getUserName(userId);
 
-        var playerId = Players.insert(p);
+        var playerId = Players.insert(thisPlayer);
 
         // If there is no owner, this first user is now the owner.
         Games.update({_id: gameId, creatorUserId: userId, $or: [
@@ -423,7 +431,7 @@ Party = {
         g.userIds.push(userId);
 
         // Increment the player count and join the game.
-        Games.update({_id: gameId}, {$inc: {players: 1}, $addToSet: {userIds: userId, playerIds: playerId, playerNames: p.name}, $set: {modified: new Date().getTime()}});
+        Games.update({_id: gameId}, {$inc: {players: 1}, $addToSet: {userIds: userId, playerIds: playerId, playerNames: thisPlayer.name}, $set: {modified: new Date().getTime()}});
 
         // Update the heartbeat and the game ID
         Meteor.users.update({_id: userId}, {$set: {inGame: false, heartbeat: new Date().getTime()}, $addToSet: {gameIds: gameId}});
@@ -434,7 +442,7 @@ Party = {
         // Draw hands for all users
         Party.drawHands(gameId, K_DEFAULT_HAND_SIZE);
 
-        return gameId;
+        return thisPlayer._id;
     },
 
     findGameWithFewPlayers: function (gameSize) {

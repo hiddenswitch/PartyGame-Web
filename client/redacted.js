@@ -126,9 +126,9 @@ signUp = function() {
 };
 
 matchMake = function() {
-    match(Session.get(LOCATION),function (err,r){
-        if (r) {
-            Session.set(GAME,r);
+    match(Session.get(LOCATION),function (err,gameId){
+        if (gameId) {
+            Session.set(GAME,gameId);
         }
         setError(err);
     });
@@ -145,15 +145,15 @@ createAndJoinGame = function() {
 	}
 
     function createAndJoinGameCallback (callbackOnCreateGame) {
-        Meteor.call("createEmptyGame",gameTitle,"",Session.get(LOCATION),function(e,r){
-            if (r) { // new game id returned
+        Meteor.call("createEmptyGame",gameTitle,"",Session.get(LOCATION),function(e,gameId){
+            if (gameId) { // new game id returned
                 if (callbackOnCreateGame != null) {
-                    callbackOnCreateGame(r);
+                    callbackOnCreateGame(gameId);
                 }
 
-                Meteor.call("joinGame",r,function(e2,r2){
-                    if (r2) {
-                        Session.set(GAME,r2);
+                Meteor.call("joinGame",gameId,function(e2,playerId){
+                    if (playerId) {
+                        Session.set(GAME,gameId);
                     }
                     if (e2) {
                         Session.set(ERROR,e2.reason || e.reason + ", " + e2.reason);
@@ -223,17 +223,17 @@ submissionIdToCardId = function(id) {
 
 // Match into an existing game, or create a new one to join into
 match = function(location,gameJoinedCallback) {
-    Meteor.call("findLocalGame",location,function(e,r) {
-        if (r)
-            Meteor.call("joinGame",r,gameJoinedCallback);
+    Meteor.call("findLocalGame",location,function(e,gameId) {
+        if (gameId)
+            Meteor.call("joinGame",gameId,gameJoinedCallback);
         else
-            Meteor.call("findGameWithFewPlayers",function(e,r){
-                if (r)
-                    Meteor.call("joinGame",r,gameJoinedCallback);
+            Meteor.call("findGameWithFewPlayers",function(e,gameId){
+                if (gameId)
+                    Meteor.call("joinGame",gameId,gameJoinedCallback);
                 else
-                    Meteor.call("createEmptyGame","","",location,function (e,r){
-                        if (r)
-                            Meteor.call("joinGame",r,gameJoinedCallback);
+                    Meteor.call("createEmptyGame","","",location,function (e,gameId){
+                        if (gameId)
+                            Meteor.call("joinGame",gameId,gameJoinedCallback);
                         else
                             console.log(e);
                     });

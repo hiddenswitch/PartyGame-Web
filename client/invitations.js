@@ -69,7 +69,7 @@ Template.invitation.withPlayers = function () {
 acceptInvite = function () {
     Meteor.call("joinOrCreateGameWithTitle", Session.get("invite"), function (e, r2) {
         if (r2) {
-            Session.set(GAME, r2);
+            Session.set(GAME, r2.gameId);
             $.mobile.changePage('#roundSummary');
         }
         if (e) {
@@ -89,7 +89,7 @@ loginAndAcceptInvite = function () {
 
         Meteor.call("joinOrCreateGameWithTitle", Session.get("invite"), function (e, r2) {
             if (r2) {
-                Session.set(GAME, r2);
+                Session.set(GAME, r2.gameId);
                 $.mobile.changePage('#roundSummary');
             }
             if (e) {
