@@ -419,19 +419,19 @@ Party = {
 
         thisPlayer.name = getUserName(userId);
 
-        var playerId = Players.insert(thisPlayer);
+        thisPlayer._id = Players.insert(thisPlayer);
 
         // If there is no owner, this first user is now the owner.
         Games.update({_id: gameId, creatorUserId: userId, $or: [
             {judgeId: null},
             {ownerId: null}
-        ]}, {$set: {ownerId: playerId, judgeId: playerId}});
+        ]}, {$set: {ownerId: thisPlayer._id, judgeId: thisPlayer._id}});
 
         // Update local copy of game
         g.userIds.push(userId);
 
         // Increment the player count and join the game.
-        Games.update({_id: gameId}, {$inc: {players: 1}, $addToSet: {userIds: userId, playerIds: playerId, playerNames: thisPlayer.name}, $set: {modified: new Date().getTime()}});
+        Games.update({_id: gameId}, {$inc: {players: 1}, $addToSet: {userIds: userId, playerIds: thisPlayer._id, playerNames: thisPlayer.name}, $set: {modified: new Date().getTime()}});
 
         // Update the heartbeat and the game ID
         Meteor.users.update({_id: userId}, {$set: {inGame: false, heartbeat: new Date().getTime()}, $addToSet: {gameIds: gameId}});
