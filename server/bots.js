@@ -49,17 +49,17 @@ PartyModeBots = {
         botId = botId || OnlineModeBots.getOnlineBotUser();
         if (!botId) {
             console.log("Could not create a bot.");
-            return;
+            return false;
         }
 
         // Join the specified game.
-        if (Party.joinGame(gameId, botId)) {
+        if (Party.joinGame(gameId, botId) != null) {
             // Update the bot's quantity of inGames
             Meteor.users.update({_id: botId}, {$set: {inGame: true}});
-            return 1;
+            return true;
         } else {
             console.log("Bot could not join game.");
-            return 0;
+            return false;
         }
     },
 
