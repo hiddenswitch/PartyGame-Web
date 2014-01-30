@@ -14,8 +14,8 @@ To run:
     brew install npm
     curl https://install.meteor.com/ | sh
     sudo -H npm install -g meteorite
-    git clone git@github.com:hiddenswitch/Redacted-Web.git
-    cd Redacted-Web
+    git clone git@github.com:hiddenswitch/PartyGame-Web.git
+    cd PartyGame-Web
     mrt --settings tests/settings/local.json
 
 Visit [localhost](http://localhost:3000).
