@@ -194,7 +194,7 @@ Meteor.methods({
             var nextJudge = Party.currentJudge(game._id);
 
             // increment round
-            Games.update({_id: gameId}, {$set: {questionId: questionCardId, modified: new Date().getTime(), judgeId: nextJudge}, $inc: {round: 1, questionCardsCount: -1}, $pop: {questionCards: 1}});
+            Games.update({_id: gameId}, {$set: {questionId: questionCardId, modified: new Date().getTime(), judgeId: nextJudge._id, judgeUserId: nextJudge.userId}, $inc: {round: 1, questionCardsCount: -1}, $pop: {questionCards: 1}});
         } else {
             // Close the game
             Games.update({_id: gameId}, {$set: {open: false}});

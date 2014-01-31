@@ -16,7 +16,10 @@ Meteor.startup(function () {
     Players._ensureIndex({gameId: 1, userId: 1, connected: 1});
     Submissions._ensureIndex({gameId: 1});
     Meteor.users._ensureIndex({heartbeat: -1});
+    Meteor.users._ensureIndex({openGameIds: 1});
+    Meteor.users._ensureIndex({acl: 1});
     Meteor.users._ensureIndex({location: "2d"});
+    Meteor.users._ensureIndex({bot: 1});
     Answers._ensureIndex({questionId: 1});
     Histories._ensureIndex({questionId: 1});
     Inventories._ensureIndex({userId: 1, itemType: 1, itemId: 1});
