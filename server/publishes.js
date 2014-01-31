@@ -41,7 +41,7 @@ Meteor.publish("players", function (gameId) {
 });
 
 Meteor.publish("submissions", function (gameId) {
-    return Submissions.find({gameId: gameId}, {fields: {_id: 1, gameId: 1, answerId: 1, round: 1}});
+    return Submissions.find({gameId: gameId}, {fields: {_id: 1, gameId: 1, answerId: 1, round: 1, userId: 1}});
 });
 
 Meteor.publish("votesInGame", function (gameId) {
