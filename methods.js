@@ -109,7 +109,7 @@ Meteor.methods({
             return Party.pickWinner(gameId, submissionId, this.userId);
         }
 
-        var game = Games.findOne({_id: gameId}, {fields: {_id: 1, open: 1, questionId: 1, round: 1}});
+        var game = Games.findOne({_id: gameId});
         var playerId = getPlayerId(gameId, this.userId);
 
         var judgeId = game.judgeId;
@@ -140,35 +140,11 @@ Meteor.methods({
 
         if (winner) {
             Votes.update({_id: winner._id}, {$set: {playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId}});
-            return winner._id;
         } else {
-            return Votes.insert({gameId: gameId, round: game.round, judgeId: judgeId, playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId});
-        }
-    },
-
-    // Remove submitted hands from the committed round and increment the round number.
-    // Close the game if there are no more question cards left.
-    finishRound: function (gameId) {
-        if (Meteor.isServer) {
-            return Party.finishRound(gameId);
+            winner = {_id: Votes.insert({gameId: gameId, round: game.round, judgeId: judgeId, playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId})};
         }
 
-        var game = Games.findOne({_id: gameId}, {fields: {open: 1, round: 1, questionCards: 1, answerCards: 1, _id: 1}});
-
-        if (!game)
-            throw new Meteor.Error(404, "Game not found. Cannot finish round on nonexistent game.");
-
-        if (!game.open)
-        // the game is over. only score screen will display.
-            return gameId;
-
-        if (Votes.find({gameId: gameId, round: game.round}).count() < 1 && Meteor.isServer)
-            throw new Meteor.Error(500, "The judge hasn't voted yet. Cannot finish round.");
-
-        if (Submissions.find({gameId: gameId, round: game.round}).count() < Players.find({gameId: gameId, connected: true}).count() - 1) {
-            throw new Meteor.Error(500, "Not enough players have submitted cards in order to finish a round.");
-        }
-
+        // Finish round
         // remove the cards from the player's hands
         _.each(Submissions.find({gameId: gameId, round: game.round}, {fields: {_id: 1, answerId: 1, playerId: 1}}).fetch(), function (submission) {
             if (!submission.answerId || EJSON.equals(submission.answerId, ""))
@@ -185,16 +161,10 @@ Meteor.methods({
             Hands.remove({gameId: gameId, playerId: submission.playerId, cardId: submission.answerId});
         });
 
-        // put in a new question card
-
-
-        if (game.questionCards && game.questionCards.length > 0 && game.answerCards && game.answerCards.length > 0) {
-            var questionCardId = game.questionCards.pop();
-
-            var nextJudge = Party.currentJudge(game._id);
-
+        if (game.questionCards.length > 0 && game.answerCards.length > 0) {
+            var nextJudge = Players.find({gameId: gameId, connected: true, open: true}, {fields: {_id: 1, userId: 1}, sort: {voted: 1}, limit: 1}).findOne();
             // increment round
-            Games.update({_id: gameId}, {$set: {questionId: questionCardId, modified: new Date().getTime(), judgeId: nextJudge._id, judgeUserId: nextJudge.userId}, $inc: {round: 1, questionCardsCount: -1}, $pop: {questionCards: 1}});
+            Games.update({_id: gameId}, {$set: {modified: new Date().getTime(), judgeId: nextJudge._id, judgeUserId: nextJudge.userId}, $inc: {round: 1, questionCardsCount: -1}});
         } else {
             // Close the game
             Games.update({_id: gameId}, {$set: {open: false}});
@@ -202,7 +172,7 @@ Meteor.methods({
             Players.update({gameId: gameId}, {$set: {open: false}});
         }
 
-        return gameId;
+        return winner._id;
     },
 
     // Kick a player
