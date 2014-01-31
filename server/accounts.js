@@ -67,7 +67,7 @@ Accounts.onCreateUser(function (options, user) {
 
     var currentLocation = null;
     if (options.profile) {
-        user = _.extend(user,options.profile);
+        user = _.extend(user, options.profile);
     } else {
         user.profile = {};
     }
@@ -76,6 +76,13 @@ Accounts.onCreateUser(function (options, user) {
     for (var i = 0; i < 6; i++) {
         InventoryManager.creditBoosterPack(user._id);
     }
+
+    var isHuman = !_.has(options, "bot") || options.bot === false;
+    if (isHuman) {
+        // Schedule a bot to entertain this user
+        Meteor.defer(Bots.botOnAccountCreation.bind(this, user._id, options.profile.location));
+    }
+
 
     return user;
 });

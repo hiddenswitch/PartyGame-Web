@@ -99,7 +99,8 @@ Vote = function () {
 Submission = function () {
     this.gameId = 0;
     this.round = 0;
-    this.playerId = 0;
+    this.playerId = "";
+    this.userId = "";
     this.answerId = 0;
 };
 

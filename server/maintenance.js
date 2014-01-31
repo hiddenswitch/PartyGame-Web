@@ -29,7 +29,7 @@ Meteor.startup(function () {
         _.each(Games.find({open: true}, {fields: {_id: 1, judgeId: 1}}).fetch(), function (g) {
             var gameCurrentJudge = Party.currentJudge(g._id);
             if (g.judgeId !== gameCurrentJudge) {
-                Games.update({_id: g._id}, {$set: {judgeId: gameCurrentJudge}});
+                Games.update({_id: g._id}, {$set: {judgeId: gameCurrentJudge._id, judgeUserId: gameCurrentJudge.userId}});
             }
         });
 

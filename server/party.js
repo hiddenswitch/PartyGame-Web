@@ -44,6 +44,9 @@ Party = {
 
         var submission = Submissions.findOne({gameId: gameId, playerId: playerId, round: game.round});
 
+        // Play a bot turn if possible
+        Meteor.defer(Bots.botOnFinishRoundOrSubmittedAnswerCard.bind(this, gameId));
+
         if (submission) {
             Submissions.update({_id: submission._id}, {$set: {answerId: answerId}});
             return submission._id;
@@ -52,6 +55,7 @@ Party = {
                 gameId: gameId,
                 round: game.round,
                 playerId: playerId,
+                userId: userId,
                 answerId: answerId
             });
         }
@@ -69,36 +73,31 @@ Party = {
 
         var playerId = Party._getPlayerId(gameId, userId);
 
-        var judgeId = Party.currentJudge(game._id);
-        var judge = Players.findOne({_id: judgeId});
+        var judge = Party.currentJudge(game._id);
 
         if (!judge) {
-            throw new Meteor.Error(404, "Judge with id " + judgeId.toString() + " not found.");
+            throw new Meteor.Error(404, "Judge with id " + judge._id.toString() + " not found.");
         }
 
 
-        if (playerId != judgeId) {
+        if (playerId != judge._id) {
             // Update the current judge.
-            Games.update({_id: gameId}, {$set: {judgeId: judgeId}});
+            Games.update({_id: gameId}, {$set: {judgeId: judge._id, judgeUserId: judge.userId}});
             throw new Meteor.Error(500, "It's not your turn to judge! Updating judge.");
         }
 
-
-        var submission = Submissions.findOne({_id: submissionId});
-        var submissionCount = Submissions.find({gameId: gameId, round: game.round}).count();
-        var connectedCount = Players.find({gameId: gameId, connected: true}).count();
-
-        if (submissionCount < connectedCount - 1) {
+        if (!Party.canJudge(gameId)) {
             throw new Meteor.Error(500, "Wait until everyone connected has submitted a card!");
         }
 
+        var submission = Submissions.findOne({_id: submissionId});
 
         if (!submission) {
             throw new Meteor.Error(404, "Submission not found.");
         }
 
 
-        if (EJSON.equals(submission.playerId, judgeId)) {
+        if (EJSON.equals(submission.playerId, judge._id)) {
             Submissions.remove({_id: submission._id});
             throw new Meteor.Error(500, "You cannot pick your own card as the winning card.");
         }
@@ -116,8 +115,20 @@ Party = {
             Votes.update({_id: winner._id}, {$set: {playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId}});
             return winner._id;
         } else {
-            return Votes.insert({gameId: gameId, round: game.round, judgeId: judgeId, playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId});
+            return Votes.insert({gameId: gameId, round: game.round, judgeId: judge._id, judgeUserId: judge.userId, playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId});
         }
+    },
+
+    closeGame: function (gameId) {
+        // Close the game document. If no documents were affected, throw an error.
+        if (Games.update({_id: gameId, open: true}, {$set: {open: false}, modified: new Date().getTime()}) === 0) {
+            throw new Meteor.Error(500, "This game is already closed or cannot be found.");
+        }
+
+        // Close the players
+        Players.update({gameId: gameId}, {$set: {open: false}});
+        // Remove this gameId from the users' list of openGameIds
+        Meteor.users.update({openGameIds: gameId}, {$pullAll: {openGameIds: gameId}});
     },
 
     finishRound: function (gameId) {
@@ -157,24 +168,23 @@ Party = {
         });
 
         // put in a new question card
-
-
         if (game.questionCards && game.questionCards.length > 0 && game.answerCards && game.answerCards.length > 0) {
             var questionCardId = game.questionCards.pop();
 
             var nextJudge = Party.currentJudge(game._id);
 
             // increment round
-            Games.update({_id: gameId}, {$set: {questionId: questionCardId, modified: new Date().getTime(), judgeId: nextJudge}, $inc: {round: 1, questionCardsCount: -1}, $pop: {questionCards: 1}});
+            Games.update({_id: gameId}, {$set: {questionId: questionCardId, modified: new Date().getTime(), judgeId: nextJudge._id, judgeUserId: nextJudge.userId}, $inc: {round: 1, questionCardsCount: -1}, $pop: {questionCards: 1}});
 
             // draw new cards
             Party.drawHands(gameId, K_DEFAULT_HAND_SIZE);
         } else {
             // Close the game
-            Games.update({_id: gameId}, {$set: {open: false}});
-            // Close the players
-            Players.update({gameId: gameId}, {$set: {open: false}});
+            Party.closeGame(gameId);
         }
+
+        // Make a bot in this game play a turn
+        Meteor.defer(Bots.botOnFinishRoundOrSubmittedAnswerCard.bind(this, gameId));
 
         return gameId;
     },
@@ -201,6 +211,13 @@ Party = {
         return gameId;
     },
 
+    canJudge: function (gameId) {
+        var game = Games.findOne({_id: gameId}, {fields: {round: 1}});
+        var connectedPlayersCount = Players.find({gameId: gameId, connected: true, open: true}).count();
+        var submissionsCount = Submissions.find({gameId: gameId, round: game.round}, {fields: {_id: 1}}).count();
+        return submissionsCount >= connectedPlayersCount - 1 && submissionsCount !== 0;
+    },
+
     quitGame: function (gameId, userId) {
         var game = Games.findOne({_id: gameId}, {fields: {_id: 1, open: 1, ownerId: 1, players: 1}});
 
@@ -222,7 +239,11 @@ Party = {
 
         Players.update({gameId: gameId, userId: userId}, {$set: {connected: false, open: false}});
 
-        return Games.update({_id: gameId}, {$inc: {players: -1}, $pull: {userIds: userId}, $set: {open: open, judgeId: Party.currentJudge(gameId), ownerId: ownerId, modified: new Date().getTime()}});
+        Meteor.users.update({_id: userId}, {$pull: {openGameIds: gameId}, $set: {lastAction: new Date().getTime()}});
+
+        var judge = Party.currentJudge(gameId);
+
+        return Games.update({_id: gameId}, {$inc: {players: -1}, $pullAll: {userIds: userId}, $set: {open: open, judgeId: judge._id, judgeUserId: judge.userId, ownerId: ownerId, modified: new Date().getTime()}});
     },
 
     // Gets the current judge
@@ -231,34 +252,15 @@ Party = {
     // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
     // connects or disconnects.
     currentJudge: function (gameId) {
-        var players = Players.find({gameId: gameId, connected: true, open: true}, {fields: {_id: 1}, sort: {voted: 1}, limit: 1}).fetch();
+        var players = Players.find({gameId: gameId, connected: true, open: true}, {fields: {_id: 1, userId: 1}, sort: {voted: 1}, limit: 1}).fetch();
 
         if (players && players.length > 0) {
-            return players[0]._id;
+            return players[0];
         } else {
             if (!Party.tryCloseGame(gameId)) {
                 throw new Meteor.Error("currentJudge: There are no players in this game!", {gameId: gameId});
             }
         }
-    },
-
-    // Close the game
-    closeGame: function (gameId, userId) {
-        var game = Games.findOne({_id: gameId});
-
-        if (!game)
-            throw new Meteor.Error(404, "closeGame: Cannot find game to end.", {gameId: gameId});
-
-        var playerId = Party._getPlayerId(gameId, userId);
-
-        if (!EJSON.equals(game.ownerId, playerId))
-            throw new Meteor.Error(403, "You aren't the owner of the game. You can't close it.");
-
-        if (!game.open)
-            throw new Meteor.Error(500, "This game is already closed.");
-
-        Games.update({_id: gameId}, {$set: {open: false, modified: new Date().getTime()}});
-        return gameId;
     },
 
     heartbeat: function (currentLocation, userId) {
@@ -425,7 +427,7 @@ Party = {
         Games.update({_id: gameId, creatorUserId: userId, $or: [
             {judgeId: null},
             {ownerId: null}
-        ]}, {$set: {ownerId: thisPlayer._id, judgeId: thisPlayer._id}});
+        ]}, {$set: {ownerId: thisPlayer._id, judgeId: thisPlayer._id, judgeUserId: thisPlayer.userId}});
 
         // Update local copy of game
         g.userIds.push(userId);
@@ -434,10 +436,10 @@ Party = {
         Games.update({_id: gameId}, {$inc: {players: 1}, $addToSet: {userIds: userId, playerIds: thisPlayer._id, playerNames: thisPlayer.name}, $set: {modified: new Date().getTime()}});
 
         // Update the heartbeat and the game ID
-        Meteor.users.update({_id: userId}, {$set: {inGame: false, heartbeat: new Date().getTime()}, $addToSet: {gameIds: gameId}});
+        Meteor.users.update({_id: userId}, {$set: {lastAction: new Date().getTime(), inGame: true, heartbeat: new Date().getTime()}, $addToSet: {gameIds: gameId, openGameIds: gameId}});
 
         // Update the ACLs for the users
-        Meteor.users.update({gameIds: gameId}, {$addToSet: {acl: {$each: g.userIds}}}, {multi: true});
+        Meteor.users.update({openGameIds: gameId}, {$addToSet: {acl: {$each: g.userIds}}}, {multi: true});
 
         // Draw hands for all users
         Party.drawHands(gameId, K_DEFAULT_HAND_SIZE);
@@ -525,6 +527,7 @@ Party = {
             created: new Date().getTime(),
             modified: new Date().getTime(),
             judgeId: null,
+            judgeUserId: null,
             userIds: [],
             botLust: true,
             location: location ? [location[0], location[1]] : null,

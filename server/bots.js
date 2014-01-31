@@ -4,6 +4,20 @@
  **/
 
 Bots = {
+    count: 100,
+
+    statistics: {
+        botActions: 0,
+        botSubmittedCards: 0,
+        botVotes: 0,
+        botRejoins: 0,
+        botDrewHands: 0,
+        doNothing: 0,
+        tryAgains: 0,
+        gamesWithNoBots: 0,
+        joins: 0
+    },
+
     fillGameWithBots: function (gameId, size) {
         size = size || K_PREFERRED_GAME_SIZE - 3;
         var g = Games.findOne({_id: gameId}, {fields: {players: 1}});
@@ -11,18 +25,18 @@ Bots = {
 
         if (g && g.players < size) {
             for (var i = 0; i < size - g.players; i++) {
-                joins += Bots.botJoinGame(gameId);
+                Bots.botJoinGame(gameId);
             }
         } else {
             return 0;
         }
 
-        return joins;
+        Bots.statistics.joins += joins;
     },
 
     botJoinOrCreateGame: function (botId) {
         var gameId = Party.findGameWithFewPlayers(5);
-        botId = botId || Bots.getOnlineBotUser();
+        botId = botId || Bots.get();
         if (gameId) {
             return Bots.botJoinGame(gameId, botId);
         } else {
@@ -31,7 +45,7 @@ Bots = {
     },
 
     createEmptyBotGameAndJoin: function (botId) {
-        botId = botId || Bots.getOnlineBotUser();
+        botId = botId || Bots.get();
 
         var gameId = Party.createEmptyGame("", "", null, botId);
 
@@ -45,7 +59,8 @@ Bots = {
 
     botJoinGame: function (gameId, botId) {
         // Get a bot
-        botId = botId || Bots.getOnlineBotUser();
+        botId = botId || Bots.get();
+        console.log("did get bot: " + botId);
         if (!botId) {
             console.log("Could not create a bot.");
             return false;
@@ -62,128 +77,94 @@ Bots = {
         }
     },
 
-    botsEvaluate: function (tick) {
-        var o = {
-            botActions: 0,
-            botSubmittedCards: 0,
-            botVotes: 0,
-            botRejoins: 0,
-            botDrewHands: 0,
-            doNothing: 0,
-            tryAgains: 0,
-            botsNotInGame: Meteor.users.find({bot: true, inGame: false}).count()
-        };
+    delay: function (bot) {
+        // TODO: Make this a useful delay again.
+        return 2000;
+    },
 
-        var botJoinGame = function (bot) {
+    /**
+     * Find a bot in the game and play its turn
+     * @param gameId
+     */
+    botOnFinishRoundOrSubmittedAnswerCard: function (gameId) {
+        // Get this game
+        var game = Games.findOne({_id: gameId});
+        // Find submissions in this current round
+        var submissions = Submissions.find({gameId: gameId, round: game.round}).fetch();
+
+        // Find a bot that hasn't yet submitted an answer card and isn't a judge
+        var bot = Meteor.users.findOne({openGameIds: gameId, _id: {$nin: _.pluck(submissions, "userId").concat([game.judgeUserId])}}) ||
+            // If there are no bots that haven't submitted answer cards, and there are sufficient submissions to judge, and
+            // the judge is a bot, make the judge bot judge.
+            (Party.canJudge(game._id) ? Meteor.users.findOne({_id: game.judgeUserId, bot: true}) : null);
+
+        if (bot != null) {
+            Meteor.setTimeout(Bots._botPlayPartyTurn.bind(this, game, Players.findOne({userId: bot._id}), bot, Bots.statistics), Bots.delay(bot));
+        } else {
+            Bots.statistics.gamesWithNoBots++;
+        }
+    },
+
+    /**
+     * Make a game for the recently joined player to play in if there isn't a game for them to play.
+     * @param userId
+     */
+    botOnAccountCreation: function (userId, location) {
+        var gameId = Party.findGameWithFewPlayers(5);
+
+        if (gameId !== false) {
             return;
-        };
-
-        if (Meteor.settings.rejoinGames) {
-            botJoinGame = function (bot) {
-                o.botRejoins += Bots.botJoinOrCreateGame(bot._id);
-            };
-            // Find bots whose period is up
-
-            // De-synchronize the bot process
-            var botsNotInGame = Meteor.users.find({bot: true, inGame: false}, {fields: {_id: 1}}).fetch();
-
-            _.each(botsNotInGame, function (bot) {
-                botJoinGame(bot);
-            });
         }
 
-        var bots = Meteor.users.find({bot: true, inGame: true, period: tick % 20}).fetch();
-        if (bots && bots.length > 0) {
-            // Determine the state of the game, and perform the relevant action
-            _.each(bots, function (bot) {
-                // Perform method calls as this bot by using the impersonation capabilities in the methods.
-                var players = Players.find({userId: bot._id, open: true}, {fields: {_id: 1, gameId: 1}}).fetch();
-                if (players && players.length > 0) {
-                    _.each(players, function (player) {
-                        var game = Games.findOne({_id: player.gameId, open: true}, {fields: {_id: 1, judgeId: 1, open: 1, round: 1}});
+        var bot = Bots.get();
 
-                        if (game != null) {
+        gameId = Party.createEmptyGame(null, null, location, bot._id);
 
-                            var isJudge = (game.judgeId === player._id);
+        Bots.fillGameWithBots(gameId, 6);
+    },
 
-                            // If the bot is the judge and all the submissions are in, choose a random answer card. Be a little efficient about it.
-                            if (isJudge) {
-                                // Get the submissions for this game
-                                var submissionsCursor = Submissions.find({gameId: player.gameId, round: game.round, playerId: {$ne: player._id}}, {fields: {_id: 1}});
-                                var submissionsCount = submissionsCursor.count();
+    _botPlayPartyTurn: function (game, player, user, statistics) {
+        if (game.open) {
+            var isJudge = (game.judgeId === player._id);
 
-                                // Get the number of connected players
-                                var connectedPlayersCount = Players.find({gameId: player.gameId, connected: true, open: true}).count();
-
-                                // If it's possible to judge, judge.
-                                if (submissionsCount >= connectedPlayersCount - 1 && submissionsCount !== 0) {
-                                    // Judge a random card
-                                    submissionsCursor.rewind();
-                                    Party.pickWinner(game._id,
-                                        _.first(_.shuffle(submissionsCursor.fetch()))._id,
-                                        bot._id);
-                                    Party.finishRound(game._id);
-
-                                }
-                                o.botVotes++;
-                                o.botActions++;
-                            } else
-                            // Otherwise, if the bot hasn't submitted an answer, submit an answer.
-                            if (Submissions.find({playerId: player._id, gameId: game._id, round: game.round}).count() === 0) {
-                                var hand = Hands.find({playerId: player._id, gameId: game._id}, {_id: 1, cardId: 1}).fetch();
-                                if (hand == null || hand.length < K_DEFAULT_HAND_SIZE) {
-                                    Party.drawHands(game._id);
-                                    o.botDrewHands++;
-                                } else {
-                                    var answerId = _.first(_.shuffle(hand)).cardId;
-                                    Party.submitAnswerCard(
-                                        game._id,
-                                        answerId,
-                                        bot._id);
-                                    o.botSubmittedCards++;
-                                }
-                                o.botActions++;
-                            } else
-                            // Do nothing...
-                            {
-                                o.doNothing++;
-                            }
-                        } else {
-                            Meteor.users.update({_id: bot._id}, {$set: {inGame: false}});
-                            Players.update({_id: player._id}, {$set: {open: false}});
-                            botJoinGame(bot);
-                        }
-                        // We have done all possible actions in the game.
-                    });
+            // If the bot is the judge and all the submissions are in, choose a random answer card. Be a little efficient about it.
+            if (isJudge && Party.canJudge(game._id)) {
+                var submissions = Submissions.find({gameId: player.gameId, round: game.round, playerId: {$ne: player._id}}, {fields: {_id: 1}}).fetch();
+                Party.pickWinner(game._id,
+                    _.first(_.shuffle(submissions))._id,
+                    user._id);
+                Party.finishRound(game._id);
+                statistics.botVotes++;
+                statistics.botActions++;
+            } else
+            // Otherwise, if the bot hasn't submitted an answer, submit an answer.
+            if (Submissions.find({playerId: player._id, gameId: game._id, round: game.round}).count() === 0) {
+                var hand = Hands.find({playerId: player._id, gameId: game._id}, {_id: 1, cardId: 1}).fetch();
+                if (hand == null || hand.length < K_DEFAULT_HAND_SIZE) {
+                    Party.drawHands(game._id);
+                    statistics.botDrewHands++;
                 } else {
-                    // Rejoin a game.
-                    botJoinGame(bot);
+                    var answerId = _.first(_.shuffle(hand)).cardId;
+                    Party.submitAnswerCard(
+                        game._id,
+                        answerId,
+                        user._id);
+                    statistics.botSubmittedCards++;
                 }
-            });
+                statistics.botActions++;
+            } else
+            // Do nothing...
+            {
+                statistics.doNothing++;
+            }
+        } else {
+            Party.quitGame(game._id, user._id);
+            statistics.doNothing++;
         }
-        return o;
+
+        return statistics;
     },
 
-    entertainmentDelay: 800,
-    tick: 0,
-    _startup: function () {
-        var users = Meteor.users.find({
-            bot: {$ne: true},
-            $or: [
-                {unjudgedQuestionsCount: {$gt: 1}},
-                {unansweredHistoriesCount: {$lt: 3}},
-                {pendingJudgeCount: {$lt: 2}}
-            ]}, {fields: {_id: 1}}).fetch();
-        _.each(users, function (user) {
-            Bots.onlineBotPlayWithUser(user._id);
-        });
-
-        // Tick the party mode bots
-        Bots.botsEvaluate(Bots.tick);
-
-        Bots.tick++;
-        Meteor.setTimeout(Bots._startup, Bots.entertainmentDelay);
-    },
     extendUserDocumentWithBotSettings: function (profile) {
         var userSchemaExtension = {};
 
@@ -195,15 +176,15 @@ Bots = {
         return _.extend(profile, userSchemaExtension);
     },
 
-    getOnlineBotUser: function () {
+    get: function () {
         var now = new Date().getTime();
 
         // returns the id of a bot user.
-        var bot = Meteor.users.findOne({bot: true, lastAction: {$lt: now - K_10_MINUTES}, inGame: false}, {limit: 1, sort: {lastAction: 1}});
+        var bot = Meteor.users.findOne({bot: true}, {sort: {lastAction: 1}});
 
         if (bot == null) {
             // Create a bot
-            bot = {_id: Bots.createOnlineBot()};
+            bot = {_id: Bots.create()};
         }
 
         if (bot._id == null) {
@@ -213,7 +194,7 @@ Bots = {
         return bot._id;
     },
 
-    createOnlineBot: function () {
+    create: function () {
         var now = new Date().getTime();
 
         var userIdPadding = Random.id();
@@ -229,6 +210,7 @@ Bots = {
         }
 
         var botId = Accounts.createUser({
+            bot: true,
             username: nickname,
             email: userIdPadding + "@redactedonline.com",
             password: password,
@@ -421,7 +403,7 @@ Bots = {
     onlineBotPlayWithUserByCreatingLocalGame: function (userId, location) {
         var now = new Date().getTime();
 
-        var ownerBotId = Bots.getOnlineBotUser();
+        var ownerBotId = Bots.get();
         var gameId = Party.createEmptyGame("", "", location, ownerBotId);
 
         Bots.botJoinGame(gameId, ownerBotId);
@@ -453,7 +435,7 @@ Bots = {
 
         // Make bots submit answers
         for (; question.answerCount < question.minimumAnswerCount; question.answerCount++) {
-            Bots.onlineBotAppendAnswer(question._id, Bots.getOnlineBotUser());
+            Bots.onlineBotAppendAnswer(question._id, Bots.get());
         }
 
         // Coerce the player as the judge
@@ -484,7 +466,7 @@ Bots = {
                     userId: userId,
                     reason: "insufficient answers for questionId {0}".format(waitingAnswer.questionId),
                     method: "onlineBotAppendAnswer",
-                    result: Bots.onlineBotAppendAnswer(waitingAnswer.questionId, Bots.getOnlineBotUser())
+                    result: Bots.onlineBotAppendAnswer(waitingAnswer.questionId, Bots.get())
                 };
             } else {
                 // If the question was assigned to a bot, judge the question
@@ -500,6 +482,14 @@ Bots = {
         }
 
         return null;
+    },
+
+    _startup: function () {
+        // Create some number of bots
+        var botCount = Meteor.users.find({bot: true}).count();
+        for (var i = 0; i < Bots.count - botCount; i++) {
+            Bots.create();
+        }
     }
 };
 
