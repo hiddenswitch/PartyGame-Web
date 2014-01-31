@@ -435,16 +435,7 @@ registerTemplates = function() {
 			previewYes = function () {
 				Meteor.call("pickWinner",Session.get(GAME),submissionId,function(e,r){
 					if (r) {
-						Meteor.call("finishRound",Session.get(GAME),function (e,r){
-							if (e) {
-								console.log(e);
-								Session.set(ERROR,e.reason);
-                                $.mobile.changePage('#waitForPlayers');
-							}
-                            if (r) {
-                                $.mobile.changePage('#roundSummary');
-                            }
-						});
+                        $.mobile.changePage('#roundSummary');
 					}
 					if (e) {
 						console.log(e);

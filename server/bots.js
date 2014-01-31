@@ -86,7 +86,7 @@ Bots = {
      * Find a bot in the game and play its turn
      * @param gameId
      */
-    botOnFinishRoundOrSubmittedAnswerCard: function (gameId) {
+    botOnPickedWinnerOrSubmittedAnswerCard: function (gameId) {
         // Get this game
         var game = Games.findOne({_id: gameId});
         // Find submissions in this current round
@@ -133,7 +133,6 @@ Bots = {
                 Party.pickWinner(game._id,
                     _.first(_.shuffle(submissions))._id,
                     user._id);
-                Party.finishRound(game._id);
                 statistics.botVotes++;
                 statistics.botActions++;
             } else

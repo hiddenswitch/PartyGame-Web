@@ -45,7 +45,7 @@ Party = {
         var submission = Submissions.findOne({gameId: gameId, playerId: playerId, round: game.round});
 
         // Play a bot turn if possible
-        Meteor.defer(Bots.botOnFinishRoundOrSubmittedAnswerCard.bind(this, gameId));
+        Meteor.defer(Bots.botOnPickedWinnerOrSubmittedAnswerCard.bind(this, gameId));
 
         if (submission) {
             Submissions.update({_id: submission._id}, {$set: {answerId: answerId}});
@@ -62,7 +62,7 @@ Party = {
     },
 
     pickWinner: function (gameId, submissionId, userId) {
-        var game = Games.findOne({_id: gameId}, {fields: {_id: 1, open: 1, questionId: 1, round: 1}});
+        var game = Games.findOne({_id: gameId}, {fields: {_id: 1, open: 1, questionId: 1, round: 1, questionCards: 1, answerCards: 1, questionCardsCount: 1, answerCardsCount: 1}});
 
         if (!game)
             throw new Meteor.Error(404, "No game found to submit answer card to.");
@@ -113,41 +113,8 @@ Party = {
 
         if (winner) {
             Votes.update({_id: winner._id}, {$set: {playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId}});
-            return winner._id;
         } else {
-            return Votes.insert({gameId: gameId, round: game.round, judgeId: judge._id, judgeUserId: judge.userId, playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId});
-        }
-    },
-
-    closeGame: function (gameId) {
-        // Close the game document. If no documents were affected, throw an error.
-        if (Games.update({_id: gameId, open: true}, {$set: {open: false}, modified: new Date().getTime()}) === 0) {
-            throw new Meteor.Error(500, "This game is already closed or cannot be found.");
-        }
-
-        // Close the players
-        Players.update({gameId: gameId}, {$set: {open: false}});
-        // Remove this gameId from the users' list of openGameIds
-        Meteor.users.update({openGameIds: gameId}, {$pullAll: {openGameIds: gameId}});
-    },
-
-    finishRound: function (gameId) {
-        var game = Games.findOne({_id: gameId}, {fields: {open: 1, round: 1, questionCards: 1, answerCards: 1, _id: 1}});
-
-        if (!game)
-            throw new Meteor.Error(404, "Game not found. Cannot finish round on nonexistent game.");
-
-        if (!game.open)
-        // the game is over. only score screen will display.
-            return gameId;
-
-        if (Votes.find({gameId: gameId, round: game.round}).count() < 1 && !this.isSimulation) {
-            throw new Meteor.Error(500, "The judge hasn't voted yet. Cannot finish round.");
-        }
-
-
-        if (Submissions.find({gameId: gameId, round: game.round}).count() < Players.find({gameId: gameId, connected: true}).count() - 1) {
-            throw new Meteor.Error(500, "Not enough players have submitted cards in order to finish a round.");
+            winner = {_id: Votes.insert({gameId: gameId, round: game.round, judgeId: judge._id, judgeUserId: judge.userId, playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId})};
         }
 
         // remove the cards from the player's hands
@@ -184,9 +151,21 @@ Party = {
         }
 
         // Make a bot in this game play a turn
-        Meteor.defer(Bots.botOnFinishRoundOrSubmittedAnswerCard.bind(this, gameId));
+        Meteor.defer(Bots.botOnPickedWinnerOrSubmittedAnswerCard.bind(this, gameId));
 
-        return gameId;
+        return winner._id;
+    },
+
+    closeGame: function (gameId) {
+        // Close the game document. If no documents were affected, throw an error.
+        if (Games.update({_id: gameId, open: true}, {$set: {open: false, modified: new Date().getTime()}}) === 0) {
+            throw new Meteor.Error(500, "This game is already closed or cannot be found.");
+        }
+
+        // Close the players
+        Players.update({gameId: gameId}, {$set: {open: false}});
+        // Remove this gameId from the users' list of openGameIds
+        Meteor.users.update({openGameIds: gameId}, {$pullAll: {openGameIds: gameId}});
     },
 
     kickPlayer: function (gameId, kickId, userId) {
