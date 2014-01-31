@@ -62,6 +62,8 @@ Party = {
     },
 
     pickWinner: function (gameId, submissionId, userId) {
+        var now = new Date().getTime();
+
         var game = Games.findOne({_id: gameId}, {fields: {_id: 1, open: 1, questionId: 1, round: 1, questionCards: 1, answerCards: 1, questionCardsCount: 1, answerCardsCount: 1}});
 
         if (!game)
@@ -79,7 +81,6 @@ Party = {
             throw new Meteor.Error(404, "Judge with id " + judge._id.toString() + " not found.");
         }
 
-
         if (playerId != judge._id) {
             // Update the current judge.
             Games.update({_id: gameId}, {$set: {judgeId: judge._id, judgeUserId: judge.userId}});
@@ -87,7 +88,10 @@ Party = {
         }
 
         if (!Party.canJudge(gameId)) {
+            var currentJudge = Party.currentJudge(gameId);
+            Games.update({_id: gameId}, {$set: {judgeId: currentJudge._id, judgeUserId: currentJudge.userId}});
             throw new Meteor.Error(500, "Wait until everyone connected has submitted a card!");
+            return;
         }
 
         var submission = Submissions.findOne({_id: submissionId});
@@ -109,29 +113,38 @@ Party = {
         var winner = Votes.findOne({gameId: gameId, round: game.round});
 
         // Mark that this user just voted
-        Players.update({_id: playerId}, {$set: {voted: new Date().getTime()}});
+        Meteor.users.update({_id: userId}, {$set: {lastAction: now}})
+        Players.update({_id: playerId}, {$set: {voted: now}});
 
         if (winner) {
             Votes.update({_id: winner._id}, {$set: {playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId}});
         } else {
-            winner = {_id: Votes.insert({gameId: gameId, round: game.round, judgeId: judge._id, judgeUserId: judge.userId, playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId})};
+            winner = {_id: Votes.insert({
+                gameId: gameId,
+                round: game.round,
+                judgeId: judge._id,
+                judgeUserId: judge.userId,
+                playerId: submission.playerId,
+                questionId: game.questionId,
+                answerId: submission.answerId
+            })};
         }
 
         // remove the cards from the player's hands
-        _.each(Submissions.find({gameId: gameId, round: game.round}, {fields: {_id: 1, answerId: 1, playerId: 1}}).fetch(), function (submission) {
+        _.each(Submissions.find({gameId: gameId, round: game.round}, {fields: {_id: 1, answerId: 1, userId: 1}}).fetch(), function (submission) {
             if (!submission.answerId || EJSON.equals(submission.answerId, "")) {
                 throw new Meteor.Error(500, "Somebody submitted a redacted answer. Try again!");
             }
 
             // does this player have this card in his hand?
-            var hand = Hands.find({playerId: submission.playerId, gameId: gameId, cardId: submission.answerId}).count();
+            var hand = Hands.find({userId: submission.userId, gameId: gameId, cardId: submission.answerId}).count();
 
             if (hand === 0) {
                 var details = {hand: Hands.find({playerId: submission.playerId, gameId: gameId}).fetch(), answerId: submission.answerId, hasInHand: hand};
                 throw new Meteor.Error(505, "You can't submit a card you don't have! " + JSON.stringify(details));
             }
 
-            Hands.remove({gameId: gameId, playerId: submission.playerId, cardId: submission.answerId});
+            Hands.remove({gameId: gameId, userId: submission.userId, cardId: submission.answerId});
         });
 
         // put in a new question card
@@ -141,7 +154,22 @@ Party = {
             var nextJudge = Party.currentJudge(game._id);
 
             // increment round
-            Games.update({_id: gameId}, {$set: {questionId: questionCardId, modified: new Date().getTime(), judgeId: nextJudge._id, judgeUserId: nextJudge.userId}, $inc: {round: 1, questionCardsCount: -1}, $pop: {questionCards: 1}});
+            Games.update({_id: gameId},
+                {
+                    $set: {
+                        questionId: questionCardId,
+                        modified: now,
+                        judgeId: nextJudge._id,
+                        judgeUserId: nextJudge.userId
+                    },
+                    $inc: {
+                        round: 1,
+                        questionCardsCount: -1
+                    },
+                    $pop: {
+                        questionCards: 1
+                    }
+                });
 
             // draw new cards
             Party.drawHands(gameId, K_DEFAULT_HAND_SIZE);
@@ -231,10 +259,10 @@ Party = {
     // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
     // connects or disconnects.
     currentJudge: function (gameId) {
-        var players = Players.find({gameId: gameId, connected: true, open: true}, {fields: {_id: 1, userId: 1}, sort: {voted: 1}, limit: 1}).fetch();
+        var player = Players.findOne({gameId: gameId, connected: true, open: true}, {fields: {_id: 1, userId: 1}, sort: {voted: 1}});
 
-        if (players && players.length > 0) {
-            return players[0];
+        if (player) {
+            return player;
         } else {
             if (!Party.tryCloseGame(gameId)) {
                 throw new Meteor.Error("currentJudge: There are no players in this game!", {gameId: gameId});

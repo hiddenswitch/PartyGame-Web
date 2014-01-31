@@ -93,7 +93,7 @@ Bots = {
         var submissions = Submissions.find({gameId: gameId, round: game.round}).fetch();
 
         // Find a bot that hasn't yet submitted an answer card and isn't a judge
-        var bot = Meteor.users.findOne({openGameIds: gameId, _id: {$nin: _.pluck(submissions, "userId").concat([game.judgeUserId])}}) ||
+        var bot = Meteor.users.findOne({openGameIds: gameId, bot: true, _id: {$nin: _.pluck(submissions, "userId").concat([game.judgeUserId])}}) ||
             // If there are no bots that haven't submitted answer cards, and there are sufficient submissions to judge, and
             // the judge is a bot, make the judge bot judge.
             (Party.canJudge(game._id) ? Meteor.users.findOne({_id: game.judgeUserId, bot: true}) : null);
