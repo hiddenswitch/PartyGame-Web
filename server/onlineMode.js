@@ -464,7 +464,7 @@ OnlineModeManager = {
         if (eligibleUser == null) {
             assignedQuestionToBot = true;
 
-            eligibleUser = {_id: Bots.getOnlineBotUser(), lastAction: now};
+            eligibleUser = {_id: Bots.get(), lastAction: now};
         }
 
         // Did we find a bot? If not, diagnose.
