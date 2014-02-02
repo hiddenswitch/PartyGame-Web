@@ -16,6 +16,10 @@ Party = {
         }
     },
 
+    notifyPlayers: function(gameId) {
+        // If there are players whom we're waiting on, and we've been waiting more than five minutes
+    },
+
     submitAnswerCard: function (gameId, answerId, userId) {
         var game = Games.findOne({_id: gameId});
 
@@ -46,6 +50,8 @@ Party = {
 
         // Play a bot turn if possible
         Meteor.defer(Bots.botOnPickedWinnerOrSubmittedAnswerCard.bind(this, gameId));
+
+        // Send a push notification if we're waiting on a player
 
         if (submission) {
             Submissions.update({_id: submission._id}, {$set: {answerId: answerId}});

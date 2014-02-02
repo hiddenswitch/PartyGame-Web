@@ -24,7 +24,7 @@ feedback.on("feedback", function (devices) {
     });
 });
 
-NotificationService = {
+Notifications = {
     /**
      * Send a notification to a given query of users
      * @param {object} query The query to execute on the Meteor.users collection for the users to message
@@ -35,35 +35,43 @@ NotificationService = {
         var users = Meteor.users.find(query).fetch();
         Meteor.sync(function (done) {
             _(users).each(function (user) {
-                console.log(JSON.stringify(user));
                 if (user.runtimePlatform == "IPhonePlayer" && user.deviceToken != null) {
                     connection.pushNotification(notification, new apn.Device(user.deviceToken));
                 }
             });
+
             done();
         });
-    }
-}
+    },
 
-Meteor.methods({
-    registerForPush: function (runtimePlatform, deviceToken) {
-        if (this.userId == null) {
-            throw new Meteor.Error(503, "Permission denied.");
-        }
-
-        console.log("registerForPush: " + runtimePlatform + " " + deviceToken);
-
+    /**
+     * Register for push notifications. Returns true if successful.
+     * @param runtimePlatform
+     * @param deviceToken
+     * @returns {boolean}
+     */
+    registerForPush: function (runtimePlatform, deviceToken, userId) {
         Meteor.users.update({_id: this.userId}, {$set: {
             runtimePlatform: runtimePlatform,
             deviceToken: deviceToken
         }});
 
         return true;
-    },
+    }
+}
 
-    sendNotification: function (query, notification) {
-//        checkAdmin(this.userId);
+Meteor.methods({
+    /**
+     * Register for push notifications. Returns true if successful.
+     * @param runtimePlatform
+     * @param deviceToken
+     * @returns {boolean}
+     */
+    registerForPush: function (runtimePlatform, deviceToken) {
+        if (this.userId == null) {
+            throw new Meteor.Error(503, "Permission denied.");
+        }
 
-//        NotificationService.sendNotification(query, notification);
+        return Notifications.registerForPush(runtimePlatform, deviceToken, this.userId);
     }
 });
