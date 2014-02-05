@@ -515,7 +515,7 @@ OnlineModeManager = {
 Meteor.methods({
     sendQuestion: function (questionCardId, toUserIds) {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return OnlineModeManager.sendQuestion(questionCardId, toUserIds, this.userId);
@@ -523,7 +523,7 @@ Meteor.methods({
 
     writeAnswer: function (historyId, answerCardId) {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return OnlineModeManager.writeAnswer(historyId, answerCardId, this.userId);
@@ -531,7 +531,7 @@ Meteor.methods({
 
     getQuestionForUser: function () {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return OnlineModeManager.getQuestionForUser(this.userId);
@@ -539,7 +539,7 @@ Meteor.methods({
 
     pickAnswer: function (answerId) {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return OnlineModeManager.pickAnswer(answerId, this.userId);
@@ -547,7 +547,7 @@ Meteor.methods({
 
     assignJudgeToQuestion: function (questionId) {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return OnlineModeManager.assignJudgeToQuestion(questionId, this.userId);
