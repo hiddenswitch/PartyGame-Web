@@ -583,7 +583,7 @@ Meteor.methods({
 
     joinGameWithTitle: function (title) {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return Party.joinGameWithTitle(title, this.userId);
@@ -591,7 +591,7 @@ Meteor.methods({
 
     joinOrCreateGameWithTitle: function (title) {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return Party.joinOrCreateGameWithTitle(title, this.userId);
@@ -600,7 +600,7 @@ Meteor.methods({
     // Join a game
     joinGame: function (gameId) {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return Party.joinGame(gameId, this.userId);
@@ -623,7 +623,7 @@ Meteor.methods({
     // optional password
     createEmptyGame: function (title, password, location) {
         if (!this.userId) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
 
         return Party.createEmptyGame(title, password, location, this.userId)

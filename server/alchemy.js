@@ -54,7 +54,7 @@ AlchemyManager = {
 Meteor.methods({
     combineCardsForUser: function (adjectiveCardId, nounCardId) {
         if (this.userId == null) {
-            throw new Meteor.Error(403, "Permission denied.");
+            throw new Meteor.Error(503, "Permission denied.");
         }
         
         return AlchemyManager.combineCardsForUser(adjectiveCardId, nounCardId, this.userId);
