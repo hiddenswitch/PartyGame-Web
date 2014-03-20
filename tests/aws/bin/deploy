@@ -1,2 +1,0 @@
-#!/bin/sh
-ssh -n -f -i ~/Dropbox/Redacted/AWS/redactedOnlineEastAWS.pem ubuntu@redactedonline.com "sh ~/deploy"
