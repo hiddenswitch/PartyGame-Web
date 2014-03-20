@@ -1,2 +1,0 @@
-#!/bin/sh
-ssh -n -f -i ~/***REMOVED*** ubuntu@redactedonline.com "sh ~/deploy"
