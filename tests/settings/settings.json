@@ -1,0 +1,24 @@
+{
+    "useFql": false,
+    "rejoinGames": true,
+    "useBots": true,
+    "public": {
+        "facebook": {
+            "appId": "facebook app id"
+        }
+    },
+    "apns": {
+        "key": "apns/key.pem, or the path in the private directory that leads to your apns key",
+        "certificate": "apns/aps_development.pem, your development key for apns",
+        "gateway": "gateway.sandbox.push.apple.com",
+        "debug": true
+    },
+    "facebook": {
+        "appSecret": "facebook app secret",
+        "appId": "facebook app id"
+    },
+    "google": {
+        "clientId": "google client id",
+        "clientSecret": "google client secret"
+    }
+}
