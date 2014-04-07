@@ -4,14 +4,6 @@
  **/
 Template.judgeQuestion.rendered = defaultRendered;
 Template.judgeQuestion.created = defaultCreated;
-Template.judgeQuestion.preserve({
-    'li[id]': function (node) {
-        return node.id;
-    },
-    'h2[id]': function (node) {
-        return node.id;
-    }
-});
 
 Template.judgeQuestion.events = {
     'click a': function (e) {

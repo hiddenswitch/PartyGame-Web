@@ -51,7 +51,6 @@ Template.game.lastVote = function() {
 
 Template.game.rendered = refreshListviewsAndCreateButtons;
 Template.game.created = defaultCreated;
-Template.game.preserve(defaultPreserve);
 
 Handlebars.registerHelper("gameGame",Template.game.game);
 Handlebars.registerHelper("gameTitle",Template.game.title);

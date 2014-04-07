@@ -5,30 +5,30 @@
 
 // URL handler
 invitedHistoryId = null;
-Meteor.Router.add({
-    /**
-     * Handle a game invitation
-     * @param gameTitle
-     */
-    '/g/:gameTitle': function (gameTitle) {
-        Session.set("invite", gameTitle);
-        Meteor.defer(function () {
-            $.mobile.changePage('#invitation');
-        });
-    },
-    /**
-     * Handle a history invite.
-     * @param historyId
-     */
-    '/i/:historyId': function (historyId) {
-        invitedHistoryId = historyId;
-        loginAnonymouslyCallback = backToHistory;
-        Session.set("history", Histories.findOne({_id: historyId}) || {_id: historyId});
-        Meteor.defer(function () {
-            $.mobile.changePage('#history');
-        });
-    }
-});
+//Meteor.Router.add({
+//    /**
+//     * Handle a game invitation
+//     * @param gameTitle
+//     */
+//    '/g/:gameTitle': function (gameTitle) {
+//        Session.set("invite", gameTitle);
+//        Meteor.defer(function () {
+//            $.mobile.changePage('#invitation');
+//        });
+//    },
+//    /**
+//     * Handle a history invite.
+//     * @param historyId
+//     */
+//    '/i/:historyId': function (historyId) {
+//        invitedHistoryId = historyId;
+//        loginAnonymouslyCallback = backToHistory;
+//        Session.set("history", Histories.findOne({_id: historyId}) || {_id: historyId});
+//        Meteor.defer(function () {
+//            $.mobile.changePage('#history');
+//        });
+//    }
+//});
 
 // Template definition
 Template.invitation.title = function () {
