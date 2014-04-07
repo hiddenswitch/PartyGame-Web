@@ -5,17 +5,14 @@
     <div data-role="header" data-position="fixed">
         <a href="#home" data-icon="arrow-l">Menu</a>
         <h1 id="roundSummaryHeader">
-            {{#isolate}}
 
             Round {{gameRound}} Summary
-            {{/isolate}}
         </h1>
         <a href="#home" data-icon="delete" onclick="quitThisGame()">Quit</a>
     </div>
 
     <div data-role="content">
         <ul id="questionAndAnswerTextList" data-role="listview" data-inset="false" data-divider-theme="c">
-            {{#isolate}}
             {{#if gameLastVote}}
             {{#with gameLastVote}}
             <li data-role="list-divider">{{playerIdToName judgeId}} picked...</li>
@@ -24,7 +21,6 @@
             <li>{{playerIdToName playerId}}</li>
             {{/with}}
             {{/if}}
-            {{/isolate}}
         </ul>
 
         <ul id="judgeList" data-role="listview" data-inset="false" data-divider-theme="c">

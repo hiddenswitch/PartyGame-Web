@@ -3,7 +3,6 @@
 # 'meteor add' and 'meteor remove' will edit this file for you,
 # but you can also edit it by hand.
 
-preserve-inputs
 accounts-base
 accounts-ui
 accounts-password
@@ -12,11 +11,10 @@ accounts-google
 less
 random
 stylus
-handlebar-helpers
 leaflet
 standard-app-packages
 npm
 page-js-ie-support
 http
 http-publish
-router
+service-configuration

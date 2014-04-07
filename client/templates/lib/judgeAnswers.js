@@ -4,7 +4,6 @@
  **/
 Template.judgeAnswers.rendered = defaultRendered;
 Template.judgeAnswers.created = defaultCreated;
-Template.judgeAnswers.preserve(defaultPreserve);
 
 Template.judgeAnswers.answers = function () {
     return _.map(Answers.find({questionId: Session.get("questionId")}, {fields: {_id: 1, cardId: 1}}).fetch(), function (answer) {

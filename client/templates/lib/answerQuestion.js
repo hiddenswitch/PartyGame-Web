@@ -4,7 +4,6 @@
  **/
 Template.answerQuestion.rendered = defaultRendered;
 Template.answerQuestion.created = defaultCreated;
-Template.answerQuestion.preserve(defaultPreserve);
 
 Template.answerQuestion.events = {
     'click a': function (e) {

@@ -1,6 +1,5 @@
 <template name="reviewSubmissions">
     <h3>
-        {{#isolate}}
             {{#if isJudge}}
                 {{#if canJudge}}
                 Pick An Answer
@@ -14,7 +13,7 @@
                 Awaiting Answers {{playersRemainingCount}}
                 {{/if}}
             {{/if}}
-        {{/isolate}}</h3>
+        </h3>
     <ul id="submissionsList" data-role="listview" data-inset="false" data-theme="c">
         {{> submissions}}
     </ul>

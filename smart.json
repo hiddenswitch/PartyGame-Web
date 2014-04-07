@@ -1,7 +1,5 @@
 {
   "packages": {
-    "router": {},
-    "handlebar-helpers": {},
     "leaflet": {},
     "npm": {},
     "iron-router": {},

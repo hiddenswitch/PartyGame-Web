@@ -83,7 +83,6 @@ Template.judge.judgeEmailAddress = function () {
 
 Template.judge.rendered = defaultRendered;
 Template.judge.created = defaultCreated;
-Template.judge.preserve(defaultPreserve);
 
 Template.submissions.isJudge = isJudge;
 Template.submissions.count = function () {
@@ -118,11 +117,9 @@ Template.reviewSubmissions.count = function () {
 Template.reviewSubmissions.rendered = defaultRendered;
 
 Template.reviewSubmissions.created = defaultCreated;
-Template.reviewSubmissions.preserve(defaultPreserve);
 
 Template.reviewSubmissions.canReveal = canReveal;
 
 Template.submissions.rendered = defaultRendered;
 
 Template.submissions.created = defaultCreated;
-Template.submissions.preserve(defaultPreserve);

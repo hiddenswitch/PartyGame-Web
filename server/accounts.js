@@ -2,21 +2,25 @@
  * @author Benjamin Berman
  * © 2012 All Rights Reserved
  **/
-Accounts.loginServiceConfiguration.remove({});
-
-Accounts.loginServiceConfiguration.insert({
-    service: "facebook",
-    appId: Meteor.settings.facebook.appId,
-    clientId: Meteor.settings.facebook.appId,
-    secret: Meteor.settings.facebook.appSecret,
-    appSecret: Meteor.settings.facebook.appSecret
-});
-
-Accounts.loginServiceConfiguration.insert({
-    service: "google",
-    clientId: Meteor.settings.google.clientId,
-    clientSecret: Meteor.settings.google.clientSecret
-});
+if (Meteor.settings
+    && Meteor.settings.facebook
+    && Meteor.settings.facebook.appId) {
+    ServiceConfiguration.configurations.remove({});
+    ServiceConfiguration.configurations.insert({
+        service: "facebook",
+        appId: Meteor.settings.facebook.appId,
+        secret: Meteor.settings.facebook.appSecret
+    });
+    ServiceConfiguration.configurations.insert({
+        service: "google",
+        clientId: Meteor.settings.google.clientId,
+        secret: Meteor.settings.google.clientSecret
+    });
+} else {
+    console.log("Account settings were not configured. Try running the following command:");
+    console.log("mrt --settings tests/settings/settings.json");
+    console.log("with a Facebook App and Google App configured.");
+}
 
 K_INITIAL_COINS = 100;
 

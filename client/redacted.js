@@ -389,7 +389,6 @@ registerTemplates = function() {
 		}
 	};
 
-    Template.question.preserve(defaultPreserve);
     Template.question.rendered = defaultRendered;
 
 	Template.scores.scores = function() {
@@ -401,7 +400,6 @@ registerTemplates = function() {
 
 	Template.scores.rendered = defaultRendered;
 	Template.scores.created = defaultCreated;
-    Template.scores.preserve(defaultPreserve);
 
 
 
@@ -419,8 +417,6 @@ registerTemplates = function() {
 
 	Template.myGames.rendered = defaultRendered;
 	Template.myGames.created = defaultCreated;
-    Template.myGames.preserve(defaultPreserve);
-
 
 
 	Template.submissions.events = {
@@ -488,7 +484,6 @@ registerTemplates = function() {
     Template.nextButtons.created = createAndRefreshButtons;
 
 	Template.hand.created = defaultCreated;
-    Template.hand.preserve(defaultPreserve);
 
 	Template.preview.text = function() {
 		var gameDoc = Games.findOne({_id:Session.get(GAME)});
@@ -588,7 +583,7 @@ Meteor.startup(function() {
     });
 
     // refresh listviews when transition is done
-    $(document).live('pageshow', function(){
+    $(document).on('pageshow', function(){
         //More stuff to do
         defaultRendered.apply({findAll:$});
         createAndRefreshButtons.apply({findAll:$});

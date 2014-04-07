@@ -4,7 +4,6 @@
  **/
 Template.historyAnswers.rendered = defaultRendered;
 Template.historyAnswers.created = defaultCreated;
-Template.historyAnswers.preserve(defaultPreserve);
 
 Template.historyAnswers.answers = function () {
     return Inventories.find({itemType: INVENTORY_ITEM_TYPE_CARD, quantity: {$gt: 0}});

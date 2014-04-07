@@ -4,7 +4,6 @@
  **/
 Template.pendingQuestion.rendered = defaultRendered;
 Template.pendingQuestion.created = defaultCreated;
-Template.pendingQuestion.preserve(defaultPreserve);
 
 Template.pendingQuestion.pendingAnswers = function () {
     var answers = Answers.find({userId: Meteor.userId(), winner: null}).fetch();
