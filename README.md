@@ -2,7 +2,9 @@ PartyGa.me
 ========
 
 An online Cards Against Humanity clone for network play.
-Built on Meteor 0.7.0.1, from http://www.meteor.com
+Built on Meteor 0.8.0, from http://www.meteor.com
+
+Play it live at http://partyga.me
 
 Overview
 ========
@@ -18,6 +20,13 @@ This game features:
  - A full DDP API for making your own super-high-performance iOS, Android and Unity apps.
    - Check out the Unity DDP project at https://github.com/hiddenswitch/Meteor-Unity to make a Unity client for this game!
  - A full REST API for non-DDP clients. Visit http://localhost:3000/api/docs when running for the whole API documented in one place.
+
+Known Issues
+============
+
+ - Updating to Meteor 0.8.0 has broken a lot of the niceties of the site, particularly around the JQueryMobile features. This means a lot of view look broken on data updates right now, which is too bad. Those used to look really good.
+ - `router` has been disabled, which means invitations are disabled.
+ - `meteor-http-publish` doesn't work with 0.8.0 yet, so the collections API has been disabled.
 
 Installation
 ============
@@ -35,7 +44,7 @@ To run:
 
 Visit [localhost](http://localhost:3000).
 
-You will have to configure your `settings.json`. Check it out for instructions on how to set it up. APNS is essential and tricky.
+You will have to configure your `settings.json`. Check it out for instructions on how to set it up. APNS is pretty useful but unessential.
 
 API
 ===
