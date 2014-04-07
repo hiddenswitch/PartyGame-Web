@@ -1,8 +1,23 @@
-Redacted
+PartyGa.me
 ========
 
 An online Cards Against Humanity clone for network play.
 Built on Meteor 0.7.0.1, from http://www.meteor.com
+
+Overview
+========
+PartyGa.me is a colossal Cards Against Humanity-esque multiplayer game built on Meteor. Check out `METHODS.md`, `MILESTONE.md` and `SUBSCRIPTIONS.md` for information about how to interact with the API using a non-DDP client.
+
+This game features:
+
+ - Over 1,000 original funny answer and question cards.
+ - Bots! You can't believe what a huge difference this makes.
+ - A fully browser-based mobile interface
+ - Location-based matchmaking
+ - Social invites through Facebook
+ - A full DDP API for making your own super-high-performance iOS, Android and Unity apps.
+   - Check out the Unity DDP project at https://github.com/hiddenswitch/Meteor-Unity to make a Unity client for this game!
+ - A full REST API for non-DDP clients. Visit http://localhost:3000/api/docs when running for the whole API documented in one place.
 
 Installation
 ============
@@ -16,21 +31,17 @@ To run:
     sudo -H npm install -g meteorite
     git clone git@github.com:hiddenswitch/PartyGame-Web.git
     cd PartyGame-Web
-    mrt --settings tests/settings/local.json
+    mrt --settings tests/settings/settings.json
 
 Visit [localhost](http://localhost:3000).
 
-If you'd like to run it on the Internet, try
-
-    mrt deploy --settings tests/settings/beta.json beta.partyga.me
-
-The password is `GoAdvo+1`.
+You will have to configure your `settings.json`. Check it out for instructions on how to set it up. APNS is essential and tricky.
 
 API
 ===
 
 ### Authentication
-Use the token `uYkbutYituNjGcLyP` for API calls to play as `doctorpangloss`. For now, to get other login tokens, login to http://beta.partyga.me, open a Javascript console and execute `Accounts._storedLoginToken()`. This string is the token for the logged in user.
+Open a Javascript console and execute `Accounts._storedLoginToken()`. This string is the token for the logged in user. Use this as the `token` parameter when making API calls.
 
 ### Encoding
 The response headers have the wrong encoding. Interpret the bytes as `UTF-8`.
