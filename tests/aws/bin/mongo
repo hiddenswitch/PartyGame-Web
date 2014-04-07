@@ -1,3 +1,0 @@
-#!/bin/sh
-ssh -f -i ~/***REMOVED*** -L 8081:localhost:8081 ubuntu@redactedonline.com sleep 10
-open http://localhost:8081
