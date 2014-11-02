@@ -9,11 +9,16 @@ defaultPreserve = {
     }
 };
 
-defaultRendered = function () {
-//    var findAll = this.findAll || document.querySelectorAll;
-
+refreshListviews = function() {
     $('ul[data-role="listview"]:not(.ui-listview):visible').listview();
     $('.ui-listview[data-role="listview"]').listview("refresh");
+};
+
+defaultRendered = function () {
+    this.autorun(function () {
+        var data = Template.currentData();
+        Deps.afterFlush(refreshListviews);
+    });
 };
 
 defaultCreated = function () {

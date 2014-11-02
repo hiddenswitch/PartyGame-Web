@@ -340,7 +340,7 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
 canPlay = function(){
     var g = Games.findOne({_id:Session.get(GAME)},{fields:{open:1,players:1}});
     var playersConnected = Players.find({gameId:Session.get(GAME),connected:true}).count();
-    if (g && g.open === true & playersConnected >= 2) {
+    if (g && g.open === true && playersConnected >= 2) {
         return true;
     } else {
         return false;
@@ -354,11 +354,11 @@ function fastclickSetup() {
 }
 
 registerTemplates = function() {
-    Handlebars.registerHelper("cardIdToText",cardIdToText);
-	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
-	Handlebars.registerHelper("playerIdToName",playerIdToName);
-    Handlebars.registerHelper("loggedIn",loggedIn);
-	Handlebars.registerHelper("connectionStatus",function () {
+    Template.registerHelper("cardIdToText",cardIdToText);
+	Template.registerHelper("questionAndAnswerText",questionAndAnswerText);
+	Template.registerHelper("playerIdToName",playerIdToName);
+    Template.registerHelper("loggedIn",loggedIn);
+	Template.registerHelper("connectionStatus",function () {
 		var status = Meteor.status().status;
 		if (status == "connected") {
 			return false;
@@ -368,13 +368,13 @@ registerTemplates = function() {
 			return "Failed to connect. Retrying connection...";
 		}
 	});
-	Handlebars.registerHelper("isCordova",function () {
+	Template.registerHelper("isCordova",function () {
         if (Session.get(IS_CORDOVA))
             return true;
         else
             return false;
     });
-    Handlebars.registerHelper("canPlay",canPlay);
+    Template.registerHelper("canPlay",canPlay);
 
 	Template.error.error = function() {
 		return Session.get(ERROR);
@@ -585,7 +585,7 @@ Meteor.startup(function() {
     // refresh listviews when transition is done
     $(document).on('pageshow', function(){
         //More stuff to do
-        defaultRendered.apply({findAll:$});
+        refreshListviews.apply({findAll:$});
         createAndRefreshButtons.apply({findAll:$});
         Session.set("currentPage", $.mobile.activePage.attr('id'));
     });

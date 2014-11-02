@@ -11,10 +11,10 @@ accounts-google
 less
 random
 stylus
-leaflet
 standard-app-packages
-npm
-page-js-ie-support
 http
-http-publish
 service-configuration
+mrt:leaflet
+partygame-npm
+meteorhacks:async
+

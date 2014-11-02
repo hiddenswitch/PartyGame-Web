@@ -1,9 +1,0 @@
-{
-  "packages": {
-    "leaflet": {},
-    "npm": {},
-    "iron-router": {},
-    "http-methods": {},
-    "http-publish": {}
-  }
-}

@@ -2,7 +2,7 @@
  * @author Benjamin Berman
  * © 2012 All Rights Reserved
  **/
-var apn = Meteor.require("apn");
+var apn = PartyGameNpm.require("apn");
 var options = {
     certData: Assets.getText(Meteor.settings.apns.certificate),
     keyData: Assets.getText(Meteor.settings.apns.key),

@@ -3,7 +3,7 @@
  * © 2012 All Rights Reserved
  **/
 FacebookManager = {
-    facebookNpm: Meteor.require('facebook-node-sdk'),
+    facebookNpm: PartyGameNpm.require('facebook-node-sdk'),
     fb: function (accessToken) {
         if (accessToken == null) return null;
         return new FacebookManager.facebookNpm({
@@ -41,7 +41,7 @@ FacebookManager = {
         Meteor.sync(function (done) {
             // Create client
             try {
-                var xmpp = Meteor.require('node-xmpp');
+                var xmpp = PartyGameNpm.require('node-xmpp');
                 var login = {
                     jid: '-' + uid + '@chat.facebook.com',
                     api_key: Meteor.settings.facebook.appId,
@@ -82,6 +82,8 @@ FacebookManager = {
 };
 
 Meteor.publish('fbFriends', function () {
+    return [];
+
     var self = this;
     var fb = FacebookManager.fb(FacebookManager.accessToken(this.userId));
 

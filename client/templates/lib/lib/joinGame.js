@@ -5,11 +5,8 @@
 
 joinGameOnClick = function(e) {
     var gameId = $(e.currentTarget).attr('id');
-    console.log(gameId);
     Meteor.call("joinGame",gameId,function(e,r) {
-        console.log("r: " + r);
         if (r) {
-            console.log(gameId);
             Session.set(GAME,gameId);
         }
         if (e) {

@@ -52,9 +52,9 @@ Template.game.lastVote = function() {
 Template.game.rendered = refreshListviewsAndCreateButtons;
 Template.game.created = defaultCreated;
 
-Handlebars.registerHelper("gameGame",Template.game.game);
-Handlebars.registerHelper("gameTitle",Template.game.title);
-Handlebars.registerHelper("gameIsOpen",Template.game.isOpen);
-Handlebars.registerHelper("gameRound",Template.game.round);
-Handlebars.registerHelper("gameIsOwner",Template.game.isOwner);
-Handlebars.registerHelper("gameLastVote",Template.game.lastVote);
+Template.registerHelper("gameGame",Template.game.game);
+Template.registerHelper("gameTitle",Template.game.title);
+Template.registerHelper("gameIsOpen",Template.game.isOpen);
+Template.registerHelper("gameRound",Template.game.round);
+Template.registerHelper("gameIsOwner",Template.game.isOwner);
+Template.registerHelper("gameLastVote",Template.game.lastVote);

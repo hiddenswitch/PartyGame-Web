@@ -15,10 +15,8 @@ Template.judgeAnswers.events = {
     'click a':function(e) {
         $.mobile.changePage('#home');
         var answerId = $(e.currentTarget).attr('id');
-        console.log(answerId);
         Meteor.call("pickAnswer", answerId,function(e,r) {
             setError(e);
-            console.log(r);
         });
     }
 };
