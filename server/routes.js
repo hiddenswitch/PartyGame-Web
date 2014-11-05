@@ -53,48 +53,48 @@ Meteor.startup(function () {
 //        return Inventories.find({userId: this.userId});
 //    });
 
-    // Get the function's parameter name
-    var argumentNames = function (func) {
-        var fnStr = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
-        var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(/([^\s,]+)/g);
-        if (result === null) {
-            result = [];
-        }
-        return result;
-    };
-
-    HTTP.methods(_.object(_.map(Party, function (method, methodName) {
-        return ["/api/" + methodName, function (data) {
-            data = _.extend(data, {userId: this.userId});
-            var methodArgumentNames = argumentNames(method);
-            var args = _.map(methodArgumentNames, function (argumentName) {
-                return data[argumentName];
-            });
-
-            try {
-                return JSON.stringify({result: method.apply(this, args), error: null});
-            } catch (e) {
-                return JSON.stringify({result: null, error: e});
-            }
-        }];
-    })));
-
-    HTTP.methods({
-        "/api/docs": function () {
-            var out = "API Summary\n" +
-                "===========\n" +
-                "\n" +
-                _.map(Party, function (method, methodName) {
-                    var methodArgumentNames = argumentNames(method);
-
-                    return "`/api/" + methodName + "?" + _.map(methodArgumentNames, function (argumentName) {
-                        argumentName = argumentName == "userId" ? "token" : argumentName;
-                        return argumentName + "=" + argumentName.toUpperCase();
-                    }).join('&') + '`';
-                }).join('\n\n');
-            var markdown = Meteor.require("markdown").markdown;
-            return markdown.toHTML(out);
-        }
-    });
+    //// Get the function's parameter name
+    //var argumentNames = function (func) {
+    //    var fnStr = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
+    //    var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(/([^\s,]+)/g);
+    //    if (result === null) {
+    //        result = [];
+    //    }
+    //    return result;
+    //};
+    //
+    //HTTP.methods(_.object(_.map(Party, function (method, methodName) {
+    //    return ["/api/" + methodName, function (data) {
+    //        data = _.extend(data, {userId: this.userId});
+    //        var methodArgumentNames = argumentNames(method);
+    //        var args = _.map(methodArgumentNames, function (argumentName) {
+    //            return data[argumentName];
+    //        });
+    //
+    //        try {
+    //            return JSON.stringify({result: method.apply(this, args), error: null});
+    //        } catch (e) {
+    //            return JSON.stringify({result: null, error: e});
+    //        }
+    //    }];
+    //})));
+    //
+    //HTTP.methods({
+    //    "/api/docs": function () {
+    //        var out = "API Summary\n" +
+    //            "===========\n" +
+    //            "\n" +
+    //            _.map(Party, function (method, methodName) {
+    //                var methodArgumentNames = argumentNames(method);
+    //
+    //                return "`/api/" + methodName + "?" + _.map(methodArgumentNames, function (argumentName) {
+    //                    argumentName = argumentName == "userId" ? "token" : argumentName;
+    //                    return argumentName + "=" + argumentName.toUpperCase();
+    //                }).join('&') + '`';
+    //            }).join('\n\n');
+    //        var markdown = Meteor.require("markdown").markdown;
+    //        return markdown.toHTML(out);
+    //    }
+    //});
 
 });
