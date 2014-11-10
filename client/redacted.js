@@ -492,9 +492,6 @@ registerTemplates = function() {
     Template.gamesList.created = defaultCreated;
 };
 
-//Meteor.subscribe("myOwnedGames");
-Meteor.subscribe("cards");
-
 Meteor.startup(function() {
 	Session.set(ERROR,null);
 

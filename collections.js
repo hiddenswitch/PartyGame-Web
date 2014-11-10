@@ -2,8 +2,14 @@
  * @author Benjamin Berman
  * © 2014 All Rights Reserved
  **/
+if (Meteor.isServer) {
+    Cards = new Mongo.Collection("cards");
+} else {
+    Cards = new Mongo.Collection(null);
+}
+
 Decks = new Meteor.Collection("decks");
-Cards = new Meteor.Collection("cards");
+
 Games = new Meteor.Collection("games");
 Hands = new Meteor.Collection("hands");
 Votes = new Meteor.Collection("votes");
