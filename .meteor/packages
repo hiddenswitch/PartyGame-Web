@@ -11,7 +11,6 @@ less
 random
 stylus
 standard-app-packages
-http
 service-configuration
 mrt:leaflet
 partygame-npm
@@ -21,4 +20,5 @@ wolves:bourbon
 iron:router
 particle4dev:cordova-fb
 percolatestudio:percolatestudio-migrations
+http
 
