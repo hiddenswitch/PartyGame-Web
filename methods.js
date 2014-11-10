@@ -150,14 +150,6 @@ Meteor.methods({
             if (!submission.answerId || EJSON.equals(submission.answerId, ""))
                 throw new Meteor.Error(500, "Somebody submitted a redacted answer. Try again!");
 
-            // does this player have this card in his hand?
-            var hand = Hands.find({playerId: submission.playerId, gameId: gameId, cardId: submission.answerId}).count();
-
-            if (hand === 0) {
-                var details = {hand: Hands.find({playerId: submission.playerId, gameId: gameId}).fetch(), answerId: submission.answerId, hasInHand: hand};
-                throw new Meteor.Error(505, "You can't submit a card you don't have! " + JSON.stringify(details));
-            }
-
             Hands.remove({gameId: gameId, playerId: submission.playerId, cardId: submission.answerId});
         });
 
