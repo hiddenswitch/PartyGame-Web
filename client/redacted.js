@@ -10,8 +10,6 @@ ERROR = "currentError";
 PREVIEW_CARD = "currentPreviewCard";
 LOCATION = "location";
 IS_LOGGED_IN = "isLoggedIn";
-IS_CORDOVA = "cordova";
-
 K_HIDDEN_TEXT_STRING = "(Hidden)";
 
 previewYes = function () {};
@@ -368,12 +366,6 @@ registerTemplates = function() {
 			return "Failed to connect. Retrying connection...";
 		}
 	});
-	Template.registerHelper("isCordova",function () {
-        if (Session.get(IS_CORDOVA))
-            return true;
-        else
-            return false;
-    });
     Template.registerHelper("canPlay",canPlay);
 
 	Template.error.error = function() {
@@ -500,25 +492,6 @@ registerTemplates = function() {
     Template.gamesList.created = defaultCreated;
 };
 
-cordovaSetup = function() {
-    // Startup for Cordova
-    document.addEventListener('deviceready', function(e) {
-        if (window.isCordova) {
-            Session.set(IS_CORDOVA,true);
-
-//            window.oldWindowOpen = window.open;
-//            window.open = function(strUrl, strWindowName, strWindowFeatures) {
-//                var _browser = window.oldWindowOpen(strUrl, strWindowName, strWindowFeatures);
-//                _browser.addEventListener("loaderror",function(event){
-//                    _browser.closed = true;
-//                });
-//                return _browser;
-//            }
-        }
-    }, false);
-};
-
-
 //Meteor.subscribe("myOwnedGames");
 Meteor.subscribe("cards");
 
@@ -575,13 +548,6 @@ Meteor.startup(function() {
         }
     },K_HEARTBEAT);
 
-    // cordova setup
-    Deps.autorun(function () {
-        if (Session.equals(IS_CORDOVA,true)) {
-            console.log("Redacted Cordova detected.");
-        }
-    });
-
     // refresh listviews when transition is done
     $(document).on('pageshow', function(){
         //More stuff to do
@@ -597,8 +563,4 @@ Meteor.startup(function() {
 });
 
 registerTemplates();
-
-cordovaSetup();
-
-
 fastclickSetup();

@@ -14,12 +14,10 @@
     </ul>
     {{else}}
 
-    {{#unless isCordova}}
     <a id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</a>
     <a id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</a>
 
     <p>Login with Facebook or Google for the best experience.</p>
-    {{/unless}}
 
     <a href="{{pathFor 'accountLogin'}}" data-mini="false" data-role="button"
        data-icon="arrow-r">Create an Account</a>
