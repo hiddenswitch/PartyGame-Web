@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 
 // Event handler for answer question onclick

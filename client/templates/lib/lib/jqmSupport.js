@@ -1,14 +1,10 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 
 $.fn.listview = function() {};
 $.fn.button = function() {};
-$.mobile = {
-    initializePage: function() {},
-    changePage: function() {}
-};
 
 defaultPreserve = {
     'li[id]': function (node) {

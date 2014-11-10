@@ -1,8 +1,7 @@
-<body>
-
+<template name="historyView">
 <div id="history" data-role="page">
     <div data-role="header" data-position="fixed">
-        <a href="#home" data-icon="arrow-l">Back</a>
+        <a href="{{pathFor 'home'}}" data-icon="arrow-l">Back</a>
 
         <h1>Answer</h1>
     </div>
@@ -18,12 +17,12 @@
 
         <p>Login with Facebook or Google for the best experience.</p>
 
-        <a href="#accountLogin" data-mini="false" data-role="button"
+        <a href="{{pathFor 'accountLogin'}}" data-mini="false" data-role="button"
            data-icon="arrow-r">Create an Account</a>
-        <a href="#anonymousLogin" data-mini="false" data-role="button"
+        <a href="{{pathFor 'anonymousLogin'}}" data-mini="false" data-role="button"
            data-icon="arrow-r">Play As Guest</a>
         {{/if}}
     </div>
 </div>
 
-</body>
+</template>

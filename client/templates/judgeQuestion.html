@@ -1,6 +1,6 @@
 <template name="judgeQuestion">
     {{#each questions}}
-    <li data-theme="c"><a href="#judge" id="{{_id}}">
+    <li data-theme="c"><a href="{{pathFor 'judge'}}" id="{{_id}}">
         <div class="bubble-right"><p>{{{text}}}</p></div></a>
     </li>
     {{/each}}

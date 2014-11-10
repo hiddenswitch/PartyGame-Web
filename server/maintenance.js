@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 Meteor.startup(function () {
     // Close games that haven't seen any activity for a while, delete games that have been closed for a while

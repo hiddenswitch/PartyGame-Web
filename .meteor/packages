@@ -19,4 +19,5 @@ partygame-npm
 meteorhacks:async
 fourseven:scss
 wolves:bourbon
+iron:router
 

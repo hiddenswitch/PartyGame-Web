@@ -1,13 +1,12 @@
-<body>
-
+<template name="loginView">
 <div data-role="page" id="login" data-add-back-btn="true" data-theme="a">
     <div data-role="header" data-position="fixed">
         <h1>Create An Account</h1>
     </div>
     <div data-role="content">
         <h3>Play Now</h3>
-        <a href="#anonymousLogin" data-role="button" data-icon="arrow-r">Play As Guest</a>
-        <a href="#accountLogin" data-role="button" data-icon="arrow-r">Create an Account</a>
+        <a href="{{pathFor 'anonymousLogin'}}" data-role="button" data-icon="arrow-r">Play As Guest</a>
+        <a href="{{pathFor 'accountLogin'}}" data-role="button" data-icon="arrow-r">Create an Account</a>
         <h3>Login with Facebook or Google</h3>
         <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithFacebook()">Login with Facebook</a>
         <a href="#" data-role="button" data-icon="arrow-r" onclick="loginWithGoogle()">Login with Google</a>
@@ -18,4 +17,4 @@
     </div>
 </div>
 
-</body>
+</template>

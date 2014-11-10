@@ -1,6 +1,6 @@
 <template name="answerQuestion">
     {{#each histories}}
-    <li data-theme="c" class="bubbleRow"><a href="#history" id="{{_id}}">
+    <li data-theme="c" class="bubbleRow"><a href="{{pathFor 'history'}}" id="{{_id}}">
         <div class="bubble"><p>{{{text}}}</p></div></a>
     </li>
     {{/each}}

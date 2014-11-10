@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 Decks = new Meteor.Collection("decks");
 Cards = new Meteor.Collection("cards");
