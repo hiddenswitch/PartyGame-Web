@@ -3,7 +3,7 @@
  * © 2014 All Rights Reserved
  **/
 
-var cards = [{
+CardsSource = [{
     "_id": "LkzCwbpvoZtqdLTEf",
     "deck": "Alex",
     "category": "Sexual",
@@ -10944,7 +10944,10 @@ var cards = [{
 }];
 
 Meteor.startup(function() {
-    _.each(cards, function(card) {
-        Cards.insert(card);
-    });
+    // On the client, insert the cards into the anonymous collection
+    if (Meteor.isClient) {
+        _.each(CardsSource, function(card) {
+            Cards.insert(card);
+        });
+    }
 });
