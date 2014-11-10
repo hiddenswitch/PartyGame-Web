@@ -17,4 +17,6 @@ service-configuration
 mrt:leaflet
 partygame-npm
 meteorhacks:async
+fourseven:scss
+wolves:bourbon
 

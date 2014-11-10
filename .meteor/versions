@@ -23,6 +23,7 @@ email@1.0.4
 facebook@1.1.2
 fastclick@1.0.1
 follower-livedata@1.0.2
+fourseven:scss@1.0.0
 geojson-utils@1.0.1
 google@1.1.2
 html-tools@1.0.2
@@ -63,6 +64,7 @@ spacebars-compiler@1.0.3
 spacebars@1.0.3
 srp@1.0.1
 standard-app-packages@1.0.3
+stevezhu:sass@1.2.2
 stylus@1.0.5
 templating@1.0.9
 tracker@1.0.3
@@ -71,3 +73,4 @@ underscore@1.0.1
 url@1.0.2
 webapp-hashing@1.0.1
 webapp@1.1.4
+wolves:bourbon@0.6.1

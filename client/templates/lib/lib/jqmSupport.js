@@ -3,6 +3,13 @@
  * © 2012 All Rights Reserved
  **/
 
+$.fn.listview = function() {};
+$.fn.button = function() {};
+$.mobile = {
+    initializePage: function() {},
+    changePage: function() {}
+};
+
 defaultPreserve = {
     'li[id]': function (node) {
         return node.id;
