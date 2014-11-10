@@ -6,7 +6,6 @@
 accounts-base
 accounts-ui
 accounts-password
-accounts-facebook
 accounts-google
 less
 random
@@ -20,4 +19,4 @@ meteorhacks:async
 fourseven:scss
 wolves:bourbon
 iron:router
-
+particle4dev:cordova-fb
