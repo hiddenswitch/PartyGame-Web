@@ -21,4 +21,5 @@ iron:router
 particle4dev:cordova-fb
 percolatestudio:percolatestudio-migrations
 http
+linto:fontawesome
 

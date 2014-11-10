@@ -32,19 +32,29 @@ _.each(RouteControllers, function (routeController, routeName) {
     if (!routeController.template) {
         routeController.template = routeName + 'View';
     }
+    if (!routeController.yieldRegions) {
+        routeController.yieldRegions = {
+            'navbar': {to: 'navbar'}
+        };
+    }
+
+    if (!routeController.layoutTemplate) {
+        routeController.layoutTemplate = 'layout';
+    }
 
     Router.route(routeName, routeController);
 });
 
 if (Meteor.isClient) {
     $.mobile = {
-        initializePage: function() {},
+        initializePage: function () {
+        },
         // Shim for jQuqeryMobile
-        changePage: function(destination) {
+        changePage: function (destination) {
             Router.go(destination.slice(1));
         },
         activePage: {
-            attr: function() {
+            attr: function () {
                 return Router.current().route.getName();
             }
         }
