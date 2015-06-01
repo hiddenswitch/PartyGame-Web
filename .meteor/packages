@@ -13,7 +13,6 @@ stylus
 standard-app-packages
 service-configuration
 mrt:leaflet
-partygame-npm
 meteorhacks:async
 fourseven:scss
 wolves:bourbon
@@ -23,4 +22,6 @@ percolatestudio:percolatestudio-migrations
 http
 linto:fontawesome
 percolatestudio:synced-cron@1.1.0
+partygame
+partygame-npm
 

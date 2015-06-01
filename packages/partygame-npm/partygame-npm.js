@@ -1,5 +1,10 @@
 PartyGameNpm = {};
 
 PartyGameNpm.require = function (name) {
-    return Npm.require(name);
+    try {
+        return Npm.require(name);
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
 };

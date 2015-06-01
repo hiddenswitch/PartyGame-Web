@@ -6,6 +6,9 @@ FacebookManager = {
     facebookNpm: PartyGameNpm.require('facebook-node-sdk'),
     fb: function (accessToken) {
         if (accessToken == null) return null;
+        if (!FacebookManager.facebookNpm) {
+            return;
+        }
         return new FacebookManager.facebookNpm({
             appID: Meteor.settings.facebook.appId,
             secret: Meteor.settings.facebook.appSecret
@@ -75,7 +78,7 @@ FacebookManager = {
         });
     },
     messageStanza: function (xmpp, to, message) {
-        var stanza = new xmpp.Element('message', { to: to, type: 'chat' });
+        var stanza = new xmpp.Element('message', {to: to, type: 'chat'});
         stanza.c('body').t(message);
         return stanza;
     }
