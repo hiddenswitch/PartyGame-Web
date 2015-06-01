@@ -89,7 +89,8 @@
 }
 
 .navbar-fixed-top,
-.navbar-fixed-bottom {
+.navbar-fixed-bottom,
+.navbar-fixed-mobile {
   .navbar-collapse {
     max-height: $navbar-collapse-max-height;
 
@@ -137,7 +138,8 @@
 
 // Fix the top/bottom navbars when screen real estate supports it
 .navbar-fixed-top,
-.navbar-fixed-bottom {
+.navbar-fixed-bottom,
+.navbar-fixed-mobile {
   position: fixed;
   right: 0;
   left: 0;
