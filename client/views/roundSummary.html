@@ -12,13 +12,13 @@
     </div>
 
     <div data-role="content">
-        <ul id="questionAndAnswerTextList" data-role="listview" data-inset="false" data-divider-theme="c">
+        <ul class="btn-group btn-group-vertical btn-block" id="questionAndAnswerTextList" data-role="listview" data-inset="false" data-divider-theme="c">
             {{#if gameLastVote}}
             {{#with gameLastVote}}
-            <li data-role="list-divider">{{playerIdToName judgeId}} picked...</li>
-            <li>{{{questionAndAnswerText questionId answerId}}}</li>
-            <li data-role="list-divider">Winner</li>
-            <li>{{playerIdToName playerId}}</li>
+            <li class="btn btn-sm btn-default" data-role="list-divider">{{playerIdToName judgeId}} picked...</li>
+            <li class="btn btn-default">{{{questionAndAnswerText questionId answerId}}}</li>
+            <li class="btn btn-sm btn-default" data-role="list-divider">Winner</li>
+            <li class="btn btn-default">{{playerIdToName playerId}}</li>
             {{/with}}
             {{/if}}
         </ul>
@@ -30,11 +30,12 @@
 
         <div id="scoresCollapsibleInSummary" data-role="collapsible" data-theme="c" data-content-theme="c" data-inset="false" data-collapsed="true">
             <h3>Scores</h3>
-            <ul id="scoresListInSummary" data-role="listview" data-inset="false" data-split-icon="delete">
+            <div class="btn-group btn-group-vertical btn-block" id="scoresListInSummary" data-role="listview" data-inset="false" data-split-icon="delete">
                 {{> scores}}
-            </ul>
+            </div>
         </div>
 
+        <br/>
         {{> nextButtons}}
     </div>
     <div data-role="footer" data-position="fixed" data-id="thefooter">
