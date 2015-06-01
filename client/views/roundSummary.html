@@ -12,7 +12,7 @@
     </div>
 
     <div data-role="content">
-        <ul class="btn-group btn-group-vertical btn-block" id="questionAndAnswerTextList" data-role="listview" data-inset="false" data-divider-theme="c">
+        <ul id="questionAndAnswerTextList" data-role="listview" data-inset="false" data-divider-theme="c">
             {{#if gameLastVote}}
             {{#with gameLastVote}}
             <li class="btn btn-sm btn-default" data-role="list-divider">{{playerIdToName judgeId}} picked...</li>

@@ -62,6 +62,13 @@ body {
   }
 }
 
+ul[data-role="listview"] {
+  -webkit-padding-start: 0;
+  li {
+    white-space: pre-line;
+  }
+}
+
 .margin-top-gutter {
   margin-top: $grid-gutter-width / 2;
 }

@@ -6,7 +6,7 @@
 // Base styles
 // --------------------------------------------------
 
-.btn {
+.btn, ul[data-role="listview"] li {
   display: inline-block;
   margin-bottom: 0; // For input.btn
   font-weight: $btn-font-weight;
@@ -57,7 +57,8 @@
 // Alternate buttons
 // --------------------------------------------------
 
-.btn-default {
+.btn-default,
+ul[data-role="listview"] li {
   @include button-variant($btn-default-color, $btn-default-bg, $btn-default-border);
 }
 .btn-primary {
@@ -140,13 +141,15 @@
 // Block button
 // --------------------------------------------------
 
-.btn-block {
+.btn-block,
+ul[data-role="listview"] {
   display: block;
   width: 100%;
 }
 
 // Vertically space out multiple block buttons
-.btn-block + .btn-block {
+.btn-block + .btn-block,
+ul[data-role="listview"] + ul[data-role="listview"] {
   margin-top: 5px;
 }
 
