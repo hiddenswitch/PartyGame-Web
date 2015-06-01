@@ -22,4 +22,5 @@ particle4dev:cordova-fb
 percolatestudio:percolatestudio-migrations
 http
 linto:fontawesome
+percolatestudio:synced-cron@1.1.0
 
