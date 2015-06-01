@@ -736,8 +736,15 @@ Meteor.methods({
                 return Party.findLocalGame(options.location);
             }
         }, function () {
-            // Try to get a few humans into bot games by allowing the preferred game size to be larger
-            return Party.findGameWithFewPlayers(userId, K_PREFERRED_GAME_SIZE + 2);
+            return Party.findGameWithAtLeastPlayers(3, userId);
+        }, function () {
+            var result = Bots.createEmptyBotGameAndJoin();
+            if (!result) {
+                return;
+            }
+
+            Bots.fillGameWithBots(result.gameId, K_PREFERRED_GAME_SIZE - 3);
+            return result.gameId;
         }, function () {
             return Party.createEmptyGame(null, null, null, userId);
         }];

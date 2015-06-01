@@ -53,7 +53,7 @@ Bots = {
             return Bots.botJoinGame(gameId, botId);
         } else {
             console.log("Failed to create an empty bot game and join it.");
-            return 0;
+            return;
         }
     },
 
@@ -63,17 +63,18 @@ Bots = {
         console.log("did get bot: " + botId);
         if (!botId) {
             console.log("Could not create a bot.");
-            return false;
+            return;
         }
 
         // Join the specified game.
-        if (Party.joinGame(gameId, botId) != null) {
+        var playerId = Party.joinGame(gameId, botId);
+        if (!!playerId) {
             // Update the bot's quantity of inGames
             Meteor.users.update({_id: botId}, {$set: {inGame: true}});
-            return true;
+            return {playerId: playerId, gameId: gameId, botId: botId};
         } else {
             console.log("Bot could not join game.");
-            return false;
+            return;
         }
     },
 
