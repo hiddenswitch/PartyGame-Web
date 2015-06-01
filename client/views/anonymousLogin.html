@@ -6,11 +6,12 @@
     </div>
     <div data-role="content">
 
-        <label for="anonymousNickname" class="ui-hidden-accessible">Nickname</label>
-        <input type="text" name="anonymousNickname" id="anonymousNickname" value="" placeholder="Nickname"/>
+        <div class="form-group">
+            <input class="form-control" type="text" name="anonymousNickname" id="anonymousNickname" value="" placeholder="Nickname"/>
+        </div>
 
-        <a href="#" data-role="button" data-icon="arrow-r" onclick="loginAnonymously()">Play Now</a>
-        <p>Take advantage of our free game. Rob us of the opportunity to make our game better by seeing if you ever play again. Be that way.</p>
+        <button class="btn btn-default btn-block" href="#" data-role="button" data-icon="arrow-r" onclick="loginAnonymously()">Play Now</button>
+        <p class="margin-top-gutter">Take advantage of our free game. Rob us of the opportunity to make our game better by seeing if you ever play again. Be that way.</p>
     </div>
     <div data-role="footer" data-position="fixed" data-id="thefooter">
         <h4>{{> connectionError}}</h4>

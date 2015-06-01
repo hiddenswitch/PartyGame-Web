@@ -48,11 +48,13 @@ body {
   }
 }
 
-#home[data-role="page"] {
-  header {
-    text-align: center;
-    font-size: 32pt;
-    font-family: archiveregular, Helvetica, Arial, sans-serif;
+[data-role="page"] {
+  [data-role="header"] {
+    h1 {
+      text-align: center;
+      font-size: 32pt;
+      font-family: archiveregular, Helvetica, Arial, sans-serif;
+    }
   }
 }
 
