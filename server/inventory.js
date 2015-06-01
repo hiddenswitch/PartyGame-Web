@@ -7,8 +7,8 @@ K_SERVER = "server";
 K_BOOSTER_PACK_SIZE = 15;
 
 InventoryManager = {
-    adjustInventoryQuantity: function (userId, itemType, itemId, deltaQuantity) {
-        var item = {userId: userId, itemType: INVENTORY_ITEM_TYPE_CARD, itemId: itemId};
+    adjustInventoryQuantity: function (userId, itemType, itemId, deltaQuantity, card) {
+        var item = {userId: userId, itemType: INVENTORY_ITEM_TYPE_CARD, card: card, itemId: itemId};
         if (Inventories.find(item).count() === 0) {
             item._id = Inventories.insert(_(item).extend({quantity: deltaQuantity}));
         } else {
@@ -17,14 +17,14 @@ InventoryManager = {
     },
 
     openBoosterPacks: function (count) {
-        return CardManager.getCardIdMix(K_BOOSTER_PACK_SIZE * count);
+        return CardManager.getCardMix(K_BOOSTER_PACK_SIZE * count);
     },
 
     creditBoosterPack: function (userId) {
-        var cardIds = CardManager.getCardIdMix(K_BOOSTER_PACK_SIZE);
+        var cards = CardManager.getCardMix(K_BOOSTER_PACK_SIZE);
 
-        _.each(cardIds, function (cardId) {
-            InventoryManager.adjustInventoryQuantity(userId, INVENTORY_ITEM_TYPE_CARD, cardId, 1);
+        _.each(cards, function (card) {
+            InventoryManager.adjustInventoryQuantity(userId, INVENTORY_ITEM_TYPE_CARD, card._id, 1, card);
         });
     },
 

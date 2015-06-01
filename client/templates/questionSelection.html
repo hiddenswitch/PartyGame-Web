@@ -1,7 +1,5 @@
 <template name="questionSelection">
     {{#each questions}}
-    {{#if isQuestionCard itemId}}
-        <li><a id="{{itemId}}" href="{{pathFor 'pickFriends'}}">{{{cardIdToText itemId}}}</a></li>
-    {{/if}}
+        <li><a id="{{itemId}}" href="{{pathFor 'pickFriends'}}">{{{card.text}}}</a></li>
     {{/each}}
 </template>

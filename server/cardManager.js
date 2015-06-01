@@ -10,10 +10,10 @@ CardManager = {
     adjectiveCards: [],
     allAnswerCards: [],
     allCards: [],
-    getCardIdMix: function (count) {
+    getCardMix: function (count) {
         // Generate booster pack in equal ratios for now.
         var self = this;
-        return _.pluck(_.shuffle(self.allCards).slice(0,count),'_id');
+        return _.shuffle(self.allCards).slice(0,count);
     },
     updateAndShuffleCards: function () {
         var self = this;

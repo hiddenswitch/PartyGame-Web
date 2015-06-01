@@ -636,6 +636,11 @@ Party = {
         // Update friendly location name
         if (location && location.length > 0 && location[0] && location[1]) {
             Meteor.http.get("http://nominatim.openstreetmap.org/reverse?format=json&lat={1}&lon={0}&zoom=18&addressdetails=1".format(location[0], location[1]), function (e, r) {
+                if (e) {
+                    console.error(e);
+                    return;
+                }
+
                 if (r.statusCode === 200 && r.data != null) {
                     Games.update({_id: gameId}, {$set: {locationFriendly: r.data}});
                 }
