@@ -10,9 +10,18 @@ Template.browse.rendered = defaultRendered;
 Template.browse.created = defaultCreated;
 
 Template.browse.games = function () {
-    return Games.find({open: true}, {limit: 10, sort: {players: -1}, fields: {_id: 1, players: 1, title: 1, open: 1, locationFriendly: 1}});
+    return Games.find({open: true}, {
+        limit: 10, sort: {players: -1}, fields: {
+            _id: 1,
+            playerNames: 1,
+            players: 1,
+            title: 1,
+            open: 1,
+            locationFriendly: 1
+        }
+    });
 };
 
 Template.browse.events = {
-    'click a': joinGameOnClick
+    'click button': joinGameOnClick
 };

@@ -1,9 +1,18 @@
 <template name="browse">
-    {{#each games}}
-    <li data-theme="c" data-icon="arrow-r"><a style="background-image: url('{{mapUrl location 640 96}}');" class="openGameLink" href="{{pathFor 'roundSummary'}}" id="{{_id}}">
-        <h1 class="localGameTitle">{{#if customTitle}}{{title}}{{else}}{{#if locationFriendly}}{{locationFriendly.display_name}}{{else}}{{title}}{{/if}}{{/if}}</h1>
-
-        <p class="localGameDescription">{{#each playerNames}}{{this}} {{/each}}</p>
-        <span class="ui-li-count">{{players}}</span></a></li>
-    {{/each}}
+    <div class="btn-group btn-group-vertical btn-block">
+        {{#each games}}
+            <button style="background-image: url('{{mapUrl location 640 96}}');"
+                    role="button"
+                    class="btn btn-default openGameLink"
+                    href="{{pathFor 'roundSummary'}}"
+                    id="{{_id}}">
+                <div class="text-left">
+                    <span class="localGameTitle">{{#if customTitle}}{{title}}{{else}}{{#if locationFriendly}}{{locationFriendly.display_name}}{{else}}{{title}}{{/if}}{{/if}}</span>
+                    <span class="ui-li-count">({{players}})</span>
+                    <br/>
+                    <span class="localGameDescription text-muted small">{{#each playerNames}}{{this}} {{/each}}</span>
+                </div>
+            </button>
+        {{/each}}
+    </div>
 </template>

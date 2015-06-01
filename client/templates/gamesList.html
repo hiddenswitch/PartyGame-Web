@@ -1,17 +1,47 @@
 <template name="gamesList">
     {{#if loggedIn}}
-    <ul data-role="listview" data-split-icon="arrow-r" data-divider-theme="c">
+    <div data-role="listview" data-split-icon="arrow-r" data-divider-theme="c">
         {{> browse}}
-        <li data-theme="f"><a href="{{pathFor 'roundSummary'}}" onclick="matchMake();"><h1>Play Now</h1><p>Join a global PartyGa.me</p></a></li>
+        <div class="btn-group btn-group-vertical btn-block">
+            <button onclick="matchMake();"
+                    class="btn btn-default">
+                <div class="text-left">
+                    <span>Join a global Partyga.me</span>
+                    <br/>
+                    <span class="text-muted small">Play with random people around the world!</span>
+                </div>
+            </button>
+            <button href="{{pathFor 'createGame'}}"
+                    class="btn btn-default">
+                <div class="text-left">
+                    <span>Start a Local Game</span>
+                    <br/>
+                    <span class="text-muted small">Invite people via code, SMS, FB or email</span>
+                </div>
+            </button>
+            <button href="{{pathFor 'pickQuestion'}}"
+                    class="btn btn-default">
+                <div class="text-left">
+                    <span>Quick Play</span>
+                    <br/>
+                    <span class="text-muted small">Play 1 round. Win and earn cards!</span>
+                </div>
+            </button>
+            <button onclick="Meteor.logout();"
+                    class="btn btn-default">
+                <div class="text-left">
+                    <span>Logout</span>
+                    <br/>
+                    <span class="text-muted small">Ragequit and suck forever.</span>
+                </div>
+            </button>
+        </div>
         <!--<li data-theme="d"><a href="{{pathFor 'history'}}" onclick="answerQuestion();" data-icon="edit">Answer a Question</a></li>-->
         <!--<li data-theme="f"><a href="{{pathFor 'pickQuestion'}}" data-icon="arrow-r">Send a Question</a></li>-->
         {{> answerQuestion}}
         {{> judgeQuestion}}
         {{> pendingQuestion}}
-        <li data-theme="g" data-icon="plus"><a href="{{pathFor 'createGame'}}">Create Game</a></li>
-        <li data-theme="e" data-icon="plus"><a href="{{pathFor 'pickQuestion'}}">Send A Question</a></li>
-        <li data-theme="c" data-icon="delete"><a href="{{pathFor 'home'}}" onclick="Meteor.logout();">Logout</a></li>
-    </ul>
+    </div>
     {{else}}
     <button class="btn btn-default btn-block" id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</button>
     <button class="btn btn-default btn-block" id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</button>

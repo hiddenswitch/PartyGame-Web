@@ -126,6 +126,7 @@ signUp = function () {
 };
 
 matchMake = function () {
+    Router.go('roundSummary');
     match(Session.get(LOCATION), function (err, gameId) {
         if (gameId) {
             Session.set(GAME, gameId);
