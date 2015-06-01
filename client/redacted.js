@@ -96,7 +96,7 @@ login = function () {
 loginAnonymouslyCallback = null;
 
 loginAnonymously = function () {
-    var nickname = $('#anonymousNickname').attr('value');
+    var nickname = $('#anonymousNickname').val();
     createNewAnonymousUser(nickname, loginAnonymouslyCallback || setErrorAndGoHome);
 };
 
@@ -277,7 +277,7 @@ createNewUserAndLogin = function (username, email, password, callback) {
 };
 
 createNewAnonymousUser = function (nickname, callback) {
-    var userIdPadding = Math.random().toString(36).slice(-8);
+    var userIdPadding = Math.random().toString(10).slice(-8);
     var password = Math.random().toString(36).slice(-8);
     nickname = nickname || "Anonymous (" + userIdPadding + ")";
     Accounts.createUser({
