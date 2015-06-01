@@ -13,17 +13,17 @@
         <li data-theme="c" data-icon="delete"><a href="{{pathFor 'home'}}" onclick="Meteor.logout();">Logout</a></li>
     </ul>
     {{else}}
-    <a id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</a>
-    <a id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</a>
+    <button class="btn btn-default btn-block" id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</button>
+    <button class="btn btn-default btn-block" id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</button>
 
-    <p>Login with Facebook or Google for the best experience.</p>
+    <p class="margin-top-gutter">Login with Facebook or Google for the best experience.</p>
 
-    <a href="{{pathFor 'accountLogin'}}" data-mini="false" data-role="button"
-       data-icon="arrow-r">Create an Account</a>
-    <a href="{{pathFor 'anonymousLogin'}}" data-mini="false" data-role="button"
-       data-icon="arrow-r">Play As Guest</a>
+    <button class="btn btn-default btn-block" href="{{pathFor 'accountLogin'}}" data-mini="false" data-role="button"
+       data-icon="arrow-r">Create an Account</button>
+    <button class="btn btn-default btn-block" href="{{pathFor 'anonymousLogin'}}" data-mini="false" data-role="button"
+       data-icon="arrow-r">Play As Guest</button>
 
-    <p>The Party Game is offensive. So it's fun for the whole family. We won't post anything, we won't steal your
+    <p class="margin-top-gutter">The Party Game is offensive. So it's fun for the whole family. We won't post anything, we won't steal your
         information,
         and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with
         the Besties XOXO. (Except like the NSA and stuff).</p>

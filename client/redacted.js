@@ -500,8 +500,11 @@ registerTemplates = function () {
     Template.preview.rendered = defaultRendered;
     Template.preview.created = defaultCreated;
 
-    Template.gamesList.rendered = refreshListviewsAndCreateButtons;
-    Template.gamesList.created = defaultCreated;
+    Template.gamesList.events({
+        'click [href]': function(event) {
+            Router.go($(event.currentTarget).attr('href'));
+        }
+    });
 };
 
 Meteor.startup(function () {

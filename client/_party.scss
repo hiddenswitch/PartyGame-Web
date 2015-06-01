@@ -47,3 +47,15 @@ body {
     padding-top: $grid-gutter-width / 2;
   }
 }
+
+#home[data-role="page"] {
+  header {
+    text-align: center;
+    font-size: 32pt;
+    font-family: archiveregular, Helvetica, Arial, sans-serif;
+  }
+}
+
+.margin-top-gutter {
+  margin-top: $grid-gutter-width / 2;
+}
