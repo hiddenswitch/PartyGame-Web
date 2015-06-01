@@ -188,6 +188,10 @@ createAndJoinGame = function () {
     }
 };
 
+currentGameId = function () {
+    return Session.get(GAME);
+};
+
 playerIdForUserId = function (userId, gameId) {
     userId = userId || Meteor.userId();
     gameId = gameId || Session.get(GAME);
@@ -367,6 +371,7 @@ registerTemplates = function () {
     Template.registerHelper('userId', function () {
         return Meteor.userId();
     });
+    Template.registerHelper('currentGameId', currentGameId)
     Template.registerHelper("cardIdToText", cardIdToText);
     Template.registerHelper("questionAndAnswerText", questionAndAnswerText);
     Template.registerHelper("playerIdToName", playerIdToName);
@@ -502,7 +507,7 @@ registerTemplates = function () {
     Template.preview.created = defaultCreated;
 
     Template.gamesList.events({
-        'click [href]': function(event) {
+        'click [href]': function (event) {
             Router.go($(event.currentTarget).attr('href'));
         }
     });

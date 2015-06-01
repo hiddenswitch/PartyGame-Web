@@ -9,18 +9,21 @@
                 <button href="home" type="button" class="btn btn-default navbar-btn {{$active 'home'}}">
                     Play
                 </button>
+                <button href="roundSummary" type="button" class="btn btn-default navbar-btn {{#unless currentGameId}}disabled{{/unless}}">
+                    Current Game
+                </button>
                 <button href="createGame" type="button" class="btn btn-default navbar-btn {{$active 'createGame'}}">
                     Start Game
                 </button>
+                    {{!--
                 <button type="button" class="btn btn-default navbar-btn disabled">
                     Invite
                 </button>
+                --}}
                 <button type="button" class="btn btn-default navbar-btn disabled">
                     Craft Cards
                 </button>
-                <button type="button" class="btn btn-default navbar-btn disabled">
-                    More
-                </button>
+
                 </div>
                 {{!--
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
