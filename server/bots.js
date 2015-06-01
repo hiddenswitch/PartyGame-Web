@@ -35,7 +35,7 @@ Bots = {
     },
 
     botJoinOrCreateGame: function (botId) {
-        var gameId = Party.findGameWithFewPlayers(5);
+        var gameId = Party.findGameWithFewPlayers(5, botId);
         botId = botId || Bots.get();
         if (gameId) {
             return Bots.botJoinGame(gameId, botId);
@@ -110,15 +110,15 @@ Bots = {
      * @param userId
      */
     botOnAccountCreation: function (userId, location) {
-        var gameId = Party.findGameWithFewPlayers(5);
+        var gameId = Party.findGameWithAtLeastPlayers(3, userId);
 
-        if (gameId !== false) {
+        if (!!gameId) {
             return;
         }
 
-        var bot = Bots.get();
+        var botId = Bots.get();
 
-        gameId = Party.createEmptyGame(null, null, location, bot._id);
+        gameId = Party.createEmptyGame(null, null, location, botId);
 
         Bots.fillGameWithBots(gameId, 6);
     },

@@ -44,7 +44,7 @@ var OTHER_USER_FIELDS = {
 };
 
 Meteor.publish("thisUserData", function () {
-    return Meteor.users.find({_id: this.userId}, {fields: MY_USER_FIELDS });
+    return Meteor.users.find({_id: this.userId}, {fields: MY_USER_FIELDS});
 });
 
 Meteor.publish("otherUserData", function () {
@@ -84,7 +84,12 @@ Accounts.onCreateUser(function (options, user) {
     var isHuman = !_.has(options, "bot") || options.bot === false;
     if (isHuman) {
         // Schedule a bot to entertain this user
-        Meteor.defer(Bots.botOnAccountCreation.bind(this, user._id, options.profile.location));
+        var handle = Meteor.users.find({_id: user._id}, {fields: {_id: 1}}).observe({
+            added: function () {
+                Bots.botOnAccountCreation(user._id, options.profile.location);
+                handle.stop();
+            }
+        });
     }
 
 

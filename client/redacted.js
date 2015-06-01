@@ -127,7 +127,8 @@ signUp = function () {
 
 matchMake = function () {
     Router.go('roundSummary');
-    match(Session.get(LOCATION), function (err, gameId) {
+    match(Session.get(LOCATION), function (err, matchMakingResult) {
+        var gameId = matchMakingResult.gameId;
         if (gameId) {
             Session.set(GAME, gameId);
         }
@@ -228,22 +229,7 @@ submissionIdToCardId = function (id) {
 
 // Match into an existing game, or create a new one to join into
 match = function (location, gameJoinedCallback) {
-    Meteor.call("findLocalGame", location, function (e, gameId) {
-        if (gameId)
-            Meteor.call("joinGame", gameId, gameJoinedCallback);
-        else
-            Meteor.call("findGameWithFewPlayers", function (e, gameId) {
-                if (gameId)
-                    Meteor.call("joinGame", gameId, gameJoinedCallback);
-                else
-                    Meteor.call("createEmptyGame", "", "", location, function (e, gameId) {
-                        if (gameId)
-                            Meteor.call("joinGame", gameId, gameJoinedCallback);
-                        else
-                            console.log(e);
-                    });
-            });
-    });
+    Meteor.call('match', {location: location}, gameJoinedCallback);
 };
 
 // get a {playerId, score} dictionary containing the current scores
