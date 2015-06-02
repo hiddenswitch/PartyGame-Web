@@ -7,10 +7,15 @@
         <ul data-role="listview" data-inset="false" data-theme="e" style="margin-top:15px;">
             {{> preview}}
         </ul>
-        <div class="ui-grid-a">
-            <div class="ui-block-a"><a href="#" onclick="previewNo()" data-icon="minus" data-role="button">Nah</a></div>
-            <div class="ui-block-b"><a href="#" data-theme="d" onclick="previewYes()" data-icon="check" data-role="button">Yep</a></div>
+        <br/>
+        <!--<div class="btn-group btn-block center-block">-->
+        <div class="text-center">
+            <div class="btn-group btn-group-lg text-muted">
+                <button onclick="previewNo()" class="btn btn-default">Nah</button>
+                <button onclick="previewYes()" class="btn btn-primary">Yep</button>
+            </div>
         </div>
+        <!--</div>-->
     </div>
     <div data-role="footer" data-position="fixed" data-id="thefooter">
         <h4>{{> connectionError}}</h4>
