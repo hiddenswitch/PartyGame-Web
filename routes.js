@@ -10,20 +10,34 @@ RouteControllers.home = {
 RouteControllers.accountLogin = {};
 RouteControllers.anonymousLogin = {};
 RouteControllers.browse = {};
-RouteControllers.chooseCardFromHand = {};
-RouteControllers.createGame = {};
-RouteControllers.gameOver = {};
+RouteControllers.chooseCardFromHand = {
+    path: '/g/:gameId/hand'
+};
+RouteControllers.createGame = {
+    path: '/cg/'
+};
+RouteControllers.gameOver = {
+    path: '/g/:gameId/over'
+};
 RouteControllers.history = {};
 RouteControllers.invitation = {};
-RouteControllers.judge = {};
+RouteControllers.judge = {
+    path: '/g/:gameId/judge'
+};
 RouteControllers.login = {};
 RouteControllers.myGames = {};
 RouteControllers.news = {};
 RouteControllers.pickFriends = {};
 RouteControllers.pickQuestion = {};
-RouteControllers.preview = {};
-RouteControllers.roundSummary = {};
-RouteControllers.waitForPlayers = {};
+RouteControllers.preview = {
+    path: '/g/:gameId/preview'
+};
+RouteControllers.roundSummary = {
+    path: '/g/:gameId'
+};
+RouteControllers.waitForPlayers = {
+    path: '/g/:gameId/w'
+};
 
 _.each(RouteControllers, function (routeController, routeName) {
     if (!routeController.path) {

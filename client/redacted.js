@@ -31,7 +31,7 @@ setError = function (err, r) {
 setErrorAndGoHome = function (err, r) {
     setError(err, r);
 
-    $.mobile.changePage('#home');
+    Router.go('home');
 };
 
 loggedIn = function () {
@@ -120,17 +120,17 @@ signUp = function () {
             Session.set(ERROR, err.reason);
             console.log(err);
         } else {
-            $.mobile.changePage('#home');
+            Router.go('home');
         }
     });
 };
 
 matchMake = function () {
-    Router.go('roundSummary');
+
     match(Session.get(LOCATION), function (err, matchMakingResult) {
         var gameId = matchMakingResult.gameId;
         if (gameId) {
-            Session.set(GAME, gameId);
+            Router.go('roundSummary', {gameId: gameId});
         }
         setError(err);
     });
@@ -156,21 +156,20 @@ createAndJoinGame = function () {
 
                 Meteor.call("joinGame", gameId, function (e2, playerId) {
                     if (playerId) {
-                        Session.set(GAME, gameId);
+                        Router.go('roundSummary', {gameId: gameId});
                     }
                     if (e2) {
                         Session.set(ERROR, e2.reason || e.reason + ", " + e2.reason);
                         console.log(e2);
-                        $.mobile.changePage('#home');
+                        Router.go('home');
                     }
                 });
             }
             if (e) {
-                $.mobile.changePage('#home');
+                Router.go('home');
                 setError(e);
             }
         });
-        $.mobile.changePage('#roundSummary');
     }
 
     if (hasFacebook()) {
@@ -358,7 +357,8 @@ registerTemplates = function () {
     Template.registerHelper('userId', function () {
         return Meteor.userId();
     });
-    Template.registerHelper('currentGameId', currentGameId)
+    Template.registerHelper('currentGameId', currentGameId);
+    Template.registerHelper('getCurrentGameId', getCurrentGameId);
     Template.registerHelper("cardIdToText", cardIdToText);
     Template.registerHelper("questionAndAnswerText", questionAndAnswerText);
     Template.registerHelper("playerIdToName", playerIdToName);
@@ -423,18 +423,18 @@ registerTemplates = function () {
             Session.set(PREVIEW_CARD, submissionIdToCardId(submissionId));
 
             previewNo = function () {
-                $.mobile.changePage('#waitForPlayers');
+                Router.go('waitForPlayers', {gameId: getCurrentGameId()});
             };
 
             previewYes = function () {
                 Meteor.call("pickWinner", getCurrentGameId(), submissionId, function (e, r) {
                     if (r) {
-                        $.mobile.changePage('#roundSummary');
+                        Router.go('roundSummary', {gameId: getCurrentGameId()});
                     }
                     if (e) {
                         console.log(e);
                         Session.set(ERROR, e.reason);
-                        $.mobile.changePage('#waitForPlayers');
+                        Router.go('waitForPlayers', {gameId: getCurrentGameId()});
                     }
                 });
             };
@@ -454,7 +454,7 @@ registerTemplates = function () {
             Session.set(PREVIEW_CARD, answerId);
 
             previewNo = function () {
-                $.mobile.changePage('#chooseCardFromHand');
+                Router.go('chooseCardFromHand', {gameId: getCurrentGameId()});
             };
 
             previewYes = function () {
@@ -462,12 +462,12 @@ registerTemplates = function () {
                     if (r) {
                         console.log(r);
                         Session.set(SUBMISSION, r);
-                        $.mobile.changePage('#waitForPlayers');
+                        Router.go('waitForPlayers', {gameId: getCurrentGameId()});
                     }
                     if (e) {
                         console.log(e);
                         Session.set(ERROR, e.reason);
-                        $.mobile.changePage('#chooseCardFromHand');
+                        Router.go('chooseCardFromHand', {gameId: getCurrentGameId()});
                     }
                 });
             };
@@ -508,20 +508,20 @@ Meteor.startup(function () {
         var game = Games.findOne({_id: getCurrentGameId()}, {fields: {round: 1, judgeId: 1}});
         if (game != null) {
             if (game.open === false) {
-                $.mobile.changePage('#gameOver');
+                Router.go('gameOver', {gameId: getCurrentGameId()});
             } else if (!canPlay()) {
                 if ($.mobile.activePage && _.contains(['waitForPlayers', 'chooseCardFromHand'], $.mobile.activePage.attr('id'))) {
-                    $.mobile.changePage('#roundSummary');
+                    Router.go('roundSummary', {gameId: getCurrentGameId()});
                 }
             } else if (!Session.equals(ROUND, game.round)) {
                 Session.set(ROUND, game.round);
                 if ($.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
-                    $.mobile.changePage('#roundSummary');
+                    Router.go('roundSummary', {gameId: getCurrentGameId()});
                 }
             } else if (!Session.equals("judge", game.judgeId) && playerIdForUserId(Meteor.userId()) === game.judgeId) {
                 Session.set("judge", game.judgeId);
                 if ($.mobile.activePage && _.contains(['waitForPlayers', 'chooseCardFromHand'], $.mobile.activePage.attr('id'))) {
-                    $.mobile.changePage('#roundSummary');
+                    Router.go('roundSummary', {gameId: getCurrentGameId()});
                 }
             }
         }

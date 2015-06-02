@@ -15,7 +15,7 @@ Template.historyAnswers.isAnswerCard = function (cardId) {
 
 Template.historyAnswers.events = {
     'click a': function (e) {
-        $.mobile.changePage('#home');
+        Router.go('home');
         var answerCardId = $(e.currentTarget).attr('id');
         var history = Session.get("history");
         Meteor.call("writeAnswer", history._id, answerCardId);

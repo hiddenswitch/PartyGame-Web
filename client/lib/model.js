@@ -3,5 +3,6 @@
  * © 2014 All Rights Reserved
  **/
 getCurrentGameId = function () {
-    return Session.get(GAME);
+    var current = Router.current();
+    return current && current.params && current.params.gameId;
 };

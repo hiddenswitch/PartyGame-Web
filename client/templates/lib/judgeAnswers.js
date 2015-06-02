@@ -13,7 +13,7 @@ Template.judgeAnswers.answers = function () {
 
 Template.judgeAnswers.events = {
     'click a':function(e) {
-        $.mobile.changePage('#home');
+        Router.go('home');
         var answerId = $(e.currentTarget).attr('id');
         Meteor.call("pickAnswer", answerId,function(e,r) {
             setError(e);

@@ -3,26 +3,24 @@
  * © 2014 All Rights Reserved
  **/
 
-joinGameOnClick = function(e) {
+joinGameOnClick = function (e) {
     var gameId = $(e.currentTarget).attr('id');
-    Meteor.call("joinGame",gameId,function(e,r) {
-        if (r) {
-            Session.set(GAME,gameId);
-        }
+    Router.go('roundSummary', {gameId: gameId});
+    Meteor.call("joinGame", gameId, function (e, r) {
         if (e) {
             setError(e);
+            Router.go('home');
         }
     });
 };
 
-joinGame = function(title) {
-    Meteor.call("joinGameWithTitle",title,function(e,joinGameWithTitleResponse) {
+joinGame = function (title) {
+    Meteor.call("joinGameWithTitle", title, function (e, joinGameWithTitleResponse) {
         if (joinGameWithTitleResponse) {
-            Session.set(GAME,joinGameWithTitleResponse.gameId);
-            $.mobile.changePage('#roundSummary');
+            Router.go('roundSummary', {gameId: joinGameWithTitleResponse.gameId});
         }
         if (e) {
-            $.mobile.changePage('#home');
+            Router.go('home');
             setError(e);
         }
     });

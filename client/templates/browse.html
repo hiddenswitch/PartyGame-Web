@@ -4,7 +4,6 @@
             <button style="background-image: url('{{mapUrl location 640 96}}');"
                     role="button"
                     class="btn btn-default openGameLink"
-                    href="{{pathFor 'roundSummary'}}"
                     id="{{_id}}">
                 <div class="text-left">
                     <span class="localGameTitle">{{#if customTitle}}{{title}}{{else}}{{#if locationFriendly}}{{locationFriendly.display_name}}{{else}}{{title}}{{/if}}{{/if}}</span>

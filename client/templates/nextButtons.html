@@ -3,9 +3,9 @@
         {{#if canPlay}}
             {{#if isJudge}}
             <a class="btn btn-sm btn-default" data-theme="b">You are the judge this round!</a>
-            <a class="btn btn-default" href="{{pathFor 'waitForPlayers'}}" data-icon="arrow-r">Next</a>
+            <a class="btn btn-default" href="{{pathFor 'waitForPlayers' gameId=getCurrentGameId}}" data-icon="arrow-r">Next</a>
             {{else}}
-            <a class="btn btn-default" href="{{pathFor 'chooseCardFromHand'}}" data-icon="arrow-r">Next</a>
+            <a class="btn btn-default" href="{{pathFor 'chooseCardFromHand' gameId=getCurrentGameId}}" data-icon="arrow-r">Next</a>
             {{/if}}
         {{/if}}
     </div>
