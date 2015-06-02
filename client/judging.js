@@ -15,7 +15,9 @@ isJudge = function () {
 
 // Formatting functions
 submissionCount = function () {
-    return Submissions.find({gameId: getCurrentGameId(), round: Session.get(ROUND)}).count();
+    var game = Games.findOne(getCurrentGameId(), {fields: {round:1}});
+    var round = game && game.round;
+    return Submissions.find({gameId: game._id, round: round}).count();
 };
 
 maxSubmissionsCount = function () {
@@ -86,15 +88,18 @@ Template.judge.created = defaultCreated;
 
 Template.submissions.isJudge = isJudge;
 Template.submissions.count = function () {
-    return Submissions.find({gameId: getCurrentGameId(), round: Session.get(ROUND)}).count();
+    var game = Games.findOne(getCurrentGameId(), {fields: {round:1}});
+    var round = game && game.round;
+    return Submissions.find({gameId: game._id, round: round}).count();
 };
 
 Template.submissions.canReveal = canReveal;
 Template.submissions.canJudge = canJudge;
 
 Template.submissions.submissions = function () {
-
-    var subs = Submissions.find({gameId: getCurrentGameId(), round: Session.get(ROUND)}).fetch();
+    var game = Games.findOne(getCurrentGameId(), {fields: {round:1}});
+    var round = game && game.round;
+    var subs = Submissions.find({gameId: game._id, round: round}).fetch();
     var playersRemainingCountPrecomputed = Players.find({gameId: getCurrentGameId(), connected: true}).count() - subs.length - 1;
 
     for (var i = 0; i < playersRemainingCountPrecomputed; i++) {

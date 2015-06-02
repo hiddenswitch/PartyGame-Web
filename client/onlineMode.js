@@ -7,7 +7,7 @@
 answerQuestion = function () {
     Meteor.call("getQuestionForUser", function (e, r) {
         if (e) {
-            $.mobile.changePage('#home');
+            Router.go('home');
         }
         if (r) {
             Session.set("history", Histories.findOne({_id: r}));

@@ -183,7 +183,7 @@ createAndJoinGame = function () {
             friendsSelectedCallback = null;
         };
 
-        $.mobile.changePage('#pickFriends');
+        Router.go('pickFriends');
     } else {
         createAndJoinGameCallback();
     }
@@ -337,8 +337,8 @@ questionAndAnswerText = function (questionCardId, answerCardId) {
     }
 };
 
-canPlay = function () {
-    var g = Games.findOne({_id: getCurrentGameId()}, {fields: {open: 1, players: 1}});
+canPlay = function (g) {
+    g = g || Games.findOne({_id: getCurrentGameId()}, {fields: {open: 1, players: 1}});
     var playersConnected = Players.find({gameId: getCurrentGameId(), connected: true}).count();
     if (g && g.open === true && playersConnected >= 2) {
         return true;
@@ -502,30 +502,6 @@ registerTemplates = function () {
 
 Meteor.startup(function () {
     Session.set(ERROR, null);
-
-    // update current round
-    Deps.autorun(function () {
-        var game = Games.findOne({_id: getCurrentGameId()}, {fields: {round: 1, judgeId: 1}});
-        if (game != null) {
-            if (game.open === false) {
-                Router.go('gameOver', {gameId: getCurrentGameId()});
-            } else if (!canPlay()) {
-                if ($.mobile.activePage && _.contains(['waitForPlayers', 'chooseCardFromHand'], $.mobile.activePage.attr('id'))) {
-                    Router.go('roundSummary', {gameId: getCurrentGameId()});
-                }
-            } else if (!Session.equals(ROUND, game.round)) {
-                Session.set(ROUND, game.round);
-                if ($.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
-                    Router.go('roundSummary', {gameId: getCurrentGameId()});
-                }
-            } else if (!Session.equals("judge", game.judgeId) && playerIdForUserId(Meteor.userId()) === game.judgeId) {
-                Session.set("judge", game.judgeId);
-                if ($.mobile.activePage && _.contains(['waitForPlayers', 'chooseCardFromHand'], $.mobile.activePage.attr('id'))) {
-                    Router.go('roundSummary', {gameId: getCurrentGameId()});
-                }
-            }
-        }
-    });
 
     // clear error after 5 seconds
     Deps.autorun(function () {

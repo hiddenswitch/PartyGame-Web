@@ -106,7 +106,7 @@ loginAndAcceptInvite = function () {
 backToHistory = function (e, r) {
     if (r) {
         Session.set("history", Histories.findOne({_id: invitedHistoryId}));
-        $.mobile.changePage('#history');
+        Router.go('history', {historyId: invitedHistoryId});
         loginAnonymouslyCallback = null;
     } else {
         setErrorAndGoHome(e, r);

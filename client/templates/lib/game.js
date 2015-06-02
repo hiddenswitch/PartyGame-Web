@@ -46,7 +46,9 @@ Template.game.isOwner = function() {
 };
 
 Template.game.lastVote = function() {
-    return Votes.findOne({gameId:getCurrentGameId(),round:Session.get(ROUND)-1});
+    var game = Games.findOne(getCurrentGameId(), {fields: {round:1}});
+    var round = game && game.round;
+    return Votes.findOne({gameId:game._id,round:round-1});
 };
 
 Template.game.rendered = refreshListviewsAndCreateButtons;

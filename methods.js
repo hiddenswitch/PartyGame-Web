@@ -153,7 +153,8 @@ Meteor.methods({
             Hands.remove({gameId: gameId, playerId: submission.playerId, cardId: submission.answerId});
         });
 
-        if (game.questionCards.length > 0 && game.answerCards.length > 0) {
+        if (Meteor.isClient
+            || (game.questionCards.length > 0 && game.answerCards.length > 0)) {
             var nextJudge = Players.find({gameId: gameId, connected: true, open: true}, {fields: {_id: 1, userId: 1}, sort: {voted: 1}, limit: 1}).findOne();
             // increment round
             Games.update({_id: gameId}, {$set: {modified: new Date().getTime(), judgeId: nextJudge._id, judgeUserId: nextJudge.userId}, $inc: {round: 1, questionCardsCount: -1}});
