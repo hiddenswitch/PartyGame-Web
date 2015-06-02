@@ -138,8 +138,9 @@ matchMake = function () {
 
 
 createAndJoinGame = function () {
-    var gameTitle = encodeURIComponent($('#gameTitle').attr('value'));
-    var gamePassword = $('#gamePassword').attr('value');
+    var title = $('#gameTitle').val();
+    var gameTitle = encodeURIComponent(title);
+    var gamePassword = $('#gamePassword').val();
 
     if (!gameTitle || gameTitle == "") {
         Session.set(ERROR, "Cannot create a game with an empty title!");

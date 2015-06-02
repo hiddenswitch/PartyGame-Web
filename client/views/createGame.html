@@ -4,10 +4,11 @@
         <h1>Create New Game</h1>
     </div>
     <div data-role="content">
+        <div class="form-group">
+            <input class="form-control" type="text" name="gameTitle" id="gameTitle" value="" placeholder="Title"/>
+        </div>
 
-        <label for="gameTitle" class="ui-hidden-accessible">Title</label>
-        <input type="text" name="gameTitle" id="gameTitle" value="" placeholder="Title"/>
-        <a href="#" data-role="button" data-icon="plus" onclick="createAndJoinGame()">Create and Join</a>
+        <button class="btn btn-default btn-block" data-role="button" data-icon="plus" onclick="createAndJoinGame()">Create and Join</button>
     </div>
     <div data-role="footer" data-position="fixed" data-id="thefooter">
         <h4>{{> connectionError}}</h4>
