@@ -56,21 +56,21 @@ requestLocation = function (callback) {
 };
 
 closeThisGame = function () {
-    if (!Session.get(GAME)) {
+    if (!getCurrentGameId()) {
         console.log("Not in a game.");
         return;
     }
 
-    Meteor.call("closeGame", Session.get(GAME), setError);
+    Meteor.call("closeGame", getCurrentGameId(), setError);
 };
 
 kickThisPlayer = function (kickId) {
-    if (!Session.get(GAME)) {
+    if (!getCurrentGameId()) {
         console.log("Not in a game.");
         return;
     }
 
-    Meteor.call("kickPlayer", Session.get(GAME), kickId, function (err, r) {
+    Meteor.call("kickPlayer", getCurrentGameId(), kickId, function (err, r) {
         setError(err);
         if (r)
             setError({reason: "Player kicked."});
@@ -78,12 +78,12 @@ kickThisPlayer = function (kickId) {
 };
 
 quitThisGame = function () {
-    if (!Session.get(GAME)) {
+    if (!getCurrentGameId()) {
         console.log("Not in a game.");
         return;
     }
 
-    Meteor.call("quitGame", Session.get(GAME), setError);
+    Meteor.call("quitGame", getCurrentGameId(), setError);
 };
 
 login = function () {
@@ -191,12 +191,12 @@ createAndJoinGame = function () {
 };
 
 currentGameId = function () {
-    return Session.get(GAME);
+    return getCurrentGameId();
 };
 
 playerIdForUserId = function (userId, gameId) {
     userId = userId || Meteor.userId();
-    gameId = gameId || Session.get(GAME);
+    gameId = gameId || getCurrentGameId();
     var p = Players.find({gameId: gameId, userId: userId}, {reactive: false}).fetch();
 
     if (userId == null || gameId == null) {
@@ -339,8 +339,8 @@ questionAndAnswerText = function (questionCardId, answerCardId) {
 };
 
 canPlay = function () {
-    var g = Games.findOne({_id: Session.get(GAME)}, {fields: {open: 1, players: 1}});
-    var playersConnected = Players.find({gameId: Session.get(GAME), connected: true}).count();
+    var g = Games.findOne({_id: getCurrentGameId()}, {fields: {open: 1, players: 1}});
+    var playersConnected = Players.find({gameId: getCurrentGameId(), connected: true}).count();
     if (g && g.open === true && playersConnected >= 2) {
         return true;
     } else {
@@ -380,7 +380,7 @@ registerTemplates = function () {
     };
 
     Template.question.question = function () {
-        var gameDoc = Games.findOne({_id: Session.get(GAME)});
+        var gameDoc = Games.findOne({_id: getCurrentGameId()});
         if (gameDoc) {
             return cardIdToText(gameDoc.questionId);
         } else {
@@ -391,10 +391,10 @@ registerTemplates = function () {
     Template.question.rendered = defaultRendered;
 
     Template.scores.scores = function () {
-        if (!Session.get(GAME))
+        if (!getCurrentGameId())
             return [];
 
-        return scores(Session.get(GAME));
+        return scores(getCurrentGameId());
     };
 
     Template.scores.rendered = defaultRendered;
@@ -427,7 +427,7 @@ registerTemplates = function () {
             };
 
             previewYes = function () {
-                Meteor.call("pickWinner", Session.get(GAME), submissionId, function (e, r) {
+                Meteor.call("pickWinner", getCurrentGameId(), submissionId, function (e, r) {
                     if (r) {
                         $.mobile.changePage('#roundSummary');
                     }
@@ -445,7 +445,7 @@ registerTemplates = function () {
     Template.hand.isJudge = isJudge;
 
     Template.hand.hand = function () {
-        return Hands.find({userId: Meteor.userId(), gameId: Session.get(GAME)});
+        return Hands.find({userId: Meteor.userId(), gameId: getCurrentGameId()});
     };
 
     Template.hand.events = {
@@ -458,7 +458,7 @@ registerTemplates = function () {
             };
 
             previewYes = function () {
-                Meteor.call("submitAnswerCard", Session.get(GAME), answerId, function (e, r) {
+                Meteor.call("submitAnswerCard", getCurrentGameId(), answerId, function (e, r) {
                     if (r) {
                         console.log(r);
                         Session.set(SUBMISSION, r);
@@ -483,7 +483,7 @@ registerTemplates = function () {
     Template.hand.created = defaultCreated;
 
     Template.preview.text = function () {
-        var gameDoc = Games.findOne({_id: Session.get(GAME)});
+        var gameDoc = Games.findOne({_id: getCurrentGameId()});
         if (gameDoc)
             return questionAndAnswerText(gameDoc.questionId, Session.get(PREVIEW_CARD));
         else
@@ -505,7 +505,7 @@ Meteor.startup(function () {
 
     // update current round
     Deps.autorun(function () {
-        var game = Games.findOne({_id: Session.get(GAME)}, {fields: {round: 1, judgeId: 1}});
+        var game = Games.findOne({_id: getCurrentGameId()}, {fields: {round: 1, judgeId: 1}});
         if (game != null) {
             if (game.open === false) {
                 $.mobile.changePage('#gameOver');

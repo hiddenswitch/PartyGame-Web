@@ -8,10 +8,10 @@ Meteor.startup(function() {
     });
 
     Deps.autorun(function() {
-        Meteor.subscribe("submissions",Session.get(GAME));
-        Meteor.subscribe("votesInGame",Session.get(GAME));
-        Meteor.subscribe("players",Session.get(GAME));
-        Meteor.subscribe("hand",Session.get(GAME));
+        Meteor.subscribe("submissions",getCurrentGameId());
+        Meteor.subscribe("votesInGame",getCurrentGameId());
+        Meteor.subscribe("players",getCurrentGameId());
+        Meteor.subscribe("hand",getCurrentGameId());
     });
 
     Deps.autorun(function() {

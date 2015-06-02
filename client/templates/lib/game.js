@@ -3,11 +3,11 @@
  * © 2014 All Rights Reserved
  **/
 Template.game.game = function () {
-    return Games.findOne({_id:Session.get(GAME)});
+    return Games.findOne({_id:getCurrentGameId()});
 };
 
 Template.game.title = function() {
-    var g = Games.findOne({_id:Session.get(GAME)});
+    var g = Games.findOne({_id:getCurrentGameId()});
     if (g)
         return g.title;
     else
@@ -15,7 +15,7 @@ Template.game.title = function() {
 };
 
 Template.game.round = function() {
-    var g = Games.findOne({_id:Session.get(GAME)});
+    var g = Games.findOne({_id:getCurrentGameId()});
     if (g)
         return g.round+1;
     else
@@ -23,7 +23,7 @@ Template.game.round = function() {
 };
 
 Template.game.isOpen = function() {
-    var g = Games.findOne({_id:Session.get(GAME)});
+    var g = Games.findOne({_id:getCurrentGameId()});
     if (g) {
         return g.open || true;
     } else {
@@ -33,10 +33,10 @@ Template.game.isOpen = function() {
 
 Template.game.isOwner = function() {
     return false;
-//		var g = Games.findOne({_id:Session.get(GAME)});
+//		var g = Games.findOne({_id:getCurrentGameId()});
 //		if (g) {
 //			if (g.ownerId) {
-//				return EJSON.equals(g.ownerId, playerIdForUserId(Session.get(GAME),Meteor.userId()));
+//				return EJSON.equals(g.ownerId, playerIdForUserId(getCurrentGameId(),Meteor.userId()));
 //			} else {
 //				return false;
 //			}
@@ -46,7 +46,7 @@ Template.game.isOwner = function() {
 };
 
 Template.game.lastVote = function() {
-    return Votes.findOne({gameId:Session.get(GAME),round:Session.get(ROUND)-1});
+    return Votes.findOne({gameId:getCurrentGameId(),round:Session.get(ROUND)-1});
 };
 
 Template.game.rendered = refreshListviewsAndCreateButtons;
