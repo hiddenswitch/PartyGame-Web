@@ -80,9 +80,9 @@ CardManager = {
     },
     _startup: function () {
         // Update cards
-        Meteor.call("addGoogleCards");
-        Meteor.call("addCAHCards");
-        Meteor.call("addComboDecks");
+        //Meteor.call("addGoogleCards");
+        //Meteor.call("addCAHCards");
+        //Meteor.call("addComboDecks");
 
         CardManager.updateAndShuffleCards();
         Meteor.setInterval(CardManager.updateAndShuffleCards, K_10_MINUTES);
