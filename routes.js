@@ -74,7 +74,7 @@ RouteControllers.news = {};
 RouteControllers.pickFriends = {};
 RouteControllers.pickQuestion = {};
 RouteControllers.preview = {
-    path: '/g/:gameId/preview',
+    path: '/g/:gameId/p/:cardId',
     action: gameAction
 };
 RouteControllers.roundSummary = {

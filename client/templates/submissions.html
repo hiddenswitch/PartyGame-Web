@@ -2,7 +2,7 @@
     {{#each submissions}}
         <li>
             {{#if canJudge}}
-                <a class="submission" id="{{_id}}" href="{{pathFor 'preview' gameId=getCurrentGameId}}">{{{text}}}</a>
+                <a class="submission" id="{{_id}}" href="{{pathFor 'preview' gameId=getCurrentGameId cardId=answerId}}">{{{text}}}</a>
             {{else}}
                 {{#if canReveal}}
                     {{{text}}}

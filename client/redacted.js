@@ -3,13 +3,8 @@
  * Copyright 2012
  */
 
-GAME = "currentGame";
-ROUND = "currentRound";
-SUBMISSION = "currentSubmission";
 ERROR = "currentError";
-PREVIEW_CARD = "currentPreviewCard";
 LOCATION = "location";
-IS_LOGGED_IN = "isLoggedIn";
 K_HIDDEN_TEXT_STRING = "(Hidden)";
 
 previewYes = function () {
@@ -420,7 +415,6 @@ registerTemplates = function () {
     Template.submissions.events = {
         'click .submission': function (e) {
             var submissionId = $(e.target).attr('id');
-            Session.set(PREVIEW_CARD, submissionIdToCardId(submissionId));
 
             previewNo = function () {
                 Router.go('waitForPlayers', {gameId: getCurrentGameId()});
@@ -451,7 +445,6 @@ registerTemplates = function () {
     Template.hand.events = {
         'click .card': function (e) {
             var answerId = $(e.target).attr('id');
-            Session.set(PREVIEW_CARD, answerId);
 
             previewNo = function () {
                 Router.go('chooseCardFromHand', {gameId: getCurrentGameId()});
@@ -461,7 +454,6 @@ registerTemplates = function () {
                 Meteor.call("submitAnswerCard", getCurrentGameId(), answerId, function (e, r) {
                     if (r) {
                         console.log(r);
-                        Session.set(SUBMISSION, r);
                         Router.go('waitForPlayers', {gameId: getCurrentGameId()});
                     }
                     if (e) {
@@ -483,11 +475,14 @@ registerTemplates = function () {
     Template.hand.created = defaultCreated;
 
     Template.preview.text = function () {
-        var gameDoc = Games.findOne({_id: getCurrentGameId()});
-        if (gameDoc)
-            return questionAndAnswerText(gameDoc.questionId, Session.get(PREVIEW_CARD));
-        else
+        var current = Router.current();
+        var cardId = current && current.params && current.params.cardId;
+        var gameDoc = Games.findOne({_id: getCurrentGameId()}, {fields: {questionId: 1}});
+        if (gameDoc) {
+            return questionAndAnswerText(gameDoc.questionId, cardId);
+        } else {
             return "REDACTED.";
+        }
     };
 
     Template.preview.rendered = defaultRendered;
