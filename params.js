@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 K_DEFAULT_HAND_SIZE = 8; // default hand size
 K_HEARTBEAT = 8 * 1000; // default heartbeat length

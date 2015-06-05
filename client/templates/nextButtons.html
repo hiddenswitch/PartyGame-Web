@@ -1,12 +1,12 @@
 <template name="nextButtons">
-    <ul id="nextButtonsListView" data-role="listview" data-inset="false">
+    <div class="btn-group btn-group-vertical btn-block" id="nextButtonsListView" data-role="listview" data-inset="false">
         {{#if canPlay}}
             {{#if isJudge}}
-            <li data-theme="b">You are the judge this round!</li>
-            <li data-theme="b"><a href="#waitForPlayers" data-icon="arrow-r">Next</a></li>
+            <a class="btn btn-sm btn-default" data-theme="b">You are the judge this round!</a>
+            <a class="btn btn-primary" href="{{pathFor 'waitForPlayers' gameId=getCurrentGameId}}" data-icon="arrow-r">Next</a>
             {{else}}
-            <li data-theme="b"><a href="#chooseCardFromHand" data-icon="arrow-r">Next</a></li>
+            <a class="btn btn-primary" href="{{pathFor 'chooseCardFromHand' gameId=getCurrentGameId}}" data-icon="arrow-r">Next</a>
             {{/if}}
         {{/if}}
-    </ul>
+    </div>
 </template>

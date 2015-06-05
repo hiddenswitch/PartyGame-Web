@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 Template.historyAnswers.rendered = defaultRendered;
 Template.historyAnswers.created = defaultCreated;
@@ -15,7 +15,7 @@ Template.historyAnswers.isAnswerCard = function (cardId) {
 
 Template.historyAnswers.events = {
     'click a': function (e) {
-        $.mobile.changePage('#home');
+        Router.go('home');
         var answerCardId = $(e.currentTarget).attr('id');
         var history = Session.get("history");
         Meteor.call("writeAnswer", history._id, answerCardId);

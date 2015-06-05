@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 Meteor.publish("localGames", function (location) {
     return Games.find(_.extend({open: true, location: null}, location ? {location: {$within: {$center: [

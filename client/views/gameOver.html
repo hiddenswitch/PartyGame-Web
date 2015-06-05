@@ -1,8 +1,7 @@
-<body>
+<template name="gameOverView">
 
 <div data-role="page" id="gameOver" data-theme="a">
     <div data-role="header" data-position="fixed">
-        <a href="#home" data-icon="arrow-l">Menu</a>
         <h1 id="roundSummaryHeader">Game Over</h1>
     </div>
 
@@ -16,7 +15,7 @@
             <h3>Final Scores</h3>
             <ul id="scoresListInGameOver" data-role="listview" data-inset="false" data-split-icon="delete">
                 {{> scores}}
-                <li data-theme="d"><a href="#home">Back</a></li>
+                <li data-theme="d"><a href="{{pathFor 'home'}}">Back</a></li>
             </ul>
         </div>
     </div>
@@ -25,4 +24,4 @@
     </div>
 </div>
 
-</body>
+</template>

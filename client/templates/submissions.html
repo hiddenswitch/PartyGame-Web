@@ -1,17 +1,19 @@
 <template name="submissions">
     {{#each submissions}}
-        {{#if canJudge}}
-        <li><a class="submission" id="{{_id}}" href="#preview">{{{text}}}</a></li>
-        {{else}}
-            {{#if canReveal}}
-            <li>{{{text}}}</li>
+        <li>
+            {{#if canJudge}}
+                <a class="submission" id="{{_id}}" href="{{pathFor 'preview' gameId=getCurrentGameId cardId=answerId}}">{{{text}}}</a>
             {{else}}
-                {{#if submitted}}
-                <li>(Waiting to reveal...)</li>
+                {{#if canReveal}}
+                    {{{text}}}
                 {{else}}
-                <li>(Waiting for answer...)</li>
+                    {{#if submitted}}
+                        (Waiting to reveal...)
+                    {{else}}
+                        (Waiting for answer...)
+                    {{/if}}
                 {{/if}}
             {{/if}}
-        {{/if}}
+        </li>
     {{/each}}
 </template>

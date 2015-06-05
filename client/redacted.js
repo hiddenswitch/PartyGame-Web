@@ -3,177 +3,174 @@
  * Copyright 2012
  */
 
-GAME = "currentGame";
-ROUND = "currentRound";
-SUBMISSION = "currentSubmission";
 ERROR = "currentError";
-PREVIEW_CARD = "currentPreviewCard";
 LOCATION = "location";
-IS_LOGGED_IN = "isLoggedIn";
-IS_CORDOVA = "cordova";
-
 K_HIDDEN_TEXT_STRING = "(Hidden)";
 
-previewYes = function () {};
-previewNo = function () {};
+previewYes = function () {
+};
+previewNo = function () {
+};
 
 
 mutationObserver = {};
 
-setError = function(err,r) {
-	if (err) {
-		Session.set(ERROR,err.reason);
-		console.log(err);
+setError = function (err, r) {
+    if (err) {
+        Session.set(ERROR, err.reason);
+        console.log(err);
         console.trace();
-	}
-};
-
-setErrorAndGoHome = function (err,r) {
-	setError(err,r);
-
-	$.mobile.changePage('#home');
-};
-
-loggedIn = function() {
-    return Session.get(IS_LOGGED_IN) !== null;
-};
-
-requestLocation = function(callback) {
-    if (navigator && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(r){
-            var callbackR = [r.coords.longitude, r.coords.latitude];
-            Session.set(LOCATION,callbackR);
-            if (callback)
-                callback(undefined,callbackR);
-        }, function(e){
-            if (callback)
-                callback(new Meteor.Error(400,"Geolocation failed",e),null);
-        });
-    } else {
-        if (callback)
-            callback(new Meteor.Error(404,"Geolocation not supported."),null)
     }
 };
 
-closeThisGame = function() {
-	if (!Session.get(GAME)) {
-		console.log("Not in a game.");
-		return;
-	}
+setErrorAndGoHome = function (err, r) {
+    setError(err, r);
 
-	Meteor.call("closeGame",Session.get(GAME),setError);
+    Router.go('home');
 };
 
-kickThisPlayer = function(kickId) {
-	if (!Session.get(GAME)) {
-		console.log("Not in a game.");
-		return;
-	}
-
-	Meteor.call("kickPlayer",Session.get(GAME),kickId,function(err,r) {
-		setError(err);
-		if (r)
-			setError({reason:"Player kicked."});
-	});
+loggedIn = function () {
+    return !!Meteor.userId();
 };
 
-quitThisGame = function() {
-	if (!Session.get(GAME)) {
-		console.log("Not in a game.");
-		return;
-	}
-
-	Meteor.call("quitGame",Session.get(GAME),setError);
+requestLocation = function (callback) {
+    if (navigator && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (r) {
+            var callbackR = [r.coords.longitude, r.coords.latitude];
+            Session.set(LOCATION, callbackR);
+            if (callback)
+                callback(undefined, callbackR);
+        }, function (e) {
+            if (callback)
+                callback(new Meteor.Error(400, "Geolocation failed", e), null);
+        });
+    } else {
+        if (callback)
+            callback(new Meteor.Error(404, "Geolocation not supported."), null)
+    }
 };
 
-login = function() {
-	var loginUsernameOrEmail = $('#loginUsernameOrEmail').attr('value');
-	var password = $('#loginPassword').attr('value');
+closeThisGame = function () {
+    if (!getCurrentGameId()) {
+        console.log("Not in a game.");
+        return;
+    }
 
-	Meteor.loginWithPassword(loginUsernameOrEmail,password,setErrorAndGoHome);
+    Meteor.call("closeGame", getCurrentGameId(), setError);
+};
+
+kickThisPlayer = function (kickId) {
+    if (!getCurrentGameId()) {
+        console.log("Not in a game.");
+        return;
+    }
+
+    Meteor.call("kickPlayer", getCurrentGameId(), kickId, function (err, r) {
+        setError(err);
+        if (r)
+            setError({reason: "Player kicked."});
+    });
+};
+
+quitThisGame = function () {
+    if (!getCurrentGameId()) {
+        console.log("Not in a game.");
+        return;
+    }
+
+    Meteor.call("quitGame", getCurrentGameId(), setError);
+};
+
+login = function () {
+    var loginUsernameOrEmail = $('#loginUsernameOrEmail').attr('value');
+    var password = $('#loginPassword').attr('value');
+
+    Meteor.loginWithPassword(loginUsernameOrEmail, password, setErrorAndGoHome);
 };
 
 loginAnonymouslyCallback = null;
 
-loginAnonymously = function() {
-    var nickname = $('#anonymousNickname').attr('value');
-    createNewAnonymousUser(nickname,loginAnonymouslyCallback || setErrorAndGoHome);
+loginAnonymously = function () {
+    var nickname = $('#anonymousNickname').val();
+    createNewAnonymousUser(nickname, loginAnonymouslyCallback || setErrorAndGoHome);
 };
 
-loginWithGoogle = function(callback) {
+loginWithGoogle = function (callback) {
     callback = callback || setErrorAndGoHome;
-	Meteor.loginWithGoogle({}, callback);
+    Meteor.loginWithGoogle({}, callback);
 };
 
-signUp = function() {
-	if (Meteor.user()) {
-		Session.set(ERROR,"You are already logged in!");
-		return;
-	}
+signUp = function () {
+    if (Meteor.user()) {
+        Session.set(ERROR, "You are already logged in!");
+        return;
+    }
 
-	var username = $('#signUpUsername').attr('value');
-	var email = $('#signUpEmail').attr('value');
-	var password = $('#signUpPassword').attr('value');
+    var username = $('#signUpUsername').attr('value');
+    var email = $('#signUpEmail').attr('value');
+    var password = $('#signUpPassword').attr('value');
 
-	createNewUserAndLogin(username,email,password,function(err){
-		if (err) {
-			Session.set(ERROR,err.reason);
-			console.log(err);
-		} else {
-			$.mobile.changePage('#home');
-		}
-	});
+    createNewUserAndLogin(username, email, password, function (err) {
+        if (err) {
+            Session.set(ERROR, err.reason);
+            console.log(err);
+        } else {
+            Router.go('home');
+        }
+    });
 };
 
-matchMake = function() {
-    match(Session.get(LOCATION),function (err,gameId){
+matchMake = function () {
+
+    match(Session.get(LOCATION), function (err, matchMakingResult) {
+        var gameId = matchMakingResult.gameId;
         if (gameId) {
-            Session.set(GAME,gameId);
+            Router.go('roundSummary', {gameId: gameId});
         }
         setError(err);
     });
 };
 
 
-createAndJoinGame = function() {
-	var gameTitle = encodeURIComponent($('#gameTitle').attr('value'));
-	var gamePassword = $('#gamePassword').attr('value');
+createAndJoinGame = function () {
+    var title = $('#gameTitle').val();
+    var gameTitle = encodeURIComponent(title);
+    var gamePassword = $('#gamePassword').val();
 
-	if (!gameTitle || gameTitle == "") {
-		Session.set(ERROR,"Cannot create a game with an empty title!");
-		return;
-	}
+    if (!gameTitle || gameTitle == "") {
+        Session.set(ERROR, "Cannot create a game with an empty title!");
+        return;
+    }
 
-    function createAndJoinGameCallback (callbackOnCreateGame) {
-        Meteor.call("createEmptyGame",gameTitle,"",Session.get(LOCATION),function(e,gameId){
+    function createAndJoinGameCallback(callbackOnCreateGame) {
+        Meteor.call("createEmptyGame", gameTitle, "", Session.get(LOCATION), function (e, gameId) {
             if (gameId) { // new game id returned
                 if (callbackOnCreateGame != null) {
                     callbackOnCreateGame(gameId);
                 }
 
-                Meteor.call("joinGame",gameId,function(e2,playerId){
+                Meteor.call("joinGame", gameId, function (e2, playerId) {
                     if (playerId) {
-                        Session.set(GAME,gameId);
+                        Router.go('roundSummary', {gameId: gameId});
                     }
                     if (e2) {
-                        Session.set(ERROR,e2.reason || e.reason + ", " + e2.reason);
+                        Session.set(ERROR, e2.reason || e.reason + ", " + e2.reason);
                         console.log(e2);
-                        $.mobile.changePage('#home');
+                        Router.go('home');
                     }
                 });
             }
             if (e) {
-                $.mobile.changePage('#home');
+                Router.go('home');
                 setError(e);
             }
         });
-        $.mobile.changePage('#roundSummary');
     }
 
     if (hasFacebook()) {
-        friendsSelectedCallback = function(facebookIds) {
-            createAndJoinGameCallback(function(gameId) {
-                Meteor.call("inviteFriendsToGame",facebookIds,"Hey, join my PartyGa.me: " + Meteor.absoluteUrl('g/' + gameTitle));
+        friendsSelectedCallback = function (facebookIds) {
+            createAndJoinGameCallback(function (gameId) {
+                Meteor.call("inviteFriendsToGame", facebookIds, "Hey, join my PartyGa.me: " + Meteor.absoluteUrl('g/' + gameTitle));
                 console.log("Invited friends to " + gameId);
             });
 
@@ -181,16 +178,20 @@ createAndJoinGame = function() {
             friendsSelectedCallback = null;
         };
 
-        $.mobile.changePage('#pickFriends');
+        Router.go('pickFriends');
     } else {
         createAndJoinGameCallback();
     }
 };
 
-playerIdForUserId = function(userId,gameId) {
+currentGameId = function () {
+    return getCurrentGameId();
+};
+
+playerIdForUserId = function (userId, gameId) {
     userId = userId || Meteor.userId();
-    gameId = gameId || Session.get(GAME);
-    var p = Players.find({gameId:gameId,userId:userId},{reactive:false}).fetch();
+    gameId = gameId || getCurrentGameId();
+    var p = Players.find({gameId: gameId, userId: userId}, {reactive: false}).fetch();
 
     if (userId == null || gameId == null) {
         return "";
@@ -204,8 +205,8 @@ playerIdForUserId = function(userId,gameId) {
     }
 };
 
-playerIdToName = function(id) {
-    var p = Players.findOne({_id:id},{reactive:false});
+playerIdToName = function (id) {
+    var p = Players.findOne({_id: id}, {reactive: false});
 
     if (!p)
         return "(Anonymous)";
@@ -213,8 +214,8 @@ playerIdToName = function(id) {
     return p.name;
 };
 
-submissionIdToCardId = function(id) {
-    var submission = Submissions.findOne({_id:id});
+submissionIdToCardId = function (id) {
+    var submission = Submissions.findOne({_id: id});
     if (submission.answerId)
         return submission.answerId;
     else
@@ -222,63 +223,57 @@ submissionIdToCardId = function(id) {
 };
 
 // Match into an existing game, or create a new one to join into
-match = function(location,gameJoinedCallback) {
-    Meteor.call("findLocalGame",location,function(e,gameId) {
-        if (gameId)
-            Meteor.call("joinGame",gameId,gameJoinedCallback);
-        else
-            Meteor.call("findGameWithFewPlayers",function(e,gameId){
-                if (gameId)
-                    Meteor.call("joinGame",gameId,gameJoinedCallback);
-                else
-                    Meteor.call("createEmptyGame","","",location,function (e,gameId){
-                        if (gameId)
-                            Meteor.call("joinGame",gameId,gameJoinedCallback);
-                        else
-                            console.log(e);
-                    });
-            });
-    });
+match = function (location, gameJoinedCallback) {
+    Meteor.call('match', {location: location}, gameJoinedCallback);
 };
 
 // get a {playerId, score} dictionary containing the current scores
-scores = function(gameId) {
+scores = function (gameId) {
     var scores = {};
 
     try {
-        Players.find({gameId:gameId}).forEach(function (p) {
-            scores[p._id] = {score:0,connected:p.connected,name: p.name};
+        Players.find({gameId: gameId}).forEach(function (p) {
+            scores[p._id] = {score: 0, connected: p.connected, name: p.name};
         });
 
         // compute all the scores
-        Votes.find({gameId:gameId}).forEach(function(voteDoc) {
+        Votes.find({gameId: gameId}).forEach(function (voteDoc) {
             scores[voteDoc.playerId].score += 1;
         });
 
-        return _.map(scores,function (value,key){
-            return {playerId:key,score:value.score,connected:value.connected,name:value.name};
+        return _.map(scores, function (value, key) {
+            return {playerId: key, score: value.score, connected: value.connected, name: value.name};
         });
-    } catch(e) {
+    } catch (e) {
         return false;
     }
 };
 
-createNewUserAndLogin = function(username,email,password,callback) {
+createNewUserAndLogin = function (username, email, password, callback) {
     if (username && email && password) {
-        Accounts.createUser({username:username,email:email,password:password,profile:{location:Session.get(LOCATION)}},callback);
+        Accounts.createUser({
+            username: username,
+            email: email,
+            password: password,
+            profile: {location: Session.get(LOCATION)}
+        }, callback);
     } else {
-        throw new Meteor.Error(403,"Please fill out: " + (username ? "" : " username") + (email ? "" : " email") + (password ? "" : " password")+".");
+        throw new Meteor.Error(403, "Please fill out: " + (username ? "" : " username") + (email ? "" : " email") + (password ? "" : " password") + ".");
     }
 };
 
-createNewAnonymousUser = function(nickname,callback) {
-    var userIdPadding = Math.random().toString(36).slice(-8);
+createNewAnonymousUser = function (nickname, callback) {
+    var userIdPadding = Math.random().toString(10).slice(-8);
     var password = Math.random().toString(36).slice(-8);
     nickname = nickname || "Anonymous (" + userIdPadding + ")";
-    Accounts.createUser({username:nickname + " (Guest " + userIdPadding + ")", password:password, profile:{name:nickname,location:Session.get(LOCATION)}},callback)
+    Accounts.createUser({
+        username: nickname + " (Guest " + userIdPadding + ")",
+        password: password,
+        profile: {name: nickname, location: Session.get(LOCATION)}
+    }, callback)
 };
 
-questionAndAnswerText = function(questionCardId,answerCardId) {
+questionAndAnswerText = function (questionCardId, answerCardId) {
     var q = cardIdToText(questionCardId);
     var c = cardIdToText(answerCardId);
 
@@ -286,7 +281,7 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
         return K_HIDDEN_TEXT_STRING;
     }
 
-    q = q.replace(/_+/,"████");
+    q = q.replace(/_+/, "████");
 
     var matches = [];
     var match = /(.{0,2})(█+)(.+)/g;
@@ -321,26 +316,26 @@ questionAndAnswerText = function(questionCardId,answerCardId) {
 
                 // if the card text ends in punctuation, remove any existing punctuation
                 if (punctuation.exec(after))
-                    c = c.slice(0,c.length-1);
+                    c = c.slice(0, c.length - 1);
             }
 
-            return "<span style='font-style:italic;'>"+c+"</span>";
+            return "<span style='font-style:italic;'>" + c + "</span>";
         }
     });
 
     if (replacements && replacements.length > 0) {
-        return _.reduce(replacements,function(memo,text) {
-            return memo.replace(/█+/,text);
-        },q);
+        return _.reduce(replacements, function (memo, text) {
+            return memo.replace(/█+/, text);
+        }, q);
     } else {
-        return q + " " + "<span style='font-style:italic;'>"+c+"</span>";
+        return q + " " + "<span style='font-style:italic;'>" + c + "</span>";
     }
 };
 
-canPlay = function(){
-    var g = Games.findOne({_id:Session.get(GAME)},{fields:{open:1,players:1}});
-    var playersConnected = Players.find({gameId:Session.get(GAME),connected:true}).count();
-    if (g && g.open === true & playersConnected >= 2) {
+canPlay = function (g) {
+    g = g || Games.findOne({_id: getCurrentGameId()}, {fields: {open: 1, players: 1}});
+    var playersConnected = Players.find({gameId: getCurrentGameId(), connected: true}).count();
+    if (g && g.open === true && playersConnected >= 2) {
         return true;
     } else {
         return false;
@@ -353,240 +348,180 @@ function fastclickSetup() {
     }, false);
 }
 
-registerTemplates = function() {
-    Handlebars.registerHelper("cardIdToText",cardIdToText);
-	Handlebars.registerHelper("questionAndAnswerText",questionAndAnswerText);
-	Handlebars.registerHelper("playerIdToName",playerIdToName);
-    Handlebars.registerHelper("loggedIn",loggedIn);
-	Handlebars.registerHelper("connectionStatus",function () {
-		var status = Meteor.status().status;
-		if (status == "connected") {
-			return false;
-		} else if (status == "connecting") {
-			return "Connecting to server...";
-		} else if (status == "waiting") {
-			return "Failed to connect. Retrying connection...";
-		}
-	});
-	Handlebars.registerHelper("isCordova",function () {
-        if (Session.get(IS_CORDOVA))
-            return true;
-        else
-            return false;
+registerTemplates = function () {
+    Template.registerHelper('userId', function () {
+        return Meteor.userId();
     });
-    Handlebars.registerHelper("canPlay",canPlay);
+    Template.registerHelper('currentGameId', currentGameId);
+    Template.registerHelper('getCurrentGameId', getCurrentGameId);
+    Template.registerHelper("cardIdToText", cardIdToText);
+    Template.registerHelper("questionAndAnswerText", questionAndAnswerText);
+    Template.registerHelper("playerIdToName", playerIdToName);
+    Template.registerHelper("loggedIn", loggedIn);
+    Template.registerHelper("connectionStatus", function () {
+        var status = Meteor.status().status;
+        if (status == "connected") {
+            return false;
+        } else if (status == "connecting") {
+            return "Connecting to server...";
+        } else if (status == "waiting") {
+            return "Failed to connect. Retrying connection...";
+        }
+    });
+    Template.registerHelper("canPlay", canPlay);
 
-	Template.error.error = function() {
-		return Session.get(ERROR);
-	};
+    Template.error.error = function () {
+        return Session.get(ERROR);
+    };
 
-	Template.question.question = function() {
-		var gameDoc = Games.findOne({_id:Session.get(GAME)});
-		if (gameDoc) {
-			return cardIdToText(gameDoc.questionId);
-		} else {
-			return "REDACTED.";
-		}
-	};
+    Template.question.question = function () {
+        var gameDoc = Games.findOne({_id: getCurrentGameId()});
+        if (gameDoc) {
+            return cardIdToText(gameDoc.questionId);
+        } else {
+            return "REDACTED.";
+        }
+    };
 
     Template.question.rendered = defaultRendered;
 
-	Template.scores.scores = function() {
-		if (!Session.get(GAME))
-			return [];
+    Template.scores.scores = function () {
+        if (!getCurrentGameId())
+            return [];
 
-		return scores(Session.get(GAME));
-	};
+        return scores(getCurrentGameId());
+    };
 
-	Template.scores.rendered = defaultRendered;
-	Template.scores.created = defaultCreated;
+    Template.scores.rendered = defaultRendered;
+    Template.scores.created = defaultCreated;
 
 
-
-	Template.myGames.games = function() {
-        if (Session.equals("currentPage","myGames")) {
-            return Games.find({open:true,userIds:Meteor.userId()});
-        } else  {
+    Template.myGames.games = function () {
+        if (Session.equals("currentPage", "myGames")) {
+            return Games.find({open: true, userIds: Meteor.userId()});
+        } else {
             return null;
         }
-	};
+    };
 
-	Template.myGames.events = {
-		'click a': joinGameOnClick
-	};
+    Template.myGames.events = {
+        'click a': joinGameOnClick
+    };
 
-	Template.myGames.rendered = defaultRendered;
-	Template.myGames.created = defaultCreated;
+    Template.myGames.rendered = defaultRendered;
+    Template.myGames.created = defaultCreated;
 
 
-	Template.submissions.events = {
-		'click .submission':function(e) {
-			var submissionId = $(e.target).attr('id');
-			Session.set(PREVIEW_CARD,submissionIdToCardId(submissionId));
+    Template.submissions.events = {
+        'click .submission': function (e) {
+            var submissionId = $(e.target).attr('id');
 
             previewNo = function () {
-                $.mobile.changePage('#waitForPlayers');
+                Router.go('waitForPlayers', {gameId: getCurrentGameId()});
             };
 
-			previewYes = function () {
-				Meteor.call("pickWinner",Session.get(GAME),submissionId,function(e,r){
-					if (r) {
-                        $.mobile.changePage('#roundSummary');
-					}
-					if (e) {
-						console.log(e);
-						Session.set(ERROR,e.reason);
-                        $.mobile.changePage('#waitForPlayers');
-					}
-				});
-			};
-		}
-	}
-
+            previewYes = function () {
+                Meteor.call("pickWinner", getCurrentGameId(), submissionId, function (e, r) {
+                    if (r) {
+                        Router.go('roundSummary', {gameId: getCurrentGameId()});
+                    }
+                    if (e) {
+                        console.log(e);
+                        Session.set(ERROR, e.reason);
+                        Router.go('waitForPlayers', {gameId: getCurrentGameId()});
+                    }
+                });
+            };
+        }
+    }
 
 
     Template.hand.isJudge = isJudge;
 
-	Template.hand.hand = function () {
-		return Hands.find({userId:Meteor.userId(),gameId:Session.get(GAME)});
-	};
+    Template.hand.hand = function () {
+        return Hands.find({userId: Meteor.userId(), gameId: getCurrentGameId()});
+    };
 
-	Template.hand.events = {
-		'click .card':function(e) {
-			var answerId = $(e.target).attr('id');
-			Session.set(PREVIEW_CARD,answerId);
+    Template.hand.events = {
+        'click .card': function (e) {
+            var answerId = $(e.target).attr('id');
 
-            previewNo = function() {
-                $.mobile.changePage('#chooseCardFromHand');
+            previewNo = function () {
+                Router.go('chooseCardFromHand', {gameId: getCurrentGameId()});
             };
 
-			previewYes = function() {
-				Meteor.call("submitAnswerCard",Session.get(GAME),answerId,function(e,r) {
-					if (r) {
+            previewYes = function () {
+                Meteor.call("submitAnswerCard", getCurrentGameId(), answerId, function (e, r) {
+                    if (r) {
                         console.log(r);
-						Session.set(SUBMISSION,r);
-                        $.mobile.changePage('#waitForPlayers');
-					}
-					if (e) {
-						console.log(e);
-						Session.set(ERROR,e.reason);
-                        $.mobile.changePage('#chooseCardFromHand');
-					}
-				});
-			};
-		}
-	};
+                        Router.go('waitForPlayers', {gameId: getCurrentGameId()});
+                    }
+                    if (e) {
+                        console.log(e);
+                        Session.set(ERROR, e.reason);
+                        Router.go('chooseCardFromHand', {gameId: getCurrentGameId()});
+                    }
+                });
+            };
+        }
+    };
 
-	Template.hand.rendered = defaultRendered;
+    Template.hand.rendered = defaultRendered;
 
     Template.nextButtons.isJudge = isJudge;
     Template.nextButtons.rendered = createAndRefreshButtons;
     Template.nextButtons.created = createAndRefreshButtons;
 
-	Template.hand.created = defaultCreated;
+    Template.hand.created = defaultCreated;
 
-	Template.preview.text = function() {
-		var gameDoc = Games.findOne({_id:Session.get(GAME)});
-		if (gameDoc)
-			return questionAndAnswerText(gameDoc.questionId,Session.get(PREVIEW_CARD));
-		else
-			return "REDACTED.";
-	};
+    Template.preview.text = function () {
+        var current = Router.current();
+        var cardId = current && current.params && current.params.cardId;
+        var gameDoc = Games.findOne({_id: getCurrentGameId()}, {fields: {questionId: 1}});
+        if (gameDoc) {
+            return questionAndAnswerText(gameDoc.questionId, cardId);
+        } else {
+            return "REDACTED.";
+        }
+    };
 
     Template.preview.rendered = defaultRendered;
     Template.preview.created = defaultCreated;
 
-    Template.gamesList.rendered = refreshListviewsAndCreateButtons;
-    Template.gamesList.created = defaultCreated;
-};
-
-cordovaSetup = function() {
-    // Startup for Cordova
-    document.addEventListener('deviceready', function(e) {
-        if (window.isCordova) {
-            Session.set(IS_CORDOVA,true);
-
-//            window.oldWindowOpen = window.open;
-//            window.open = function(strUrl, strWindowName, strWindowFeatures) {
-//                var _browser = window.oldWindowOpen(strUrl, strWindowName, strWindowFeatures);
-//                _browser.addEventListener("loaderror",function(event){
-//                    _browser.closed = true;
-//                });
-//                return _browser;
-//            }
+    Template.gamesList.events({
+        'click [href]': function (event) {
+            Router.go($(event.currentTarget).attr('href'));
         }
-    }, false);
+    });
 };
 
+Meteor.startup(function () {
+    Session.set(ERROR, null);
 
-//Meteor.subscribe("myOwnedGames");
-Meteor.subscribe("cards");
-
-Meteor.startup(function() {
-	Session.set(ERROR,null);
-
-	// update current round
+    // clear error after 5 seconds
     Deps.autorun(function () {
-        var game = Games.findOne({_id:Session.get(GAME)},{fields:{round:1,judgeId:1}});
-        if (game != null) {
-            if (game.open === false) {
-                $.mobile.changePage('#gameOver');
-            } else if (!canPlay()) {
-                if ($.mobile.activePage && _.contains(['waitForPlayers','chooseCardFromHand'],$.mobile.activePage.attr('id'))) {
-                    $.mobile.changePage('#roundSummary');
-                }
-            } else if (!Session.equals(ROUND,game.round)) {
-                Session.set(ROUND,game.round);
-                if ($.mobile.activePage && $.mobile.activePage.attr('id') === 'waitForPlayers') {
-                    $.mobile.changePage('#roundSummary');
-                }
-            } else if (!Session.equals("judge",game.judgeId) && playerIdForUserId(Meteor.userId()) === game.judgeId) {
-                Session.set("judge",game.judgeId);
-                if ($.mobile.activePage && _.contains(['waitForPlayers','chooseCardFromHand'],$.mobile.activePage.attr('id'))) {
-                    $.mobile.changePage('#roundSummary');
-                }
-            }
+        var currentError = Session.get(ERROR);
+        if (currentError !== null) {
+            Meteor.setTimeout(function () {
+                Session.set(ERROR, null);
+            }, 5000);
         }
     });
 
-    // Update logged in status (workaround for constant menu refreshing
-    Deps.autorun(function () {
-        if (Session.get(IS_LOGGED_IN) !== Meteor.userId()) {
-            Session.set(IS_LOGGED_IN,Meteor.userId())
-        };
-    });
-
-	// clear error after 5 seconds
-    Deps.autorun(function () {
-		var currentError = Session.get(ERROR);
-		if (currentError !== null) {
-			Meteor.setTimeout(function(){
-				Session.set(ERROR,null);
-			},5000);
-		}
-	});
-
-	// update last login time
-	Meteor.setInterval(function () {
+    // update last login time
+    Meteor.setInterval(function () {
         if (Meteor.userId()) {
-            Meteor.call("heartbeat",Session.get(LOCATION) ? Session.get(LOCATION) : null,function(err,r){
+            Meteor.call("heartbeat", Session.get(LOCATION) ? Session.get(LOCATION) : null, function (err, r) {
                 setError(err);
             });
         }
-    },K_HEARTBEAT);
-
-    // cordova setup
-    Deps.autorun(function () {
-        if (Session.equals(IS_CORDOVA,true)) {
-            console.log("Redacted Cordova detected.");
-        }
-    });
+    }, K_HEARTBEAT);
 
     // refresh listviews when transition is done
-    $(document).on('pageshow', function(){
+    $(document).on('pageshow', function () {
         //More stuff to do
-        defaultRendered.apply({findAll:$});
-        createAndRefreshButtons.apply({findAll:$});
+        refreshListviews.apply({findAll: $});
+        createAndRefreshButtons.apply({findAll: $});
         Session.set("currentPage", $.mobile.activePage.attr('id'));
     });
 
@@ -597,8 +532,4 @@ Meteor.startup(function() {
 });
 
 registerTemplates();
-
-cordovaSetup();
-
-
 fastclickSetup();

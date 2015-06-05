@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 
 CardManager = {
@@ -10,10 +10,10 @@ CardManager = {
     adjectiveCards: [],
     allAnswerCards: [],
     allCards: [],
-    getCardIdMix: function (count) {
+    getCardMix: function (count) {
         // Generate booster pack in equal ratios for now.
         var self = this;
-        return _.pluck(_.shuffle(self.allCards).slice(0,count),'_id');
+        return _.shuffle(self.allCards).slice(0,count);
     },
     updateAndShuffleCards: function () {
         var self = this;
@@ -80,9 +80,9 @@ CardManager = {
     },
     _startup: function () {
         // Update cards
-        Meteor.call("addGoogleCards");
-        Meteor.call("addCAHCards");
-        Meteor.call("addComboDecks");
+        //Meteor.call("addGoogleCards");
+        //Meteor.call("addCAHCards");
+        //Meteor.call("addComboDecks");
 
         CardManager.updateAndShuffleCards();
         Meteor.setInterval(CardManager.updateAndShuffleCards, K_10_MINUTES);

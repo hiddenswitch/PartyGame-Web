@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 (function leafletSetup() {
     L.Icon.Default.imagePath = 'packages/leaflet/images';
@@ -27,7 +27,7 @@ Template.map.local = function() {
     }
 };
 
-Handlebars.registerHelper("mapUrl",function(location,width,height){
+Template.registerHelper("mapUrl",function(location,width,height){
     if (location && location.length > 0) {
         return Template.map.url(location[0],location[1],width,height);
     } else {

@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 // Adapted from http://stackoverflow.com/a/11379791/1757994
 Array.prototype.superSort = function() {

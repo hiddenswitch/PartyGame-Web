@@ -1,12 +1,12 @@
 <template name="scores">
     {{#each scores}}
     {{#if gameIsOwner}}
-    <li>
+    <button class="btn btn-default">
         <a href="#">{{name}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></a>
         <a onclick="kickThisPlayer('{{playerId}}')" class="userKick" href="#" id="{{playerId}}">Kick</a>
-    </li>
+    </button>
     {{else}}
-    <li>{{name}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></li>
+    <button class="btn btn-default">{{name}} {{#unless connected}}(Disconnected){{/unless}} <span class="ui-li-count">{{score}}</span></button>
     {{/if}}
     {{/each}}
 </template>

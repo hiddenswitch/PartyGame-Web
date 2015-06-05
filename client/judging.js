@@ -1,9 +1,9 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 isJudge = function () {
-    var currentGameId = Session.get(GAME);
+    var currentGameId = getCurrentGameId();
     var playerId = getPlayerId(currentGameId, Meteor.userId());
     var g = Games.findOne({_id: currentGameId});
 
@@ -15,11 +15,13 @@ isJudge = function () {
 
 // Formatting functions
 submissionCount = function () {
-    return Submissions.find({gameId: Session.get(GAME), round: Session.get(ROUND)}).count();
+    var game = Games.findOne(getCurrentGameId(), {fields: {round:1}});
+    var round = game && game.round;
+    return Submissions.find({gameId: game._id, round: round}).count();
 };
 
 maxSubmissionsCount = function () {
-    var gameId = Session.get(GAME);
+    var gameId = getCurrentGameId();
     if (gameId) {
         return Players.find({gameId: gameId, connected: true}).count() - 1;
     } else {
@@ -28,7 +30,7 @@ maxSubmissionsCount = function () {
 };
 
 playersCount = function () {
-    var gameId = Session.get(GAME);
+    var gameId = getCurrentGameId();
     if (gameId)
         return Players.find({gameId: gameId, connected: true}).count();
     else
@@ -59,7 +61,7 @@ submissionsRemaining = function () {
 Template.judge.isJudge = isJudge;
 
 Template.judge.judge = function () {
-    var g = Games.findOne({_id: Session.get(GAME)});
+    var g = Games.findOne({_id: getCurrentGameId()});
     if (g)
         return Meteor.users.findOne({_id: g.judgeId});
     else
@@ -71,7 +73,7 @@ Template.judge.judgeEmailAddress = function () {
         if (isJudge())
             return "You are the judge!";
         else {
-            var g = Games.findOne({_id: Session.get(GAME)});
+            var g = Games.findOne({_id: getCurrentGameId()});
             if (g)
                 return playerIdToName(g.judgeId);
             else
@@ -86,16 +88,19 @@ Template.judge.created = defaultCreated;
 
 Template.submissions.isJudge = isJudge;
 Template.submissions.count = function () {
-    return Submissions.find({gameId: Session.get(GAME), round: Session.get(ROUND)}).count();
+    var game = Games.findOne(getCurrentGameId(), {fields: {round:1}});
+    var round = game && game.round;
+    return Submissions.find({gameId: game._id, round: round}).count();
 };
 
 Template.submissions.canReveal = canReveal;
 Template.submissions.canJudge = canJudge;
 
 Template.submissions.submissions = function () {
-
-    var subs = Submissions.find({gameId: Session.get(GAME), round: Session.get(ROUND)}).fetch();
-    var playersRemainingCountPrecomputed = Players.find({gameId: Session.get(GAME), connected: true}).count() - subs.length - 1;
+    var game = Games.findOne(getCurrentGameId(), {fields: {round:1}});
+    var round = game && game.round;
+    var subs = Submissions.find({gameId: game._id, round: round}).fetch();
+    var playersRemainingCountPrecomputed = Players.find({gameId: getCurrentGameId(), connected: true}).count() - subs.length - 1;
 
     for (var i = 0; i < playersRemainingCountPrecomputed; i++) {
         subs.push({submitted: false});

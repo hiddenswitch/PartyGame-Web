@@ -1,11 +1,14 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 FacebookManager = {
-    facebookNpm: Meteor.require('facebook-node-sdk'),
+    facebookNpm: PartyGameNpm.require('facebook-node-sdk'),
     fb: function (accessToken) {
         if (accessToken == null) return null;
+        if (!FacebookManager.facebookNpm) {
+            return;
+        }
         return new FacebookManager.facebookNpm({
             appID: Meteor.settings.facebook.appId,
             secret: Meteor.settings.facebook.appSecret
@@ -41,7 +44,7 @@ FacebookManager = {
         Meteor.sync(function (done) {
             // Create client
             try {
-                var xmpp = Meteor.require('node-xmpp');
+                var xmpp = PartyGameNpm.require('node-xmpp');
                 var login = {
                     jid: '-' + uid + '@chat.facebook.com',
                     api_key: Meteor.settings.facebook.appId,
@@ -75,13 +78,15 @@ FacebookManager = {
         });
     },
     messageStanza: function (xmpp, to, message) {
-        var stanza = new xmpp.Element('message', { to: to, type: 'chat' });
+        var stanza = new xmpp.Element('message', {to: to, type: 'chat'});
         stanza.c('body').t(message);
         return stanza;
     }
 };
 
 Meteor.publish('fbFriends', function () {
+    return [];
+
     var self = this;
     var fb = FacebookManager.fb(FacebookManager.accessToken(this.userId));
 

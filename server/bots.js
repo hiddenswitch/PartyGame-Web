@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 
 Bots = {
@@ -35,7 +35,7 @@ Bots = {
     },
 
     botJoinOrCreateGame: function (botId) {
-        var gameId = Party.findGameWithFewPlayers(5);
+        var gameId = Party.findGameWithFewPlayers(5, botId);
         botId = botId || Bots.get();
         if (gameId) {
             return Bots.botJoinGame(gameId, botId);
@@ -53,7 +53,7 @@ Bots = {
             return Bots.botJoinGame(gameId, botId);
         } else {
             console.log("Failed to create an empty bot game and join it.");
-            return 0;
+            return;
         }
     },
 
@@ -63,17 +63,18 @@ Bots = {
         console.log("did get bot: " + botId);
         if (!botId) {
             console.log("Could not create a bot.");
-            return false;
+            return;
         }
 
         // Join the specified game.
-        if (Party.joinGame(gameId, botId) != null) {
+        var playerId = Party.joinGame(gameId, botId);
+        if (!!playerId) {
             // Update the bot's quantity of inGames
             Meteor.users.update({_id: botId}, {$set: {inGame: true}});
-            return true;
+            return {playerId: playerId, gameId: gameId, botId: botId};
         } else {
             console.log("Bot could not join game.");
-            return false;
+            return;
         }
     },
 
@@ -110,15 +111,15 @@ Bots = {
      * @param userId
      */
     botOnAccountCreation: function (userId, location) {
-        var gameId = Party.findGameWithFewPlayers(5);
+        var gameId = Party.findGameWithAtLeastPlayers(3, userId);
 
-        if (gameId !== false) {
+        if (!!gameId) {
             return;
         }
 
-        var bot = Bots.get();
+        var botId = Bots.get();
 
-        gameId = Party.createEmptyGame(null, null, location, bot._id);
+        gameId = Party.createEmptyGame(null, null, location, botId);
 
         Bots.fillGameWithBots(gameId, 6);
     },

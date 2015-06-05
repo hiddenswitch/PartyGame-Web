@@ -1,13 +1,13 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 
 // Event handler for answer question onclick
 answerQuestion = function () {
     Meteor.call("getQuestionForUser", function (e, r) {
         if (e) {
-            $.mobile.changePage('#home');
+            Router.go('home');
         }
         if (r) {
             Session.set("history", Histories.findOne({_id: r}));
@@ -17,13 +17,8 @@ answerQuestion = function () {
 
 // List of questions you can select from
 Template.questionSelection.questions = function () {
-    return Inventories.find({itemType:INVENTORY_ITEM_TYPE_CARD, quantity: {$gt: 0}});
+    return Inventories.find({itemType: INVENTORY_ITEM_TYPE_CARD, 'card.type': CARD_TYPE_QUESTION, quantity: {$gt: 0}});
 };
-
-Template.questionSelection.isQuestionCard = function(cardId) {
-    return Cards.find({_id: cardId, type:CARD_TYPE_QUESTION}).count() !== 0;
-};
-
 
 // Callback for friend selection
 friendsSelectedCallback = null;

@@ -1,5 +1,5 @@
 <template name="hand">
     {{#each hand}}
-    <li><a class="card" id="{{cardId}}" href="#preview">{{{cardIdToText cardId}}}</a></li>
+    <li><a class="card" id="{{cardId}}" href="{{pathFor 'preview' gameId=getCurrentGameId cardId=cardId}}">{{{cardIdToText cardId}}}</a></li>
     {{/each}}
 </template>

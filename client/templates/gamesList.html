@@ -1,32 +1,59 @@
 <template name="gamesList">
     {{#if loggedIn}}
-    <ul data-role="listview" data-split-icon="arrow-r" data-divider-theme="c">
+    <div data-role="listview" data-split-icon="arrow-r" data-divider-theme="c">
         {{> browse}}
-        <li data-theme="f"><a href="#roundSummary" onclick="matchMake();"><h1>Play Now</h1><p>Join a global PartyGa.me</p></a></li>
-        <!--<li data-theme="d"><a href="#history" onclick="answerQuestion();" data-icon="edit">Answer a Question</a></li>-->
-        <!--<li data-theme="f"><a href="#pickQuestion" data-icon="arrow-r">Send a Question</a></li>-->
+        <div class="btn-group btn-group-vertical btn-block">
+            <button onclick="matchMake();"
+                    class="btn btn-default">
+                <div class="text-left">
+                    <span>Join a global Partyga.me</span>
+                    <br/>
+                    <span class="text-muted small">Play with random people around the world!</span>
+                </div>
+            </button>
+            <button href="{{pathFor 'createGame'}}"
+                    class="btn btn-default">
+                <div class="text-left">
+                    <span>Start a Local Game</span>
+                    <br/>
+                    <span class="text-muted small">Invite people via code, SMS, FB or email</span>
+                </div>
+            </button>
+            <button href="{{pathFor 'pickQuestion'}}"
+                    class="btn btn-default">
+                <div class="text-left">
+                    <span>Quick Play</span>
+                    <br/>
+                    <span class="text-muted small">Play 1 round. Win and earn cards!</span>
+                </div>
+            </button>
+            <button onclick="Meteor.logout();"
+                    class="btn btn-default">
+                <div class="text-left">
+                    <span>Logout</span>
+                    <br/>
+                    <span class="text-muted small">Ragequit and suck forever.</span>
+                </div>
+            </button>
+        </div>
+        <!--<li data-theme="d"><a href="{{pathFor 'history'}}" onclick="answerQuestion();" data-icon="edit">Answer a Question</a></li>-->
+        <!--<li data-theme="f"><a href="{{pathFor 'pickQuestion'}}" data-icon="arrow-r">Send a Question</a></li>-->
         {{> answerQuestion}}
         {{> judgeQuestion}}
         {{> pendingQuestion}}
-        <li data-theme="g" data-icon="plus"><a href="#createGame">Create Game</a></li>
-        <li data-theme="e" data-icon="plus"><a href="#pickQuestion">Send A Question</a></li>
-        <li data-theme="c" data-icon="delete"><a href="#home" onclick="Meteor.logout();">Logout</a></li>
-    </ul>
+    </div>
     {{else}}
+    <button class="btn btn-default btn-block" id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</button>
+    <button class="btn btn-default btn-block" id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</button>
 
-    {{#unless isCordova}}
-    <a id="facebookButton" href="#" data-role="button" onclick="loginWithFacebook()">Login with Facebook</a>
-    <a id="googleButton" href="#" data-role="button" onclick="loginWithGoogle()">Login with Google</a>
+    <p class="margin-top-gutter">Login with Facebook or Google for the best experience.</p>
 
-    <p>Login with Facebook or Google for the best experience.</p>
-    {{/unless}}
+    <button class="btn btn-default btn-block" href="{{pathFor 'accountLogin'}}" data-mini="false" data-role="button"
+       data-icon="arrow-r">Create an Account</button>
+    <button class="btn btn-default btn-block" href="{{pathFor 'anonymousLogin'}}" data-mini="false" data-role="button"
+       data-icon="arrow-r">Play As Guest</button>
 
-    <a href="#accountLogin" data-mini="false" data-role="button"
-       data-icon="arrow-r">Create an Account</a>
-    <a href="#anonymousLogin" data-mini="false" data-role="button"
-       data-icon="arrow-r">Play As Guest</a>
-
-    <p>The Party Game is offensive. So it's fun for the whole family. We won't post anything, we won't steal your
+    <p class="margin-top-gutter">The Party Game is offensive. So it's fun for the whole family. We won't post anything, we won't steal your
         information,
         and we won't look at anything. Stop being so paranoid, nobody is tracking you or interested in your Selfies with
         the Besties XOXO. (Except like the NSA and stuff).</p>

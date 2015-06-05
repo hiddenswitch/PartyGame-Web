@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 Party = {
     _getPlayerId: function (gameId, userId) {
@@ -16,7 +16,7 @@ Party = {
         }
     },
 
-    notifyPlayers: function(gameId) {
+    notifyPlayers: function (gameId) {
         // If there are players whom we're waiting on, and we've been waiting more than five minutes
     },
 
@@ -42,7 +42,11 @@ Party = {
         var hasInHand = Hands.find({playerId: playerId, gameId: gameId, cardId: answerId}).count();
 
         if (!hasInHand) {
-            var details = {hand: Hands.find({playerId: playerId, gameId: gameId}).fetch(), answerId: answerId, hasInHand: hasInHand};
+            var details = {
+                hand: Hands.find({playerId: playerId, gameId: gameId}).fetch(),
+                answerId: answerId,
+                hasInHand: hasInHand
+            };
             throw new Meteor.Error(501, "You can't submit a card you don't have! " + JSON.stringify(details));
         }
 
@@ -70,7 +74,18 @@ Party = {
     pickWinner: function (gameId, submissionId, userId) {
         var now = new Date().getTime();
 
-        var game = Games.findOne({_id: gameId}, {fields: {_id: 1, open: 1, questionId: 1, round: 1, questionCards: 1, answerCards: 1, questionCardsCount: 1, answerCardsCount: 1}});
+        var game = Games.findOne({_id: gameId}, {
+            fields: {
+                _id: 1,
+                open: 1,
+                questionId: 1,
+                round: 1,
+                questionCards: 1,
+                answerCards: 1,
+                questionCardsCount: 1,
+                answerCardsCount: 1
+            }
+        });
 
         if (!game)
             throw new Meteor.Error(404, "No game found to submit answer card to.");
@@ -123,21 +138,35 @@ Party = {
         Players.update({_id: playerId}, {$set: {voted: now}});
 
         if (winner) {
-            Votes.update({_id: winner._id}, {$set: {playerId: submission.playerId, questionId: game.questionId, answerId: submission.answerId}});
+            Votes.update({_id: winner._id}, {
+                $set: {
+                    playerId: submission.playerId,
+                    questionId: game.questionId,
+                    answerId: submission.answerId
+                }
+            });
         } else {
-            winner = {_id: Votes.insert({
-                gameId: gameId,
-                round: game.round,
-                judgeId: judge._id,
-                judgeUserId: judge.userId,
-                playerId: submission.playerId,
-                questionId: game.questionId,
-                answerId: submission.answerId
-            })};
+            winner = {
+                _id: Votes.insert({
+                    gameId: gameId,
+                    round: game.round,
+                    judgeId: judge._id,
+                    judgeUserId: judge.userId,
+                    playerId: submission.playerId,
+                    questionId: game.questionId,
+                    answerId: submission.answerId
+                })
+            };
         }
 
         // remove the cards from the player's hands
-        _.each(Submissions.find({gameId: gameId, round: game.round}, {fields: {_id: 1, answerId: 1, userId: 1}}).fetch(), function (submission) {
+        _.each(Submissions.find({gameId: gameId, round: game.round}, {
+            fields: {
+                _id: 1,
+                answerId: 1,
+                userId: 1
+            }
+        }).fetch(), function (submission) {
             if (!submission.answerId || EJSON.equals(submission.answerId, "")) {
                 throw new Meteor.Error(500, "Somebody submitted a redacted answer. Try again!");
             }
@@ -146,7 +175,11 @@ Party = {
             var hand = Hands.find({userId: submission.userId, gameId: gameId, cardId: submission.answerId}).count();
 
             if (hand === 0) {
-                var details = {hand: Hands.find({playerId: submission.playerId, gameId: gameId}).fetch(), answerId: submission.answerId, hasInHand: hand};
+                var details = {
+                    hand: Hands.find({playerId: submission.playerId, gameId: gameId}).fetch(),
+                    answerId: submission.answerId,
+                    hasInHand: hand
+                };
                 throw new Meteor.Error(505, "You can't submit a card you don't have! " + JSON.stringify(details));
             }
 
@@ -220,7 +253,11 @@ Party = {
             throw new Meteor.Error(403, "You cannot kick yourself from your own game.");
 
         Players.remove({_id: kickId});
-        Games.update({_id: gameId}, {$inc: {players: -1}, $pullAll: {userIds: userIdOfKickedPlayer}, $set: {modified: new Date().getTime()}});
+        Games.update({_id: gameId}, {
+            $inc: {players: -1},
+            $pullAll: {userIds: userIdOfKickedPlayer},
+            $set: {modified: new Date().getTime()}
+        });
         return gameId;
     },
 
@@ -256,7 +293,17 @@ Party = {
 
         var judge = Party.currentJudge(gameId);
 
-        return Games.update({_id: gameId}, {$inc: {players: -1}, $pullAll: {userIds: userId}, $set: {open: open, judgeId: judge._id, judgeUserId: judge.userId, ownerId: ownerId, modified: new Date().getTime()}});
+        return Games.update({_id: gameId}, {
+            $inc: {players: -1},
+            $pullAll: {userIds: userId},
+            $set: {
+                open: open,
+                judgeId: judge._id,
+                judgeUserId: judge.userId,
+                ownerId: ownerId,
+                modified: new Date().getTime()
+            }
+        });
     },
 
     // Gets the current judge
@@ -265,7 +312,10 @@ Party = {
     // Ensures that the selected judge is stable when users join, and automatically chooses a new judge when a user
     // connects or disconnects.
     currentJudge: function (gameId) {
-        var player = Players.findOne({gameId: gameId, connected: true, open: true}, {fields: {_id: 1, userId: 1}, sort: {voted: 1}});
+        var player = Players.findOne({gameId: gameId, connected: true, open: true}, {
+            fields: {_id: 1, userId: 1},
+            sort: {voted: 1}
+        });
 
         if (player) {
             return player;
@@ -282,7 +332,12 @@ Party = {
         var d = new Date().getTime();
 
         // update heartbeat for the given user
-        Players.update({userId: userId, connected: false}, {$set: {connected: true, location: currentLocation ? [currentLocation[0], currentLocation[1]] : null}}, {multi: true});
+        Players.update({userId: userId, connected: false}, {
+            $set: {
+                connected: true,
+                location: currentLocation ? [currentLocation[0], currentLocation[1]] : null
+            }
+        }, {multi: true});
         Meteor.users.update({_id: userId}, {$set: {heartbeat: new Date().getTime()}});
         if (currentLocation !== null && currentLocation.length > 0) {
             Meteor.users.update({_id: userId}, {$set: {location: [currentLocation[0], currentLocation[1]]}});
@@ -339,7 +394,11 @@ Party = {
         }
 
         // update the game
-        Games.update({_id: gameId}, {$pullAll: {answerCards: drawnCards}, $inc: {answerCardsCount: -drawnCards.length}, $set: {open: open, modified: new Date().getTime()}});
+        Games.update({_id: gameId}, {
+            $pullAll: {answerCards: drawnCards},
+            $inc: {answerCardsCount: -drawnCards.length},
+            $set: {open: open, modified: new Date().getTime()}
+        });
     },
 
     // Find the latest game a given player joined
@@ -437,19 +496,31 @@ Party = {
         thisPlayer._id = Players.insert(thisPlayer);
 
         // If there is no owner, this first user is now the owner.
-        Games.update({_id: gameId, creatorUserId: userId, $or: [
-            {judgeId: null},
-            {ownerId: null}
-        ]}, {$set: {ownerId: thisPlayer._id, judgeId: thisPlayer._id, judgeUserId: thisPlayer.userId}});
+        Games.update({
+            _id: gameId, creatorUserId: userId, $or: [
+                {judgeId: null},
+                {ownerId: null}
+            ]
+        }, {$set: {ownerId: thisPlayer._id, judgeId: thisPlayer._id, judgeUserId: thisPlayer.userId}});
 
         // Update local copy of game
         g.userIds.push(userId);
 
         // Increment the player count and join the game.
-        Games.update({_id: gameId}, {$inc: {players: 1}, $addToSet: {userIds: userId, playerIds: thisPlayer._id, playerNames: thisPlayer.name}, $set: {modified: new Date().getTime()}});
+        Games.update({_id: gameId}, {
+            $inc: {players: 1},
+            $addToSet: {userIds: userId, playerIds: thisPlayer._id, playerNames: thisPlayer.name},
+            $set: {modified: new Date().getTime()}
+        });
 
         // Update the heartbeat and the game ID
-        Meteor.users.update({_id: userId}, {$set: {lastAction: new Date().getTime(), inGame: true, heartbeat: new Date().getTime()}, $addToSet: {gameIds: gameId, openGameIds: gameId}});
+        Meteor.users.update({_id: userId}, {
+            $set: {
+                lastAction: new Date().getTime(),
+                inGame: true,
+                heartbeat: new Date().getTime()
+            }, $addToSet: {gameIds: gameId, openGameIds: gameId}
+        });
 
         // Update the ACLs for the users
         Meteor.users.update({openGameIds: gameId}, {$addToSet: {acl: {$each: g.userIds}}}, {multi: true});
@@ -460,10 +531,17 @@ Party = {
         return thisPlayer._id;
     },
 
-    findGameWithFewPlayers: function (gameSize) {
+    findGameWithAtLeastPlayers: function (gameSize, userId) {
+        var game = Games.findOne({open: true, players: {$gte: gameSize}, userIds: {$ne: userId}}, {fields: {_id: 1}});
+        if (game) {
+            return game._id;
+        }
+    },
+
+    findGameWithFewPlayers: function (gameSize, userId) {
         // find the latest game with fewer than five players
         gameSize = gameSize || K_PREFERRED_GAME_SIZE;
-        var game = Games.findOne({open: true, players: {$lt: gameSize}}, {fields: {_id: 1}});
+        var game = Games.findOne({open: true, players: {$lt: gameSize}, userIds: {$ne: userId}}, {fields: {_id: 1}});
 
         if (!game)
             return false;
@@ -477,10 +555,16 @@ Party = {
         if (!location)
             return false;
 
-        var game = Games.findOne({open: true, location: {$within: {$center: [
-            [location[0], location[1]],
-            K_LOCAL_DISTANCE
-        ]}}}, {fields: {_id: 1}});
+        var game = Games.findOne({
+            open: true, location: {
+                $within: {
+                    $center: [
+                        [location[0], location[1]],
+                        K_LOCAL_DISTANCE
+                    ]
+                }
+            }
+        }, {fields: {_id: 1}});
 
         if (!game)
             return false;
@@ -501,12 +585,13 @@ Party = {
     // required title
     // optional password
     createEmptyGame: function (title, password, location, userId) {
+        check(userId, String);
         password = password || "";
         location = location || null;
 
         var customTitle = true;
 
-        if (title == null || title == "") {
+        if (!title) {
             title = "Game #" + (Games.find({}).count() + 1).toString();
             customTitle = false;
         }
@@ -551,13 +636,22 @@ Party = {
         // Update friendly location name
         if (location && location.length > 0 && location[0] && location[1]) {
             Meteor.http.get("http://nominatim.openstreetmap.org/reverse?format=json&lat={1}&lon={0}&zoom=18&addressdetails=1".format(location[0], location[1]), function (e, r) {
+                if (e) {
+                    console.error(e);
+                    return;
+                }
+
                 if (r.statusCode === 200 && r.data != null) {
                     Games.update({_id: gameId}, {$set: {locationFriendly: r.data}});
                 }
             });
         }
 
-        console.log("Game stats: " + JSON.stringify({"Number of games": Games.find({open: true}).count(), "Last game created": gameId, "Players": Players.find().count()}));
+        console.log("Game stats: " + JSON.stringify({
+                "Number of games": Games.find({open: true}).count(),
+                "Last game created": gameId,
+                "Players": Players.find().count()
+            }));
 
         return gameId;
     },
@@ -566,11 +660,13 @@ Party = {
     tryCloseGame: function (gameId) {
         return Games.update(
             gameId === null ?
-            {open: true, $or: [
+            {
+                open: true, $or: [
                 {modified: {$lt: new Date().getTime() - K_HEARTBEAT * 20}},
                 {questionCardsCount: 0},
                 {answerCardsCount: 0}
-            ]} :
+            ]
+            } :
             {_id: gameId}, {$set: {open: false, modified: new Date().getTime()}}, {multi: gameId === null});
     }
 };
@@ -607,7 +703,7 @@ Meteor.methods({
     },
 
     findGameWithFewPlayers: function (gameSize) {
-        return Party.findGameWithFewPlayers(gameSize);
+        return Party.findGameWithFewPlayers(gameSize, this.userId);
     },
 
     findLocalGame: function (location) {
@@ -627,5 +723,49 @@ Meteor.methods({
         }
 
         return Party.createEmptyGame(title, password, location, this.userId)
+    },
+
+    /**
+     * Matchmake
+     * @param options
+     * @param [options.location] {[Number]} The latitude and longitude to search near
+     */
+    match: function (options) {
+        options = _.defaults(options, {location: null});
+        check(options, {location: Match.Optional(Match.OneOf([Number], null))});
+        var userId = this.userId;
+        // Try a bunch of approaches
+        var approaches = [function () {
+            // If a location is specified,
+            if (!!options.location) {
+                return Party.findLocalGame(options.location);
+            }
+        }, function () {
+            return Party.findGameWithAtLeastPlayers(3, userId);
+        }, function () {
+            var result = Bots.createEmptyBotGameAndJoin();
+            if (!result) {
+                return;
+            }
+
+            Bots.fillGameWithBots(result.gameId, K_PREFERRED_GAME_SIZE - 3);
+            return result.gameId;
+        }, function () {
+            return Party.createEmptyGame(null, null, null, userId);
+        }];
+
+        for (var i = 0; i < approaches.length; i++) {
+            var gameId = approaches[i].call(this);
+            if (!gameId) {
+                continue;
+            }
+            // Try to join the game if you got a game
+            try {
+                var playerId = Party.joinGame(gameId, userId);
+                return {gameId: gameId, playerId: playerId};
+            } catch (e) {
+                continue;
+            }
+        }
     }
 });

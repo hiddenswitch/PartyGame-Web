@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 Template.judgeAnswers.rendered = defaultRendered;
 Template.judgeAnswers.created = defaultCreated;
@@ -13,12 +13,10 @@ Template.judgeAnswers.answers = function () {
 
 Template.judgeAnswers.events = {
     'click a':function(e) {
-        $.mobile.changePage('#home');
+        Router.go('home');
         var answerId = $(e.currentTarget).attr('id');
-        console.log(answerId);
         Meteor.call("pickAnswer", answerId,function(e,r) {
             setError(e);
-            console.log(r);
         });
     }
 };

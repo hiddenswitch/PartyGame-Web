@@ -1,6 +1,6 @@
 /**
  * @author Benjamin Berman
- * © 2012 All Rights Reserved
+ * © 2014 All Rights Reserved
  **/
 
 // URL handler
@@ -69,11 +69,10 @@ Template.invitation.withPlayers = function () {
 acceptInvite = function () {
     Meteor.call("joinOrCreateGameWithTitle", Session.get("invite"), function (e, r2) {
         if (r2) {
-            Session.set(GAME, r2.gameId);
-            $.mobile.changePage('#roundSummary');
+            Router.go('roundSummary', {gameId: r2.gameId});
         }
         if (e) {
-            $.mobile.changePage('#home');
+            Router.go('home');
             setError(e);
         }
     });
@@ -89,11 +88,10 @@ loginAndAcceptInvite = function () {
 
         Meteor.call("joinOrCreateGameWithTitle", Session.get("invite"), function (e, r2) {
             if (r2) {
-                Session.set(GAME, r2.gameId);
-                $.mobile.changePage('#roundSummary');
+                Router.go('roundSummary', {gameId: r2.gameId});
             }
             if (e) {
-                $.mobile.changePage('#home');
+                Router.go('home');
                 setError(e);
             }
         });
@@ -107,8 +105,8 @@ loginAndAcceptInvite = function () {
  */
 backToHistory = function (e, r) {
     if (r) {
-        Session.set("history", Histories.findOne({_id: invitedHistoryId}))
-        $.mobile.changePage('#history');
+        Session.set("history", Histories.findOne({_id: invitedHistoryId}));
+        Router.go('history', {historyId: invitedHistoryId});
         loginAnonymouslyCallback = null;
     } else {
         setErrorAndGoHome(e, r);
