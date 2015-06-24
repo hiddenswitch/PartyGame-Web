@@ -83,7 +83,7 @@ loginWithFacebookNative = function () {
                     } else {
                         console.log('User cancelled login or did not fully authorize.');
                     }
-                }, {scope: 'email,xmpp_login'});
+                }, {scope: 'email'});
             }
         });
 
@@ -95,7 +95,7 @@ loginWithFacebookNative = function () {
             } else {
                 console.log('User cancelled login or did not fully authorize.');
             }
-        }, {scope: 'email,xmpp_login'});
+        }, {scope: 'email'});
     }
 
     if (window.fbAsyncInit) {
